@@ -1,0 +1,11 @@
+parameter	value	gr1	re1	re2
+a1	35.7	NA	NA	NA
+a2	1.75	NA	NA	NA
+a3	10.05	NA	NA	NA
+sigma	8.02	NA	NA	NA
+d1|gr1	-0.24	Site 1	NA	NA
+d1|gr1	-0.25	Site 2	NA	NA
+a1|re1:re2	5.86	NA	Site 1	Species 1
+a1|re1:re2	-4.79	NA	Site 1	Species 2
+a1|re1:re2	-2.14	NA	Site 2	Species 1
+a1|re1:re2	1.07	NA	Site 2	Species 2
