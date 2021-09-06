@@ -10,14 +10,13 @@ WIDEa is R-based software aiming to provide users with a range of  functionaliti
 6. Study of normal distribution model results for different strategies: calibration (checking assumptions on residuals), validation (comparison between measured and fitted values). The model form can be more or less complex: mixed effects, main/interaction effects, weighted residuals. 
 
 ## Installation and usage
-A detailed description about how to install and use WIDEa are available from the pdf file named WIDEa_manual
+A detailed description about how to install and use WIDEa are available from the pdf file named [WIDEa_manual](https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa_manual.pdf)
 
 ## R version and packages
-A R version 3.5 or greater is required before installing WIDEa ([R link](https://cran.r-project.org/bin/)). 
-WIDEa used functions of several R packages: shiny, shinyBS, shinyjs, shinythemes, shinybusy, V8, plotly, htmltools, htmlwidgets, bindrcpp, scales, data.table, arrangements, car.
+A R version 3.5 or greater is required before installing WIDEa ([R link](https://cran.r-project.org/bin/)).  WIDEa used functions of several R packages: shiny, shinyBS, shinyjs, shinythemes, shinybusy, V8, plotly, htmltools, htmlwidgets, bindrcpp, scales, data.table, arrangements, car.
 
 ## License
 WIDEa is an Open Source software distributed under the [GNU General Public License (GPL), Version 3.0](https://github.com/PhilippeSantenoise/WIDEa/blob/main/LICENSE).
 
 ## Application
-Some data are provided ([Data folder](https://github.com/PhilippeSantenoise/WIDEa/tree/main/Data)) on the repository to help users to test all functionnalities of WIDEa (several examples are given from the WIDEa_manual file).
+Some data are provided ([Data folder](https://github.com/PhilippeSantenoise/WIDEa/tree/main/Data)) on the repository to help users to test all functionnalities of WIDEa (several examples are given from the [WIDEa_manual](https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa_manual.pdf) file).
