@@ -17,6 +17,7 @@ A R version 3.5 or greater is required before installing WIDEa ([R link](https:/
 WIDEa used functions of several R packages: shiny, shinyBS, shinyjs, shinythemes, shinybusy, V8, plotly, htmltools, htmlwidgets, bindrcpp, scales, data.table, arrangements, car.
 
 ## License
+Copyright (C) 2021 - INRAE - Philippe Santenoise<br />
 WIDEa is an Open Source software distributed under the [GNU General Public License (GPL), Version 3.0](https://github.com/PhilippeSantenoise/WIDEa/blob/main/LICENSE).
 
 ## Application
