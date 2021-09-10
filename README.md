@@ -1,4 +1,4 @@
-<img src="https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa/WIDEa_header_img.png" width="200" height="50"> <br /> 
+<img src="https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa/WIDEa_header_img.png" width="400" height="100" class="center"> <br /> 
 # WIDEa <br /> Web Interface for Data Exploration
 
 ## Description
