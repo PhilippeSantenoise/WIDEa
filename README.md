@@ -1,6 +1,5 @@
 <p align="center"><img src="https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa/WIDEa_header_img.png" width="350" height="90"></p>
-
-<br /> # WIDEa <br /> Web Interface for Data Exploration #
+<h1 align="center">WIDEa<br>Web Interface for Data Exploration</h1>
 
 ## Description
 WIDEa is R-based software aiming to provide users with a range of  functionalities to explore, manage, clean and analyse "big" environmental and (in/ex situ) experimental data. These functionalities are the following, 
