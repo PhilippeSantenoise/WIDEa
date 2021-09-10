@@ -1,5 +1,5 @@
 <p align="center"><img src="https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa/WIDEa_header_img.png" width="350" height="90"></p>
-<h1 align="center" border-bottom="none">WIDEa<br>(Web Interface for Data Exploration)</h1>
+<h1 align="center">WIDEa<br>(Web Interface for Data Exploration)<br></h1>
 <hr style="border:2px solid blue"> </hr>
 
 ## Description
