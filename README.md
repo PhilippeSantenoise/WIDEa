@@ -22,7 +22,7 @@ Copyright (C) 2021 - INRAE - Philippe Santenoise<br />
 WIDEa is an Open Source software distributed under the [GNU General Public License (GPL), Version 3.0](https://github.com/PhilippeSantenoise/WIDEa/blob/main/LICENSE).
 
 ## Citation
-DOI: [https://doi.org/10.15454/AGU4QE](https://doi.org/10.15454/AGU4QE)
+Santenoise, P. WIDEa: a Web Interface for big Data Exploration, management and analysis. Portail Data INRAE, 2021. DOI: [10.15454/AGU4QE](https://doi.org/10.15454/AGU4QE)
 
 ## Application
 Some data are provided ([Data folder](https://github.com/PhilippeSantenoise/WIDEa/tree/main/Data)) on the repository to help users to test all functionnalities of WIDEa (several examples are given from the [WIDEa_manual](https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa_manual.pdf) file).
