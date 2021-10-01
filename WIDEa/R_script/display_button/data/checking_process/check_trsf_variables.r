@@ -120,7 +120,14 @@ f_check_trsf_variables <- function (s_data_type = "normal", df_all, o_parameter)
 			}
 		}
 		
-		return (list(list("f" = v_f_val, "g" = v_g_val, "h" = v_h_val), ifelse(length(v_message_out) > 1, paste(v_message_out, collapse = "<br/>"), v_message_out)))
+		if (length(v_message_out) > 1) {
+			s_message_out <- paste(v_message_out, collapse = "<br/>")
+		}
+		else {
+			s_message_out <- character(0)
+		}
+						    
+		return (list(list("f" = v_f_val, "g" = v_g_val, "h" = v_h_val), s_message_out))
 	}
 	else { # temporal
 		if (is.null(df_all)) {
