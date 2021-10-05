@@ -120,7 +120,7 @@ f_check_trsf_variables <- function (s_data_type = "normal", df_all, o_parameter)
 			}
 		}
 		
-		if (length(v_message_out) > 1) {
+		if (length(v_message_out) > 0) {
 			s_message_out <- paste(v_message_out, collapse = "<br/>")
 		}
 		else {
