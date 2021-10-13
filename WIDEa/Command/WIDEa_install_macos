@@ -1,0 +1,35 @@
+#!/bin/bash
+
+echo "1. Downloading and installing R packages (few minutes)..."
+
+set +v
+
+current_path="$( dirname "$0" )/"
+WIDEa_path="${current_path::${#current_path}-8}"
+
+Install_pkg_Rscript="R_script/install_packages.r"
+Install_pkg_Rscript_path=$WIDEa_path$Install_pkg_Rscript
+
+Temp_file_Rscript="R_script/Temporary_file.r"
+Temp_file_path=$WIDEa_path$Temp_file_Rscript
+
+Command_part1="source("
+Command_part2=");"
+
+echo $Command_part1\"$Install_pkg_Rscript_path\"$Command_part2 > "$Temp_file_path" 
+
+chflags hidden "$Temp_file_path"
+
+Rscript "$Temp_file_path"
+
+rm -f "$Temp_file_path"
+
+echo "Done"
+echo "2. Paste WIDEa logo in shiny R package folder"
+
+src_path="$WIDEa_path""/Image/WIDEa_header_img.png"
+dest_path="$(find /Users/"$(whoami)"/Library/R/*/library/shiny -name NEWS.md)"
+dest_path="${dest_path::${#dest_path}-7}""www/WIDEa_header_img.png"
+cp "$src_path" "$dest_path"
+
+echo "Done"
