@@ -53,6 +53,7 @@ if ("shinybusy" %in% rownames(installed.packages()) == F) {
 }
 
 if ("V8" %in% rownames(installed.packages()) == F) {
+   Sys.setenv(DOWNLOAD_STATIC_LIBV8=1)
    install.packages("V8", Sys.getenv("R_LIBS_USER"), repos = "http://cran.case.edu")
 }
 
