@@ -80,7 +80,7 @@ f_check_graphic_opt <- function (l_opt_name, o_plot = NULL, o_parameter) {
 			else {
 				n_val <- abs(diff(range(as.vector(isolate(o_plot$data)[, isolate(o_parameter$x)]))))
 				
-				if (n_bw <= 0 | n_bw >= n_val) {
+				if (l_opt_name[[i]] <= 0 | l_opt_name[[i]] >= n_val) {
 					v_message <- c(v_message, paste0("The bin width must be between 0 and ", round(n_val, digits = 2)))
 				}
 			}
