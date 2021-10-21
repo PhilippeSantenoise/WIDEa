@@ -35,7 +35,6 @@
 # return the date variable
 
 f_create_date_variable <- function (df_all, s_x_var, s_date_format) {
-	df_all <- df_all[!is.na(df_all[, s_x_var]),]
 	df_all[, s_x_var] <- as.vector(df_all[, s_x_var])
 	v_range <- c()
 	
