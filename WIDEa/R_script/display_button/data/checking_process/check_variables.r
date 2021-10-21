@@ -20,10 +20,10 @@
 #
 # Description : function used to execute a checking process on selected variables step by step, 
 #               (step 1) Are there any fields with same variables ?
-#               (step 2) (1) Is the type/number of variables correct ? Date variable has missing
-#                            value(s) ?
+#               (step 2) (1) Is the type/number of variables correct ?
 #                        (2) Are there any fields where variable(s) have no value ? 
-#               (step 3) Date variable format is recognized ? Date variable has unique values ?      
+#               (step 3) Date variable has missing value(s) ? Date variable format is recognized ? Date 
+#                        variable has unique values ?      
 #               (step 4) Date variable has been transformed as an integer variable when loading data ?
 #               (step *) Is ".row_num." variable in loaded data (df_all input) ? 
 #
