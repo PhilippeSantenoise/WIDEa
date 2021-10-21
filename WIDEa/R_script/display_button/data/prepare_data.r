@@ -240,7 +240,10 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, df_c
 					if (isolate(o_parameter$plot_type) == "plot") {
 						if (isolate(o_parameter$dim_num) == "2d") {
 							if (isolate(o_parameter$model) == "none") {
-								df_all$.row_num. <- c(1:dim(df_all)[1])
+								if (is.na(isolate(o_parameter$id))) {
+									df_all$.row_num. <- c(1:dim(df_all)[1])
+								}
+								
 								df_all <- df_all[!is.na(df_all[, isolate(o_parameter$x)]) & !is.na(df_all[, isolate(o_parameter$y)]),]
 							}
 							else {
@@ -256,7 +259,10 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, df_c
 							}
 						}
 						else {
-							df_all$.row_num. <- c(1:dim(df_all)[1])
+							if (is.na(isolate(o_parameter$id))) {
+								df_all$.row_num. <- c(1:dim(df_all)[1])
+							}
+							
 							df_all <- df_all[!is.na(df_all[, isolate(o_parameter$x)]) & !is.na(df_all[, isolate(o_parameter$y)]) & !is.na(df_all[, isolate(o_parameter$z)]),]
 						}
 					}
@@ -632,10 +638,6 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, df_c
 					df_all <- df_all[, v_var_name]
 					
 					if (!is.na(isolate(o_parameter$id))) {
-						if (length(which(is.na(df_all[, isolate(o_parameter$id)]))) > 0) {
-							df_all <- df_all[!is.na(df_all[, isolate(o_parameter$id)]),]
-						}
-						
 						if (!is.na(isolate(o_parameter$group))) {
 							if (length(which(is.na(df_all[, isolate(o_parameter$group)]))) > 0) {
 								df_all <- df_all[!is.na(df_all[, isolate(o_parameter$group)]),]
