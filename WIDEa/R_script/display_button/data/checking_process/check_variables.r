@@ -26,23 +26,20 @@
 #               (step 3) Date variable has missing value(s) ? Date variable format is recognized ? Date 
 #                        variable has unique values ?      
 #               (step 4) Date variable has been transformed as an integer variable when loading data ?
-#               (step *) Is ".row_num." variable in loaded data (df_all input) ? 
+#               (step 5) Is ".row_num." variable in loaded data (df_all input) ? 
 #
 #               The steps 1 to 3 return an error message and the step 4 return a warning message.
-#               The step 2-1 only concerns the normal/ir data type
+#               The step 2-1 only concerns the normal/ir data type.
 #               The steps 3 and 4 only concern the temporal data type.
-#               The step * only concerns the normal (2D/3D plot without model added) & ir data type when 
-#               the ID variable is not specified in the corresponding text field (left panel). The 
-#               ".row_num." variable allows to identify flags currently added from the Flag tab.   
+#               The step 5 only concerns the normal (2D/3D plot without model added) & ir data type.
 # 
 #               The steps (or number) may be different depending on the data type,
 #               (normal) The step 1 is not applied to some fields when a calibration/validation model is 
 #                        added (3 fields concerned: Random, Weighted residual group and Group).
-#                        The step 1 also checks if the ID variable has unique values.
 #                        The combination of Y variables of the correlation matrix (corplot) is also 
-#                        checked for the step 2-2. 
-#               (temporal) The type of Y variables is only checked for the step 2-1.
-#               (ir) The type of selected variables (ID, Group) is only checked for the step 2-1.
+#                        checked for the step 2-3. 
+#               (temporal) The type of Y variables is only checked for the step 2-2.
+#               (ir) The type of selected variables (ID, Group) is only checked for the step 2-2.
 #               
 # Creation date : February 2021
 #########################################################################################################
@@ -341,7 +338,7 @@ f_check_variables <- function (s_data_type = "normal", df_all, o_parameter, v_va
 
 						s_e_message <- paste(v_e_message, collapse = "<br/>")
 					} 
-					else { # exexcute the step *
+					else { # exexcute the step 5
 						if (isolate(o_parameter$plot_type) == "plot") {
 							if (isolate(o_parameter$model) == "none" & is.na(isolate(o_parameter$id))) {
 								if (".row_num." %in% names(df_all)) {
@@ -578,7 +575,7 @@ f_check_variables <- function (s_data_type = "normal", df_all, o_parameter, v_va
 				if (length(v_e_message) > 0) {
 					s_e_message <- paste(v_e_message, collapse = "<br/>")
 				}
-				else { # execute the step *
+				else { # execute the step 5
 					if (is.na(isolate(o_parameter$id))) {
 						if (".row_num." %in% names(df_all)) {
 							s_e_message <- "A variable named \".row_num.\" already exists in the loaded data. This variable is used to identify flags added from the Flag tab when an ID variable is not specified." 
