@@ -2124,80 +2124,130 @@ f_server <- function(input, output, session) {
 					s_e_message <- "Data is empty"
 				}
 				else {
-					v_split_path <- unlist(strsplit(input$data_path1, split = "[.]"))
-					o_flag$name <- NA
-					
-					if (input$data_type == "normal") {
-						s_flag_path_1 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_norm_flag.", v_split_path[length(v_split_path)])
-						s_flag_path_2 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_norm_flag_withID.", v_split_path[length(v_split_path)])
-						v_split_path_1 <- unlist(strsplit(s_flag_path_1, split = "/"))
-						v_split_path_2 <- unlist(strsplit(s_flag_path_2, split = "/"))
-						b_cond_1 <- v_split_path_1[length(v_split_path_1)] %in% list.files(paste0(paste(v_split_path_1[1:(length(v_split_path_1) - 1)], collapse = "/"), "/"))
-						b_cond_2 <- v_split_path_2[length(v_split_path_2)] %in% list.files(paste0(paste(v_split_path_2[1:(length(v_split_path_2) - 1)], collapse = "/"), "/"))
-						b_cond <- b_cond_1 | b_cond_2
-					}
-					else if (input$data_type == "temporal") {
-						s_flag_path <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_temp_flag.", v_split_path[length(v_split_path)])
-						v_split_path <- unlist(strsplit(s_flag_path, split = "/"))
-						b_cond <- v_split_path[length(v_split_path)] %in% list.files(paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "/"), "/"))
-						o_flag$name <- ifelse(b_cond == T, v_split_path[length(v_split_path)], NA)
+					if (length(grep("[(]|[)]|[[]|[]]|-|:|[+]|/| ", names(df_1))) > 0) {
+						s_e_message <- "Variable name should not contains any white-spaces or special characters, such as: parenthesis, square bracket, colon, minus, plus, forward slash."
 					}
 					else {
-						s_flag_path_1 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_ir_flag.", v_split_path[length(v_split_path)])
-						s_flag_path_2 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_ir_flag_withID.", v_split_path[length(v_split_path)])
-						v_split_path_1 <- unlist(strsplit(s_flag_path_1, split = "/"))
-						v_split_path_2 <- unlist(strsplit(s_flag_path_2, split = "/"))
-						b_cond_1 <- v_split_path_1[length(v_split_path_1)] %in% list.files(paste0(paste(v_split_path_1[1:(length(v_split_path_1) - 1)], collapse = "/"), "/"))
-						b_cond_2 <- v_split_path_2[length(v_split_path_2)] %in% list.files(paste0(paste(v_split_path_2[1:(length(v_split_path_2) - 1)], collapse = "/"), "/"))
-						b_cond <- b_cond_1 | b_cond_2
-					}
-					
-					if (input$data_type == "normal") { 
-						v_pos <- which(c(".concat1.", ".concat2.") %in% names(df_1) == T)
-						
-						if (length(v_pos) > 0) {
-							if (length(v_pos) == 2) {
-								o_cond$concat1 <- 1
-								o_cond$concat2 <- 1
-								showNotification("The concatenation option will be disabled for X and Group variables, because variables named .concat1. and .concat2. already exists in loaded data", duration = 15, type = "warning")
-							}
-							else {
-								if (v_pos == 1) {
+						v_split_path <- unlist(strsplit(input$data_path1, split = "[.]"))
+						o_flag$name <- NA
+
+						if (input$data_type == "normal") {
+							s_flag_path_1 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_norm_flag.", v_split_path[length(v_split_path)])
+							s_flag_path_2 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_norm_flag_withID.", v_split_path[length(v_split_path)])
+							v_split_path_1 <- unlist(strsplit(s_flag_path_1, split = "/"))
+							v_split_path_2 <- unlist(strsplit(s_flag_path_2, split = "/"))
+							b_cond_1 <- v_split_path_1[length(v_split_path_1)] %in% list.files(paste0(paste(v_split_path_1[1:(length(v_split_path_1) - 1)], collapse = "/"), "/"))
+							b_cond_2 <- v_split_path_2[length(v_split_path_2)] %in% list.files(paste0(paste(v_split_path_2[1:(length(v_split_path_2) - 1)], collapse = "/"), "/"))
+							b_cond <- b_cond_1 | b_cond_2
+						}
+						else if (input$data_type == "temporal") {
+							s_flag_path <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_temp_flag.", v_split_path[length(v_split_path)])
+							v_split_path <- unlist(strsplit(s_flag_path, split = "/"))
+							b_cond <- v_split_path[length(v_split_path)] %in% list.files(paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "/"), "/"))
+							o_flag$name <- ifelse(b_cond == T, v_split_path[length(v_split_path)], NA)
+						}
+						else {
+							s_flag_path_1 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_ir_flag.", v_split_path[length(v_split_path)])
+							s_flag_path_2 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_ir_flag_withID.", v_split_path[length(v_split_path)])
+							v_split_path_1 <- unlist(strsplit(s_flag_path_1, split = "/"))
+							v_split_path_2 <- unlist(strsplit(s_flag_path_2, split = "/"))
+							b_cond_1 <- v_split_path_1[length(v_split_path_1)] %in% list.files(paste0(paste(v_split_path_1[1:(length(v_split_path_1) - 1)], collapse = "/"), "/"))
+							b_cond_2 <- v_split_path_2[length(v_split_path_2)] %in% list.files(paste0(paste(v_split_path_2[1:(length(v_split_path_2) - 1)], collapse = "/"), "/"))
+							b_cond <- b_cond_1 | b_cond_2
+						}
+
+						if (input$data_type == "normal") { 
+							v_pos <- which(c(".concat1.", ".concat2.") %in% names(df_1) == T)
+
+							if (length(v_pos) > 0) {
+								if (length(v_pos) == 2) {
 									o_cond$concat1 <- 1
-									showNotification("The concatenation option will be disabled for X variable, because the variable named .concat1. already exists in loaded data", duration = 15, type = "warning")
+									o_cond$concat2 <- 1
+									showNotification("The concatenation option will be disabled for X and Group variables, because variables named .concat1. and .concat2. already exists in loaded data", duration = 15, type = "warning")
 								}
 								else {
-									o_cond$concat2 <- 1
-									showNotification("The concatenation option will be disabled for Group variable, because the variable named .concat2. already exists in loaded data", duration = 15, type = "warning")
+									if (v_pos == 1) {
+										o_cond$concat1 <- 1
+										showNotification("The concatenation option will be disabled for X variable, because the variable named .concat1. already exists in loaded data", duration = 15, type = "warning")
+									}
+									else {
+										o_cond$concat2 <- 1
+										showNotification("The concatenation option will be disabled for Group variable, because the variable named .concat2. already exists in loaded data", duration = 15, type = "warning")
+									}
 								}
 							}
 						}
-					}
-					
-					if (input$flag == T) {
-						if (b_cond == T) {
-							if (input$data_type == "normal") {
-								if (b_cond_1 == T & b_cond_2 == T) {
-									s_e_message <- paste0("The flag file is not unique. Please keep one file (", v_split_path_1[length(v_split_path_1)], " or ", v_split_path_2[length(v_split_path_2)], ").")
-								}
-								else {
-									if (b_cond_2 == T) {
-										o_flag$name <- v_split_path_2[length(v_split_path_2)]
-										df_flag <- fread(s_flag_path_2, data.table = F)
-										
-										if (dim(df_flag)[1] == 0) {
-											s_e_message <- "Flag data is empty"
+
+						if (input$flag == T) {
+							if (b_cond == T) {
+								if (input$data_type == "normal") {
+									if (b_cond_1 == T & b_cond_2 == T) {
+										s_e_message <- paste0("The flag file is not unique. Please keep one file (", v_split_path_1[length(v_split_path_1)], " or ", v_split_path_2[length(v_split_path_2)], ").")
+									}
+									else {
+										if (b_cond_2 == T) {
+											o_flag$name <- v_split_path_2[length(v_split_path_2)]
+											df_flag <- fread(s_flag_path_2, data.table = F)
+
+											if (dim(df_flag)[1] == 0) {
+												s_e_message <- "Flag data is empty"
+											}
+											else {
+												if (names(df_flag)[1] %in% names(df_1)) {
+													e_data$all <- df_1
+													e_data$flag <- df_flag
+													shinyjs::enable("plot_type")
+													shinyjs::enable("dim_num")
+													shinyjs::enable("model")
+													shinyjs::enable("id")
+													updateRadioButtons(session, "id", selected = "yes")
+													shinyjs::delay(100, disable("id"))
+													shinyjs::enable("var_x")
+													updateSelectizeInput(session, "var_x", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
+													shinyjs::enable("f_radio")
+													shinyjs::enable("var_y")
+													updateSelectizeInput(session, "var_y", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
+													shinyjs::enable("g_radio")
+													shinyjs::enable("group")
+													shinyjs::enable("display_button")
+													shinyjs::enable("webgl")
+													shinyjs::enable("op_radio")
+													shinyjs::enable("dec_num_radio")
+													shinyjs::enable("edit1_radio")
+													shinyjs::enable("edit2_radio")
+													shinyjs::enable("edit3_radio")
+													shinyjs::enable("lreg")
+													shinyjs::enable("conf_ellipsoid")
+													shinyjs::enable("centroid")
+													o_norm_select$type <- "plot"
+												}
+												else {
+													s_e_message <- paste0("ID flag variable (", names(e_data$flag)[1], ") is missing in data")
+												}
+											}
 										}
 										else {
-											if (names(df_flag)[1] %in% names(df_1)) {
+											o_flag$name <- v_split_path_1[length(v_split_path_1)]
+											df_flag <- fread(s_flag_path_1, data.table = F)
+
+											if (dim(df_flag)[1] == 0) {
+												s_e_message <- "Flag data is empty"
+											}
+											else {
 												e_data$all <- df_1
 												e_data$flag <- df_flag
 												shinyjs::enable("plot_type")
 												shinyjs::enable("dim_num")
 												shinyjs::enable("model")
-												shinyjs::enable("id")
-												updateRadioButtons(session, "id", selected = "yes")
-												shinyjs::delay(100, disable("id"))
+
+												if (input$id == "yes") {
+													updateRadioButtons(session, "id", selected = "no")
+													shinyjs::delay(100, disable("id"))
+												}
+												else {
+													shinyjs::disable("id")
+												}
+
 												shinyjs::enable("var_x")
 												updateSelectizeInput(session, "var_x", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
 												shinyjs::enable("f_radio")
@@ -2217,140 +2267,164 @@ f_server <- function(input, output, session) {
 												shinyjs::enable("centroid")
 												o_norm_select$type <- "plot"
 											}
-											else {
-												s_e_message <- paste0("ID flag variable (", names(e_data$flag)[1], ") is missing in data")
-											}
 										}
+									}
+								}
+								else if (input$data_type == "temporal") {
+									df_flag <- fread(s_flag_path, data.table = F)
+
+									if (dim(df_flag)[1] == 0) {
+										s_e_message <- "Flag data is empty"
 									}
 									else {
-										o_flag$name <- v_split_path_1[length(v_split_path_1)]
-										df_flag <- fread(s_flag_path_1, data.table = F)
-										
-										if (dim(df_flag)[1] == 0) {
-											s_e_message <- "Flag data is empty"
-										}
-										else {
-											e_data$all <- df_1
-											e_data$flag <- df_flag
-											shinyjs::enable("plot_type")
-											shinyjs::enable("dim_num")
-											shinyjs::enable("model")
-											
-											if (input$id == "yes") {
-												updateRadioButtons(session, "id", selected = "no")
-												shinyjs::delay(100, disable("id"))
-											}
-											else {
-												shinyjs::disable("id")
-											}
-											
-											shinyjs::enable("var_x")
-											updateSelectizeInput(session, "var_x", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
-											shinyjs::enable("f_radio")
-											shinyjs::enable("var_y")
-											updateSelectizeInput(session, "var_y", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
-											shinyjs::enable("g_radio")
-											shinyjs::enable("group")
-											shinyjs::enable("display_button")
-											shinyjs::enable("webgl")
-											shinyjs::enable("op_radio")
-											shinyjs::enable("dec_num_radio")
-											shinyjs::enable("edit1_radio")
-											shinyjs::enable("edit2_radio")
-											shinyjs::enable("edit3_radio")
-											shinyjs::enable("lreg")
-											shinyjs::enable("conf_ellipsoid")
-											shinyjs::enable("centroid")
-											o_norm_select$type <- "plot"
-										}
+										o_cond$del[3] <- 1
+										e_data$all <- df_1
+										e_data$flag <- df_flag
+										shinyjs::enable("var_x")
+										updateSelectizeInput(session, "var_x", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
+										shinyjs::enable("date_format")
+										updateSelectInput(session, "date_format", choices = c("%Y%m%d", "%Y%m%d%H%M", "%d%m%Y", "%d%m%Y%H%M"))
+										shinyjs::enable("var_y")
+										updateSelectizeInput(session, "var_y", choices = names(df_1), options = list(maxOptions = 9999, maxItems = 9999))
+										shinyjs::enable("g_radio")
+										shinyjs::enable("webgl")
+										shinyjs::enable("mode")
+										shinyjs::enable("op_radio")
+										shinyjs::enable("y_scale")
+										shinyjs::enable("dec_num_radio")
+										shinyjs::enable("display_button")
+										shinyjs::enable("edit1_radio")
+										shinyjs::enable("edit3_radio")
 									}
 								}
-							}
-							else if (input$data_type == "temporal") {
-								df_flag <- fread(s_flag_path, data.table = F)
-								
-								if (dim(df_flag)[1] == 0) {
-									s_e_message <- "Flag data is empty"
-								}
 								else {
-									o_cond$del[3] <- 1
-									e_data$all <- df_1
-									e_data$flag <- df_flag
-									shinyjs::enable("var_x")
-									updateSelectizeInput(session, "var_x", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
-									shinyjs::enable("date_format")
-									updateSelectInput(session, "date_format", choices = c("%Y%m%d", "%Y%m%d%H%M", "%d%m%Y", "%d%m%Y%H%M"))
-									shinyjs::enable("var_y")
-									updateSelectizeInput(session, "var_y", choices = names(df_1), options = list(maxOptions = 9999, maxItems = 9999))
-									shinyjs::enable("g_radio")
-									shinyjs::enable("webgl")
-									shinyjs::enable("mode")
-									shinyjs::enable("op_radio")
-									shinyjs::enable("y_scale")
-									shinyjs::enable("dec_num_radio")
-									shinyjs::enable("display_button")
-									shinyjs::enable("edit1_radio")
-									shinyjs::enable("edit3_radio")
-								}
-							}
-							else {
-								if (b_cond_1 == T & b_cond_2 == T) {
-									s_e_message <- paste0("The flag file is not unique. Please keep one file (", v_split_path_1[length(v_split_path_1)], " or ", v_split_path_2[length(v_split_path_2)], ").")
-								}
-								else {
-									if (b_cond_2 == T) {
-										o_flag$name <- v_split_path_2[length(v_split_path_2)]
-										df_flag <- fread(s_flag_path_2, data.table = F)
-										
-										if (dim(df_flag)[1] == 0) {
-											s_e_message <- "Flag data is empty"
-										}
-										else {
-											if (!names(df_flag)[1] %in% names(df_1)) {
-												s_e_message <- paste0("ID flag variable (", names(e_data$flag)[1], ")")
+									if (b_cond_1 == T & b_cond_2 == T) {
+										s_e_message <- paste0("The flag file is not unique. Please keep one file (", v_split_path_1[length(v_split_path_1)], " or ", v_split_path_2[length(v_split_path_2)], ").")
+									}
+									else {
+										if (b_cond_2 == T) {
+											o_flag$name <- v_split_path_2[length(v_split_path_2)]
+											df_flag <- fread(s_flag_path_2, data.table = F)
+
+											if (dim(df_flag)[1] == 0) {
+												s_e_message <- "Flag data is empty"
 											}
-											
-											v_pos_1 <- which(substr(names(df_1), 1, 1) %in% c("M", "N"))
-											
-											if (length(v_pos_1) > 0) {
-												v_pos_2 <- which(!is.na(suppressWarnings(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))) 
-												
-												if (length(v_pos_2) > 0) {
-													v_pos_1 <- v_pos_1[v_pos_2]
-													b_cond_3 <- T
+											else {
+												if (!names(df_flag)[1] %in% names(df_1)) {
+													s_e_message <- paste0("ID flag variable (", names(e_data$flag)[1], ")")
+												}
+
+												v_pos_1 <- which(substr(names(df_1), 1, 1) %in% c("M", "N"))
+
+												if (length(v_pos_1) > 0) {
+													v_pos_2 <- which(!is.na(suppressWarnings(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))) 
+
+													if (length(v_pos_2) > 0) {
+														v_pos_1 <- v_pos_1[v_pos_2]
+														b_cond_3 <- T
+													}
+													else {
+														b_cond_3 <- F
+													}
 												}
 												else {
 													b_cond_3 <- F
 												}
-											}
-											else {
-												b_cond_3 <- F
-											}
-											
-											if (b_cond_3 == T) {
-												eval(parse(text = paste0("v_cond <- c(", paste(paste0("is.numeric(df_1$", names(df_1)[v_pos_1], ") | length(which(!is.na(df_1$", names(df_1)[v_pos_1], "))) == 0"), collapse = ", "), ")")))
-												
-												if (length(which(v_cond == F)) > 0) {
-													if (!is.na(s_e_message)) {
-														s_e_message <- paste0(s_e_message, "is missing in data<br/>", paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", "))
+
+												if (b_cond_3 == T) {
+													eval(parse(text = paste0("v_cond <- c(", paste(paste0("is.numeric(df_1$", names(df_1)[v_pos_1], ") | length(which(!is.na(df_1$", names(df_1)[v_pos_1], "))) == 0"), collapse = ", "), ")")))
+
+													if (length(which(v_cond == F)) > 0) {
+														if (!is.na(s_e_message)) {
+															s_e_message <- paste0(s_e_message, "is missing in data<br/>", paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", "))
+														}
+														else {
+															s_e_message <- paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", ")
+														}
 													}
 													else {
-														s_e_message <- paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", ")
+														if (!is.na(s_e_message)) {
+															s_e_message <- paste0(s_e_message, "is missing in data")
+														}
+														else {
+															e_data$all <- df_1
+															e_data$flag <- df_flag
+															v_code_range <- paste0(substr(names(df_1)[v_pos_1[1]], 1, 1), range(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))
+															shinyjs::enable("id")
+															updateRadioButtons(session, "id", selected = "yes")
+															shinyjs::delay(100, disable("id"))
+															shinyjs::enable("group")
+
+															if ("code_freq" %in% ls(e_data)) {
+																shinyjs::enable("display_button")
+																shinyjs::enable("webgl")
+																shinyjs::enable("mode")
+																shinyjs::enable("op_radio")
+																shinyjs::enable("y_scale")
+																shinyjs::enable("dec_num_radio")
+																shinyjs::enable("edit1_radio")
+																shinyjs::enable("edit3_radio")
+																shinyjs::enable("mean_spect")
+															}
+														}
 													}
 												}
 												else {
 													if (!is.na(s_e_message)) {
-														s_e_message <- paste0(s_e_message, "is missing in data")
+														s_e_message <- paste0(s_e_message, "and all code variables are missing in data")
+													}
+													else {
+														s_e_message <- "All code variables are missing in data"
+													}
+												}
+											}
+										}
+										else {
+											o_flag$name <- v_split_path_1[length(v_split_path_1)]
+											df_flag <- fread(s_flag_path_1, data.table = F)
+
+											if (dim(df_flag)[1] == 0) {
+												s_e_message <- "Flag data is empty"
+											}
+											else {
+												v_pos_1 <- which(substr(names(df_1), 1, 1) %in% c("M", "N"))
+
+												if (length(v_pos_1) > 0) {
+													v_pos_2 <- which(!is.na(suppressWarnings(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))) 
+
+													if (length(v_pos_2) > 0) {
+														v_pos_1 <- v_pos_1[v_pos_2]
+														b_cond_3 <- T
+													}
+													else {
+														b_cond_3 <- F
+													}
+												}
+												else {
+													b_cond_3 <- F
+												}
+
+												if (b_cond_3 == T) {
+													eval(parse(text = paste0("v_cond <- c(", paste(paste0("is.numeric(df_1$", names(df_1)[v_pos_1], ") | length(which(!is.na(df_1$", names(df_1)[v_pos_1], "))) == 0"), collapse = ", "), ")")))
+
+													if (length(which(v_cond == F)) > 0) {
+														s_e_message <- paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", ")
 													}
 													else {
 														e_data$all <- df_1
 														e_data$flag <- df_flag
 														v_code_range <- paste0(substr(names(df_1)[v_pos_1[1]], 1, 1), range(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))
-														shinyjs::enable("id")
-														updateRadioButtons(session, "id", selected = "yes")
-														shinyjs::delay(100, disable("id"))
+
+														if (input$id == "yes") {
+															updateRadioButtons(session, "id", selected = "no")
+															shinyjs::delay(100, disable("id"))
+														}
+														else {
+															shinyjs::disable("id")
+														}
+
 														shinyjs::enable("group")
-														
+
 														if ("code_freq" %in% ls(e_data)) {
 															shinyjs::enable("display_button")
 															shinyjs::enable("webgl")
@@ -2364,193 +2438,124 @@ f_server <- function(input, output, session) {
 														}
 													}
 												}
-											}
-											else {
-												if (!is.na(s_e_message)) {
-													s_e_message <- paste0(s_e_message, "and all code variables are missing in data")
-												}
 												else {
 													s_e_message <- "All code variables are missing in data"
 												}
 											}
 										}
 									}
-									else {
-										o_flag$name <- v_split_path_1[length(v_split_path_1)]
-										df_flag <- fread(s_flag_path_1, data.table = F)
-										
-										if (dim(df_flag)[1] == 0) {
-											s_e_message <- "Flag data is empty"
-										}
-										else {
-											v_pos_1 <- which(substr(names(df_1), 1, 1) %in% c("M", "N"))
-											
-											if (length(v_pos_1) > 0) {
-												v_pos_2 <- which(!is.na(suppressWarnings(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))) 
-												
-												if (length(v_pos_2) > 0) {
-													v_pos_1 <- v_pos_1[v_pos_2]
-													b_cond_3 <- T
-												}
-												else {
-													b_cond_3 <- F
-												}
-											}
-											else {
-												b_cond_3 <- F
-											}
-											
-											if (b_cond_3 == T) {
-												eval(parse(text = paste0("v_cond <- c(", paste(paste0("is.numeric(df_1$", names(df_1)[v_pos_1], ") | length(which(!is.na(df_1$", names(df_1)[v_pos_1], "))) == 0"), collapse = ", "), ")")))
-
-												if (length(which(v_cond == F)) > 0) {
-													s_e_message <- paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", ")
-												}
-												else {
-													e_data$all <- df_1
-													e_data$flag <- df_flag
-													v_code_range <- paste0(substr(names(df_1)[v_pos_1[1]], 1, 1), range(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))
-													
-													if (input$id == "yes") {
-														updateRadioButtons(session, "id", selected = "no")
-														shinyjs::delay(100, disable("id"))
-													}
-													else {
-														shinyjs::disable("id")
-													}
-													
-													shinyjs::enable("group")
-													
-													if ("code_freq" %in% ls(e_data)) {
-														shinyjs::enable("display_button")
-														shinyjs::enable("webgl")
-														shinyjs::enable("mode")
-														shinyjs::enable("op_radio")
-														shinyjs::enable("y_scale")
-														shinyjs::enable("dec_num_radio")
-														shinyjs::enable("edit1_radio")
-														shinyjs::enable("edit3_radio")
-														shinyjs::enable("mean_spect")
-													}
-												}
-											}
-											else {
-												s_e_message <- "All code variables are missing in data"
-											}
-										}
-									}
 								}
+							}
+							else {
+								s_e_message <- paste0("Flag data doesn't exist (", ifelse(input$data_type == "temporal", v_split_path[length(v_split_path)], paste0(v_split_path_1[length(v_split_path_1)], " or ", v_split_path_2[length(v_split_path_2)])), "). Please uncheck the flag box.")
 							}
 						}
 						else {
-							s_e_message <- paste0("Flag data doesn't exist (", ifelse(input$data_type == "temporal", v_split_path[length(v_split_path)], paste0(v_split_path_1[length(v_split_path_1)], " or ", v_split_path_2[length(v_split_path_2)])), "). Please uncheck the flag box.")
-						}
-					}
-					else {
-						if (b_cond == T) {
-							if (input$data_type == "temporal") {
-								s_flag_name <- v_split_path[length(v_split_path)]
-							}
-							else {
-								if (b_cond_1 == T) {
-									s_flag_name <- v_split_path_1[length(v_split_path_1)]
+							if (b_cond == T) {
+								if (input$data_type == "temporal") {
+									s_flag_name <- v_split_path[length(v_split_path)]
 								}
 								else {
-									s_flag_name <- v_split_path_2[length(v_split_path_2)]
+									if (b_cond_1 == T) {
+										s_flag_name <- v_split_path_1[length(v_split_path_1)]
+									}
+									else {
+										s_flag_name <- v_split_path_2[length(v_split_path_2)]
+									}
+								}
+
+								s_message <- paste0("A flag file (", s_flag_name, ") exists but the corresponding box is not checked. If you save new flags, the previous flag(s) will be removed. Please check the box, if you want to keep previous flag(s).")
+								showNotification(s_message, duration = 15, type = "warning")
+							}
+
+							if (input$data_type != "ir") {
+								e_data$all <- df_1
+								shinyjs::enable("var_x")
+								updateSelectizeInput(session, "var_x", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
+								shinyjs::enable("var_y")
+
+								if (input$data_type == "temporal") {
+									updateSelectizeInput(session, "var_y", choices = names(df_1), options = list(maxOptions = 9999, maxItems = 9999))
+								}
+								else {
+									updateSelectizeInput(session, "var_y", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
+								}
+
+								shinyjs::enable("g_radio")
+								shinyjs::enable("display_button")
+								shinyjs::enable("webgl")
+								shinyjs::enable("op_radio")
+								shinyjs::enable("dec_num_radio")
+								shinyjs::enable("edit1_radio")
+								shinyjs::enable("edit3_radio")
+
+								if (input$data_type == "temporal") {
+									o_cond$del[3] <- 1
+									shinyjs::enable("date_format")
+									updateSelectInput(session, "date_format", choices = c("%Y%m%d", "%Y%m%d%H%M", "%d%m%Y", "%d%m%Y%H%M"))
+									shinyjs::enable("mode")
+									shinyjs::enable("y_scale")
+								}
+								else {
+									shinyjs::enable("plot_type")
+									shinyjs::enable("dim_num")
+									shinyjs::enable("model")
+									shinyjs::enable("id")
+									shinyjs::enable("f_radio")
+									shinyjs::enable("group")
+									shinyjs::enable("edit2_radio")
+									shinyjs::enable("lreg")
+									shinyjs::enable("conf_ellipsoid")
+									shinyjs::enable("centroid")
+									o_norm_select$type <- "plot"
 								}
 							}
-							
-							s_message <- paste0("A flag file (", s_flag_name, ") exists but the corresponding box is not checked. If you save new flags, the previous flag(s) will be removed. Please check the box, if you want to keep previous flag(s).")
-							showNotification(s_message, duration = 15, type = "warning")
-						}
-						
-						if (input$data_type != "ir") {
-							e_data$all <- df_1
-							shinyjs::enable("var_x")
-							updateSelectizeInput(session, "var_x", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
-							shinyjs::enable("var_y")
-							
-							if (input$data_type == "temporal") {
-								updateSelectizeInput(session, "var_y", choices = names(df_1), options = list(maxOptions = 9999, maxItems = 9999))
-							}
 							else {
-								updateSelectizeInput(session, "var_y", choices = names(df_1), selected = names(df_1)[1], options = list(maxOptions = 9999, maxItems = 1))
-							}
-							
-							shinyjs::enable("g_radio")
-							shinyjs::enable("display_button")
-							shinyjs::enable("webgl")
-							shinyjs::enable("op_radio")
-							shinyjs::enable("dec_num_radio")
-							shinyjs::enable("edit1_radio")
-							shinyjs::enable("edit3_radio")
-							
-							if (input$data_type == "temporal") {
-								o_cond$del[3] <- 1
-								shinyjs::enable("date_format")
-								updateSelectInput(session, "date_format", choices = c("%Y%m%d", "%Y%m%d%H%M", "%d%m%Y", "%d%m%Y%H%M"))
-								shinyjs::enable("mode")
-								shinyjs::enable("y_scale")
-							}
-							else {
-								shinyjs::enable("plot_type")
-								shinyjs::enable("dim_num")
-								shinyjs::enable("model")
-								shinyjs::enable("id")
-								shinyjs::enable("f_radio")
-								shinyjs::enable("group")
-								shinyjs::enable("edit2_radio")
-								shinyjs::enable("lreg")
-								shinyjs::enable("conf_ellipsoid")
-								shinyjs::enable("centroid")
-								o_norm_select$type <- "plot"
-							}
-						}
-						else {
-							v_pos_1 <- which(substr(names(df_1), 1, 1) %in% c("M", "N"))
-							
-							if (length(v_pos_1) > 0) {
-								v_pos_2 <- which(!is.na(suppressWarnings(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))) 
-								
-								if (length(v_pos_2) > 0) {
-									v_pos_1 <- v_pos_1[v_pos_2]
-									b_cond_3 <- T
+								v_pos_1 <- which(substr(names(df_1), 1, 1) %in% c("M", "N"))
+
+								if (length(v_pos_1) > 0) {
+									v_pos_2 <- which(!is.na(suppressWarnings(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))) 
+
+									if (length(v_pos_2) > 0) {
+										v_pos_1 <- v_pos_1[v_pos_2]
+										b_cond_3 <- T
+									}
+									else {
+										b_cond_3 <- F
+									}
 								}
 								else {
 									b_cond_3 <- F
 								}
-							}
-							else {
-								b_cond_3 <- F
-							}
-							
-							if (b_cond_3 == T) {
-								eval(parse(text = paste0("v_cond <- c(", paste(paste0("is.numeric(df_1$", names(df_1)[v_pos_1], ") | length(which(!is.na(df_1$", names(df_1)[v_pos_1], "))) == 0"), collapse = ", "), ")")))
-								
-								if (length(which(v_cond == F)) > 0) {
-									s_e_message <- paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", ")
-								}
-								else {
-									e_data$all <- df_1
-									v_code_range <- paste0(substr(names(df_1)[v_pos_1[1]], 1, 1), range(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))
-									shinyjs::enable("id")
-									shinyjs::enable("group")
-									
-									if ("code_freq" %in% ls(e_data)) {
-										shinyjs::enable("display_button")
-										shinyjs::enable("webgl")
-										shinyjs::enable("mode")
-										shinyjs::enable("op_radio")
-										shinyjs::enable("y_scale")
-										shinyjs::enable("dec_num_radio")
-										shinyjs::enable("edit1_radio")
-										shinyjs::enable("edit3_radio")
-										shinyjs::enable("mean_spect")
+
+								if (b_cond_3 == T) {
+									eval(parse(text = paste0("v_cond <- c(", paste(paste0("is.numeric(df_1$", names(df_1)[v_pos_1], ") | length(which(!is.na(df_1$", names(df_1)[v_pos_1], "))) == 0"), collapse = ", "), ")")))
+
+									if (length(which(v_cond == F)) > 0) {
+										s_e_message <- paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(v_cond == F)], collapse = ", ")
+									}
+									else {
+										e_data$all <- df_1
+										v_code_range <- paste0(substr(names(df_1)[v_pos_1[1]], 1, 1), range(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))
+										shinyjs::enable("id")
+										shinyjs::enable("group")
+
+										if ("code_freq" %in% ls(e_data)) {
+											shinyjs::enable("display_button")
+											shinyjs::enable("webgl")
+											shinyjs::enable("mode")
+											shinyjs::enable("op_radio")
+											shinyjs::enable("y_scale")
+											shinyjs::enable("dec_num_radio")
+											shinyjs::enable("edit1_radio")
+											shinyjs::enable("edit3_radio")
+											shinyjs::enable("mean_spect")
+										}
 									}
 								}
-							}
-							else {
-								s_e_message <- "All code variables are missing in data"
+								else {
+									s_e_message <- "All code variables are missing in data"
+								}
 							}
 						}
 					}
