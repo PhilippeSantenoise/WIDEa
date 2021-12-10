@@ -40,7 +40,6 @@
 # ------
 # s_data_type: data type (3 values: "normal", "temporal", "ir")
 # i_proc_num: process number (2 values: 1, 2) 
-# df_all: data saved in o_plot reactive value (o_plot$data). This input is only used for the noraml data type
 # (o_parameter, o_cond, o_legend_group, o_plot): reactive values from the R script "WIDEa_launcher"
 # df_click_legend: legend item informations (name and status)
 # l_traces: list created from the "traces" input (see R script "WIDEa_launcher"). The "traces" input allows to save the status of legend items (selected/unselected).
@@ -50,8 +49,10 @@
 # -------
 # return a data.frame or a list (normal data type) corresponding to legend item informations 
 
-f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, df_all, o_parameter, o_cond, o_legend_group, o_plot, df_click_legend = data.frame(), l_traces = list(F, c())) {
+f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_parameter, o_cond, o_legend_group, o_plot, df_click_legend = data.frame(), l_traces = list(F, c())) {
 	if (s_data_type == "normal") {
+		df_all <- isolate(o_plot$data)
+		
 		if (i_proc_num == 1) {
 			i_elt_num <- integer(0)
 			b_cond_1 <- isolate(o_parameter$lreg) == T | isolate(o_parameter$conf_ellipsoid) == T
@@ -140,7 +141,20 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, df_all
 			}
 			
 			if (length(which(isolate(o_parameter$model) == "calib")) > 0) {
-				df_click_legend <- data.frame("name" = "all", "statut" = "T")
+				if ("variance" %in% names(isolate(o_plot$model))) {
+					df_click_legend <- data.frame("name" = "all", "statut" = "T")
+				}
+				else {
+					if (!is.na(isolate(o_parameter$group))) {
+						v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
+					}
+					else {
+						v_group <- "all"
+					}
+					
+					v_group <- v_group[order(v_group)]
+					df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
+				}
 			}
 			else {
 				if (!is.na(isolate(o_parameter$group))) {
