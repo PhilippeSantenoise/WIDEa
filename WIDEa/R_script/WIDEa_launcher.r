@@ -4560,7 +4560,7 @@ f_server <- function(input, output, session) {
 						}
 						else { # no error
 							# Data preparation: (process 1)
-                            # -----------------
+                                                        # -----------------
 							
 							eval(parse(text = paste0("l_results <- f_prepare_data(\"normal\", 1, e_data$all, NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", isolate(o_flag$name), isolate(o_cond$flag_msg), NULL, NULL, NULL, NULL, o_parameter, NULL)")))
 							
@@ -4570,7 +4570,6 @@ f_server <- function(input, output, session) {
 							else { # no error
 								df_all <- l_results[[1]]
 								
-								# if (sum(dim(l_results[[2]])) > 0) {
 								if (dim(l_results[[2]])[1] > 0) {
 									o_plot$data_qc2 <- l_results[[2]]
 								}
@@ -4711,7 +4710,7 @@ f_server <- function(input, output, session) {
 											# Build legend items (process 1) 
 											# ------------------
 											
-											l_results <- f_build_legend_items("normal", 1, isolate(o_plot$data), o_parameter, o_cond, o_legend_group)
+											l_results <- f_build_legend_items("normal", 1, o_parameter, o_cond, o_legend_group, o_plot)
 											o_legend_group <- l_results[[1]]
 											o_click_legend$item <- l_results[[2]]
 											rm(list = "l_results")
@@ -4773,7 +4772,7 @@ f_server <- function(input, output, session) {
 								l_traces <- list(F, c())
 							}
 							
-							l_results <- f_build_legend_items("normal", 2, isolate(o_plot$data), o_parameter, o_cond, o_legend_group, NULL, isolate(o_click_legend$item), l_traces)
+							l_results <- f_build_legend_items("normal", 2, o_parameter, o_cond, o_legend_group, o_plot, isolate(o_click_legend$item), l_traces)
 							o_legend_group <- l_results[[1]]
 							o_click_legend$item <- l_results[[2]]
 							rm(list = "l_results")
@@ -5191,7 +5190,7 @@ f_server <- function(input, output, session) {
 											# Build legend items (process 1) 
 											# ------------------
 											
-											o_click_legend$item <- f_build_legend_items("temporal", 1,  NULL, o_parameter, o_cond, NULL, o_plot)
+											o_click_legend$item <- f_build_legend_items("temporal", 1, o_parameter, o_cond, NULL, o_plot)
 											
 											# Create element data (process 1)
 											# -------------------
@@ -5235,7 +5234,7 @@ f_server <- function(input, output, session) {
 								l_traces <- list(F, c())
 							}
 							
-							o_click_legend$item <- f_build_legend_items("temporal", 2, NULL, o_parameter, o_cond, NULL, o_plot, isolate(o_click_legend$item), l_traces)
+							o_click_legend$item <- f_build_legend_items("temporal", 2, o_parameter, o_cond, NULL, o_plot, isolate(o_click_legend$item), l_traces)
 							
 							o_cond$display <- 0
 						}
@@ -5460,7 +5459,7 @@ f_server <- function(input, output, session) {
 									# Build legend items (process 1)
 									# ------------------
 									
-									o_click_legend$item <- f_build_legend_items("ir", 1,  NULL, o_parameter, NULL, NULL, o_plot)
+									o_click_legend$item <- f_build_legend_items("ir", 1, o_parameter, NULL, NULL, o_plot)
 								}
 							}
 						}
@@ -5498,7 +5497,7 @@ f_server <- function(input, output, session) {
 								l_traces <- list(F, c())
 							}
 							
-							o_click_legend$item <- f_build_legend_items("ir", 2, NULL, o_parameter, NULL, NULL, NULL, isolate(o_click_legend$item), l_traces)
+							o_click_legend$item <- f_build_legend_items("ir", 2, o_parameter, NULL, NULL, NULL, isolate(o_click_legend$item), l_traces)
 							
 							o_cond$display <- 0
 						}
