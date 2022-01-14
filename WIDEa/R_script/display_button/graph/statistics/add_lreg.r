@@ -50,7 +50,7 @@ f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_param
 		}
 		else { # validation model
 			eval(parse(text = paste0("df_all <- as.data.frame(cbind(isolate(o_plot$data)[, c(isolate(o_parameter$y)", ifelse(!is.na(isolate(o_parameter$group)), ", isolate(o_parameter$group)", ""), ")], isolate(o_plot$model)[, \"fit\"]))")))
-			eval(parse(text = paste0("names(df_all) <- c(isolate(o_parameter$y), ", ifelse(!is.na(isolate(o_parameter$group)), ", isolate(o_parameter$group)", ""), ", \".fit.\")")))
+			eval(parse(text = paste0("names(df_all) <- c(isolate(o_parameter$y)", ifelse(!is.na(isolate(o_parameter$group)), ", isolate(o_parameter$group)", ""), ", \".fit.\")")))
 			v_x <- seq(min(df_all[, ".fit."]), max(df_all[, ".fit."]), length.out = 1000) # sequence generation (size = 1000) from fitted values
 		}
 		
