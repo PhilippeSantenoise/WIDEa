@@ -189,8 +189,8 @@ f_create_current_flag_data <- function (s_data_type = "normal", s_action = NULL,
 						}
 						
 						if (length(v_pos_2) > 0) {
-							v_x_pt <- v_x_all[v_pos_2] 
-							v_y_pt <- v_y_all[v_pos_2]
+							v_x_pt <- v_x_all[sort(v_pos_2)] 
+							v_y_pt <- v_y_all[sort(v_pos_2)]
 						}
 						
 						v_mpt_pos_all <- v_mpt_pos_all[-v_pos_1]
