@@ -49,7 +49,7 @@ f_add_conf_ellipsoid <- function (ply_1, v_group = "all", df_click_legend, o_plo
 		}
 		else { # validation model
 			eval(parse(text = paste0("df_all <- as.data.frame(cbind(isolate(o_plot$data)[, c(isolate(o_parameter$y)", ifelse(!is.na(isolate(o_parameter$group)), ", isolate(o_parameter$group)", ""), ")], isolate(o_plot$model)[, \"fit\"]))")))
-			eval(parse(text = paste0("names(df_all) <- c(isolate(o_parameter$y), ", ifelse(!is.na(isolate(o_parameter$group)), ", isolate(o_parameter$group)", ""), ", \".fit.\")")))
+			eval(parse(text = paste0("names(df_all) <- c(isolate(o_parameter$y)", ifelse(!is.na(isolate(o_parameter$group)), ", isolate(o_parameter$group)", ""), ", \".fit.\")")))
 		}
 		
 		if (!is.na(isolate(o_parameter$group))) {
