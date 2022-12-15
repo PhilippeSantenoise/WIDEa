@@ -4,7 +4,7 @@
 ## Description
 WIDEa is R-based software aiming to provide users with a range of  functionalities to explore, manage, clean and analyse "big" environmental and (in/ex situ) experimental data. These functionalities are the following, 
 1. Loading/reading different data types: basic (called normal), temporal, infrared spectra of mid/near region (called IR) with frequency (wavenumber) used as unit (in cm-1);
-2. creation of subsets of data by including several conditions;
+2. Creation of subsets of data by including several conditions;
 3. Interactive data visualization from a multitude of graph representations: 2D/3D scatter-plot, box-plot, hist-plot, bar-plot, correlation matrix;
 4. Manipulation of variables: concatenation of qualitative variables, transformation of quantitative variables by generic functions in R;
 5. Application of mathematical/statistical methods; 
