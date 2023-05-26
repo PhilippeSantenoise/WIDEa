@@ -7,7 +7,7 @@ WIDEa is R-based software aiming to provide users with a range of  functionaliti
 2. Creation of subsets of data by including several conditions;
 3. Interactive data visualization from a multitude of graph representations: 2D/3D scatter-plot, box-plot, hist-plot, bar-plot, correlation matrix;
 4. Manipulation of variables: concatenation of qualitative variables, transformation of quantitative variables by generic functions in R;
-5. Application of statistical methods (linear regression, density curve, hypothesis tests, etc.); 
+5. Application of statistical methods (linear regression, density curve, hypothesis testing, etc.); 
 6. Creation/management of data (named flag data) considered as atypical; 
 7. Study of normal distribution model results for different strategies: calibration (checking assumptions on residuals), validation (comparison between measured and fitted values). The model form can be more or less complex: mixed effects, main/interaction effects, weighted residuals. 
 
