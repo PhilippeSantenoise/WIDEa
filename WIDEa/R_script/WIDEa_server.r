@@ -2848,7 +2848,6 @@ f_server <- function(input, output, session) {
 				shinyjs::enable("graph_clear_button")
 				
 				# remove suspension for plotly_click and plotly_relayout
-				# eval(parse(text = paste(paste0("o_graphic_", c("click", "legend_click", "relayout"), "$resume()"), collapse = "; ")))
 				eval(parse(text = paste(paste0("o_graphic_", c("click", "relayout"), "$resume()"), collapse = "; ")))
 			}
 			else {
