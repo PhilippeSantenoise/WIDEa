@@ -114,5 +114,9 @@ eval(parse(text = paste(paste0("source(\"", s_WIDEa_path, "R_script/plotly_click
 # Run the shiny application
 #===================================================================================
 
-o_app <- shinyApp(o_ui, f_server)
-runApp(o_app, launch.browser = T)
+f_widea <- function () {
+	o_app <- shinyApp(f_ui, f_server)
+	return(runApp(o_app, launch.browser = T))
+}
+
+f_widea()

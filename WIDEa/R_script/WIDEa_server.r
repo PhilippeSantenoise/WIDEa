@@ -44,6 +44,9 @@ f_server <- function(input, output, session) {
 	# environment including flag data saved from a click event on the graph ("plotly_click" with event_data function). Flag data are considered as current flags 
 	e_current_flag <- new.env() 
 	
+	# # reactive value including statistical method initial parameters
+	# o_stat_method_ini <- reactiveValues(val = f_stat_method_ini())
+	
 	# reactive values used to enable/disable inputs
 	o_on_off <- reactiveValues(val = NULL, tp = list("id" = NULL, "status" = NULL)) # list of inputs to be enabled/disabled. o_on_off$tp is used to enable/disable top panel inputs when the update button is clicked
 	o_input_status <- reactiveValues(val = f_init_input_status_data(), display = data.frame()) # data frame with UI's input status (0: disabled, 1: enabled). o_input_status$display: part of o_input_status$val data frame saved when the display button is clicked
@@ -108,7 +111,8 @@ f_server <- function(input, output, session) {
 	o_option <- reactiveValues(choices = c(), data = NULL, plotly = NULL) # reactive value used to update "edit_option" selectize input (label, color/opacity, point type/size) and graph option modal dialog datatable/plotly 
 	
 	# parameters associated to statistical methods (Statistics tab)
-	o_stat_method <- reactiveValues("inv" = df_stat_method_inv_ini, "level" = l_stat_method_level_ini, "message" = l_stat_method_message_ini)
+	l_stat_method_ini <- f_stat_method_ini()
+	o_stat_method <- reactiveValues("inv" = l_stat_method_ini$inv, "level" = l_stat_method_ini$level, "message" = l_stat_method_ini$message)
 	
 	# 1.2. Add events of hide/show panel buttons
 	# ==========================================
@@ -1902,8 +1906,8 @@ f_server <- function(input, output, session) {
 				# ---------------
 				
 				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) { # executed with the display button or the Flag tab save button
-					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 3), rep("o_plot", 4), rep("o_stat_method", 3), "o_click_legend"), "id" = c("qc2", "selec_leg", "deselec_leg", "data", "model", "data_qc2", "elt", "inv", "level", "message", "item"), "value" = c(rep("0", 3), "data.frame()", "NULL", rep("NA", 2), "df_stat_method_inv_ini", "l_stat_method_level_ini", "l_stat_method_message_ini", "NULL")))))
-					eval(parse(text = paste0("v_stat_click <- c(", paste(paste0("o_parameter$", df_stat_method_inv_ini$name), collapse = ", "), ")")))
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 3), rep("o_plot", 4), rep("o_stat_method", 3), "o_click_legend"), "id" = c("qc2", "selec_leg", "deselec_leg", "data", "model", "data_qc2", "elt", "inv", "level", "message", "item"), "value" = c(rep("0", 3), "data.frame()", "NULL", rep("NA", 2), "l_stat_method_ini$inv", "l_stat_method_ini$level", "l_stat_method_ini$message", "NULL")))))
+					eval(parse(text = paste0("v_stat_click <- c(", paste(paste0("o_parameter$", l_stat_method_ini$inv$name), collapse = ", "), ")")))
 					v_stat_click <- ifelse(v_stat_click, 1, 0)
 					v_diff <- v_stat_click - o_stat_method$inv$click
 					if (length(which(v_diff != 0)) > 0) {o_stat_method$inv$click <- v_stat_click}
@@ -2578,7 +2582,7 @@ f_server <- function(input, output, session) {
 				# ------------
 				
 				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
-					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 8), "o_stat_method", "o_click_legend"), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "id_group", "y_coord", "add_pt", "pt_pos", paste0("data_qc", 1:2), "elt", "inv", "item"), "value" = c(rep("0", 5), "data.frame()", "NA", "NULL", "F", rep("NA", 4), "df_stat_method_inv_ini", "NULL")))))
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 8), "o_stat_method", "o_click_legend"), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "id_group", "y_coord", "add_pt", "pt_pos", paste0("data_qc", 1:2), "elt", "inv", "item"), "value" = c(rep("0", 5), "data.frame()", "NA", "NULL", "F", rep("NA", 4), "l_stat_method_ini$inv", "NULL")))))
 					
 					if (isolate(o_cond$display) == 0) {
 						if (length(e_current_flag) > 0) {

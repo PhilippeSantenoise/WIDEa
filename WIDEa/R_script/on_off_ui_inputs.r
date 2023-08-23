@@ -158,7 +158,6 @@ f_update_input_status_list <- function(l_id_status, df_id_status, b_plot_select 
 		
 		if (length(v_pos2) > 0) { # add inputs ("f_radio", "g_radio", "h_radio", "webgl", "vtype") with a special desabling (number = 2, 3)
 			v_cond <- rep(F, 3)
-			# if (length(which(c(1, 2) %in% v_pos2)) == 2 | (length(v_pos2) == 1 & 2 %in% v_pos2)) {v_cond[1] <- ifelse(length(v_pos2) == 1 , ifelse(l_id_status[["rel_symbol"]] == 0, T, F), ifelse(l_id_status[["display_button"]] == 0 & l_id_status[["rel_symbol"]] == 0, T, F))}
 			if (length(which(c(1, 2) %in% v_pos2)) == 2 | (length(v_pos2) == 1 & 2 %in% v_pos2)) {v_cond[1] <- ifelse(l_id_status[["rel_symbol"]] == 0, T, F)}
 			if (!v_cond[1] & 1 %in% v_pos2) {v_cond[2] <- ifelse(l_id_status[["display_button"]] == 0, T, F)}
 			if (3 %in% v_pos2) {v_cond[3] <- ifelse(l_id_status[["vvalue1"]] == 1, T, F)}
@@ -220,9 +219,6 @@ f_update_sp_input_value_list <- function(l_sp_id_values, l_id_status, df_id_stat
 
 # Update the input id/status data frame (saved in o_input_status)
 f_update_input_status_data <- function(l_id_status, df_id_status, l_sp_id_values = list()) {
-	# print(as.vector(df_id_status[df_id_status$id %in% names(l_id_status), "id"]))
-	# print(l_id_status[as.vector(df_id_status[df_id_status$id %in% names(l_id_status), "id"])])
-	# df_id_status[df_id_status$id %in% names(l_id_status), "status"] <- as.vector(unlist(l_id_status[which(names(l_id_status) %in% as.vector(df_id_status$id))]))
 	df_id_status[df_id_status$id %in% names(l_id_status), "status"] <- as.vector(unlist(l_id_status[as.vector(df_id_status[df_id_status$id %in% names(l_id_status), "id"])]))
 	
 	if (length(l_sp_id_values) > 0) {
