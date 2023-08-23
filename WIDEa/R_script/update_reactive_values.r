@@ -42,27 +42,25 @@
 f_create_rv_inventory <- function() {
 	# reactive values associated to the display button
 	df_out_1 <- data.frame(
-		"choice" = rep("display", 66),
-		"rv" = c("o_click_button", "o_click_legend", "o_zoom", "o_input_status", rep("o_parameter", 21), rep("o_cond", 7), rep("o_w_message", 4), rep("o_plot", 15), rep("o_legend_group", 4), rep("o_picture_info", 4), rep("o_lreg_info", 3), rep("o_name_option", 4)),
+		"choice" = rep("display", 62),
+		"rv" = c("o_click_button", "o_click_legend", "o_zoom", "o_input_status", rep("o_parameter", 21), rep("o_cond", 8), rep("o_plot", 15), rep("o_picture_info", 4), rep("o_lreg_info", 3), rep("o_name_option", 4), rep("o_stat_method", 3)),
 		"id" = c("display", "item", "coord", "display",
 			"data_name", "plot_type", "dim_num", "model", "ref", "wres_group", "wres_vfun", "id", "concat1", "concat1_group", "x", "f", "date_format", "y", "g", "z", "h", "concat2", "concat2_group", "group", "corplot_group", 
-			"display", "flag", "qc1", "qc2", "save1", "save2", "legend", 
-			"lreg", "conf_ellipsoid", "dens_curve", "norm_dens_curve", 
-			"data", "model", "code_freq", "id_group", "y_coord", "add_pt", "pt_pos", "var_pt", "data_qc1", "data_qc2", "var_qc1", "var_qc2", "leg_name_qc", "elt", "elt_pt_pos", 
-			"lreg", "conf_ellipsoid", "dens_curve", "norm_dens_curve",
+			"display", "flag", "qc1", "qc2", "save1", "save2", "selec_leg", "deselec_leg",
+			"data", "model", "code_freq", "id_group", "y_coord", "add_pt", "pt_pos", "var_pt", "data_qc1", "data_qc2", "var_qc1", "var_qc2", "leg_name_qc", "elt", "elt_pt_pos",
 			"filename", "format", "height", "width",
 			"xpos", "ypos", "elt",
-			"color_default", "opacity_default", "point_type_default", "point_size_default"
+			"color_default", "opacity_default", "point_type_default", "point_size_default",
+			"inv", "level", "message"
 		),
 		"value" = c("0", rep("NULL", 2), "data.frame()",
 			rep("NA", 8), "F", rep("NA", 8), "F", rep("NA", 3), 
-			rep("0", 7), 
-			rep("0", 4),
+			rep("0", 8),
 			"data.frame()", "NULL", rep("NA", 2), "NULL", "T", rep("NA", 9),
-			rep("c()", 4),
 			"\"Picture_name\"", "\"png\"", "800", "1000",
 			"0", "1", "NA",
-			rep("c()", 4)
+			rep("c()", 4),
+			"df_stat_method_inv_ini", "l_stat_method_level_ini", "l_stat_method_message_ini"
 		)
 	)
 	

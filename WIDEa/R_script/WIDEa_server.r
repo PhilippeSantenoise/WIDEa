@@ -73,7 +73,7 @@ f_server <- function(input, output, session) {
 	o_cond <- reactiveValues(
 		top_panel = 0, update = 0, sdata = rep(0, 2), create = 0, concat1 = 0, concat2 = 0,
 		display = 0, flag = 0, qc1 = 0, qc2 = 0, flag_msg = 0, save1 = 0, save2 = 0, 
-		select_graph1 = 0, select_graph2 = 0, reset2 = 0, stat = NA, legend = 0,
+		select_graph = 0, reset2 = 0, selec_leg = 0, deselec_leg = 0,
 		webgl = 0, mode = 0, ok_color_opacity = 0, ok_point_type_size = 0
 	)
 	
@@ -106,8 +106,9 @@ f_server <- function(input, output, session) {
 	
 	o_expand <- reactiveValues(info_cond_data = NULL, info_var_data = NULL, code_var_data = NULL) # reactive value used to update expand modal dialog datatable 
 	o_option <- reactiveValues(choices = c(), data = NULL, plotly = NULL) # reactive value used to update "edit_option" selectize input (label, color/opacity, point type/size) and graph option modal dialog datatable/plotly 
-	o_legend_group <- reactiveValues(lreg = c(), conf_ellipsoid = c(), dens_curve = c(), norm_dens_curve = c()) # graph legend items associated to several statistical methods 
-	o_w_message <- reactiveValues(lreg = 0, conf_ellipsoid = 0, dens_curve = 0, norm_dens_curve = 0) # parameters used to display (0) or not (1) a warning message returned by several statistical methods
+	
+	# parameters associated to statistical methods (Statistics tab)
+	o_stat_method <- reactiveValues("inv" = df_stat_method_inv_ini, "level" = l_stat_method_level_ini, "message" = l_stat_method_message_ini)
 	
 	# 1.2. Add events of hide/show panel buttons
 	# ==========================================
@@ -429,7 +430,6 @@ f_server <- function(input, output, session) {
 		if (o_click_button$display == 1) {
 			shinyjs::disable("graph_clear_button")
 			eval(parse(text = f_update_rv(f_create_rv_id_value_list(df_rv_id_value, "display"))))
-			js$resetClick_leg()
 			
 			# reset picture information inputs
 			if (input$picture_name != "Picture_name") {updateTextInput(session, "picture_name", value = "Picture_name")}
@@ -444,7 +444,7 @@ f_server <- function(input, output, session) {
 			shinyjs::disable("reset3_button")
 			
 			if (input$select_graph != " ") {
-				eval(parse(text = f_update_rv(list("rv" = c("o_parameter", "o_cond"), "id" = paste0("select_graph", c("", "1")), "value" = c("NA", "0")))))
+				eval(parse(text = f_update_rv(list("rv" = c("o_parameter", "o_cond"), "id" = rep("select_graph", 2), "value" = c("NA", "0")))))
 				updateSelectizeInput(session, "select_graph", choices = " ")
 				shinyjs::hide(id = "tmainpanel")
 				shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
@@ -460,10 +460,8 @@ f_server <- function(input, output, session) {
 			}
 			
 			output$graphic <<- NULL
-			shinyjs::delay(100, hide(id = "graphic"))
-			shinyjs::delay(100, hide(id = "sh_popup1"))
-			shinyjs::delay(100, hide(id = "sh_popup2"))
-			shinyjs::delay(100, hide(id = "sh_reset"))
+			eval(parse(text = paste(paste0("shinyjs::delay(100, hide(id = \"", c("graphic", "sh_popup1", "sh_popup2", "sh_reset", "sh_select_leg", "sh_deselect_leg"),"\"))"), collapse = "; ")))
+			eval(parse(text = paste(paste0("shinyjs::delay(100, enable(id = \"", c("sh_select_leg", "sh_deselect_leg"),"\"))"), collapse = "; ")))
 		}
 		
 		if (o_reset$code == 1) {
@@ -669,9 +667,9 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$browse1_button, {
 		o_click_button$browse1 <- 1
-		o_volumes <- getVolumes()()
-		shinyFileChoose(input, 'browse1_button', roots = o_volumes, filetypes = c('txt', 'csv'))
-		s_data_path <- as.character(parseFilePaths(o_volumes, input$browse1_button)$datapath)
+		v_volumes <- getVolumes()()
+		shinyFileChoose(input, 'browse1_button', roots = v_volumes, filetypes = c('txt', 'csv'))
+		s_data_path <- as.character(parseFilePaths(v_volumes, input$browse1_button)$datapath)
 		updateTextInput(session, "data_path1", value = s_data_path)
     })
 	
@@ -679,9 +677,9 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$browse2_button, {
 		o_click_button$browse2 <- 1
-		o_volumes <- getVolumes()()
-		shinyFileChoose(input, 'browse2_button', roots = o_volumes, filetypes = c('txt', 'csv'))
-		s_data_path <- as.character(parseFilePaths(o_volumes, input$browse2_button)$datapath) 
+		v_volumes <- getVolumes()()
+		shinyFileChoose(input, 'browse2_button', roots = v_volumes, filetypes = c('txt', 'csv'))
+		s_data_path <- as.character(parseFilePaths(v_volumes, input$browse2_button)$datapath) 
 		updateTextInput(session, "data_path2", value = s_data_path)
     })
 	
@@ -1362,9 +1360,9 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$browse3_button, {
 		o_click_button$browse3 <- 1
-		o_volumes <- getVolumes()()
-		shinyFileChoose(input, 'browse3_button', roots = o_volumes, filetypes = c('txt', 'csv'))
-		s_data_path <- as.character(parseFilePaths(o_volumes, input$browse3_button)$datapath)
+		v_volumes <- getVolumes()()
+		shinyFileChoose(input, 'browse3_button', roots = v_volumes, filetypes = c('txt', 'csv'))
+		s_data_path <- as.character(parseFilePaths(v_volumes, input$browse3_button)$datapath)
 		updateTextInput(session, "data_path3", value = s_data_path)
     })
 	
@@ -1878,21 +1876,6 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$display_button, {
 		if ("all" %in% ls(e_data)) {
-			if (isolate(o_cond$display) == 0 & is.list(input$traces)) {
-				js$resetClick_leg()
-				i_ms <- 100
-			}
-			else {
-				if (isolate(o_cond$select_graph2) == 1) {
-					o_cond$select_graph2 <- 0
-					js$resetClick_leg()
-					i_ms <- 100
-				}
-				else {
-					i_ms <- 0
-				}
-			}
-			
 			if (o_cond$display == 0 & o_click_button$display == 1) { # click on the display button when a graph is already created
 				if (length(o_label_text$label) > 0) { # update custom labels
 					if (o_label_text$del$x == 1) {o_label_text$text[which(o_label_text$label == "x")] <- ""}
@@ -1913,991 +1896,968 @@ f_server <- function(input, output, session) {
 				}
 			}
 			
-			shinyjs::delay(i_ms, 
-				if (input$data_type == "normal") {
-					# A. Type: Normal
-					# ---------------
+			
+			if (input$data_type == "normal") {
+				# A. Type: Normal
+				# ---------------
+				
+				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) { # executed with the display button or the Flag tab save button
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 3), rep("o_plot", 4), rep("o_stat_method", 3), "o_click_legend"), "id" = c("qc2", "selec_leg", "deselec_leg", "data", "model", "data_qc2", "elt", "inv", "level", "message", "item"), "value" = c(rep("0", 3), "data.frame()", "NULL", rep("NA", 2), "df_stat_method_inv_ini", "l_stat_method_level_ini", "l_stat_method_message_ini", "NULL")))))
+					eval(parse(text = paste0("v_stat_click <- c(", paste(paste0("o_parameter$", df_stat_method_inv_ini$name), collapse = ", "), ")")))
+					v_stat_click <- ifelse(v_stat_click, 1, 0)
+					v_diff <- v_stat_click - o_stat_method$inv$click
+					if (length(which(v_diff != 0)) > 0) {o_stat_method$inv$click <- v_stat_click}
 					
-					if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) { # executed with the display button or the Flag tab save button
-						eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 2), rep("o_plot", 4)), "id" = c("qc2", "legend", "data", "model", "data_qc2", "elt"), "value" = c(rep("0", 2), "data.frame()", "NULL", rep("NA", 2))))))
+					if (isolate(o_cond$display) == 0) { # executed with the display button
+						if (length(e_current_flag) > 0) {
+							rm(list = ls(e_current_flag), envir = e_current_flag)
+							js$resetClick()
+						}
 						
-						if (isolate(o_cond$display) == 0) { # executed with the display button
-							eval(parse(text = f_update_rv(list("rv" = c(rep("o_w_message", 4), rep("o_legend_group", 4)), "id" = rep(c("lreg", "conf_ellipsoid", "dens_curve", "norm_dens_curve"), 2), "value" = c(rep("0", 4), rep("c()", 4))))))
+						# Checking process: all fields are filled ?
+						# -----------------
+						
+						v_input_id <- c("id", "var_id", "ref_radio", "ref", "concat1", "var_x", "f_radio", "f_text", "var_y", "g_radio", "g_text", "var_z", "h_radio", "h_text", "wres_radio", "wres_cbox", "wres_group", "wres_vfun", "group", "concat2", "var_group")
+						eval(parse(text = paste0("l_input_id_value <- list(", paste(paste0("\"", v_input_id, "\" = input$", v_input_id), collapse = ", "), ")")))
+						v_cond <- f_check_fields(input$data_type, input$plot_type, input$dim_num, input$model, l_input_id_value) 
+						v_pos <- which(v_cond) 
+						
+						if (length(v_pos) == 0) {
+							# Parameter value assignment: (o_parameter reactive value)
+							# ---------------------------
 							
-							if (length(e_current_flag) > 0) {
-								rm(list = ls(e_current_flag), envir = e_current_flag)
-								js$resetClick()
-							}
+							o_parameter$data_name <- ifelse(isolate(o_click_button$create) == 1, "sub", "all")
+							o_parameter$plot_type <- input$plot_type
+							o_parameter$dim_num <- NA
+							o_parameter$model <- NA
+							o_parameter$concat1 <- input$concat1
+							if (input$concat1) {o_parameter$concat1_group <- input$var_x}
+							o_parameter$concat2 <- input$concat2
+							if (input$concat2) {o_parameter$concat2_group <- input$var_group}
 							
-							# Checking process: all fields are filled ?
-							# -----------------
-							
-							v_input_id <- c("id", "var_id", "ref_radio", "ref", "concat1", "var_x", "f_radio", "f_text", "var_y", "g_radio", "g_text", "var_z", "h_radio", "h_text", "wres_radio", "wres_cbox", "wres_group", "wres_vfun", "group", "concat2", "var_group")
-							eval(parse(text = paste0("l_input_id_value <- list(", paste(paste0("\"", v_input_id, "\" = input$", v_input_id), collapse = ", "), ")")))
-							v_cond <- f_check_fields(input$data_type, input$plot_type, input$dim_num, input$model, l_input_id_value) 
-							v_pos <- which(v_cond) 
-							
-							if (length(v_pos) == 0) {
-								# Parameter value assignment: (o_parameter reactive value)
-								# ---------------------------
-								
-								o_parameter$data_name <- ifelse(isolate(o_click_button$create) == 1, "sub", "all")
-								o_parameter$plot_type <- input$plot_type
-								o_parameter$dim_num <- NA
-								o_parameter$model <- NA
-								o_parameter$concat1 <- input$concat1
-								if (input$concat1) {o_parameter$concat1_group <- input$var_x}
-								o_parameter$concat2 <- input$concat2
-								if (input$concat2) {o_parameter$concat2_group <- input$var_group}
-								
-								if (input$plot_type != "corplot") {
-									if (input$plot_type != "barplot") {
-										if (input$plot_type  == "histplot") {
+							if (input$plot_type != "corplot") {
+								if (input$plot_type != "barplot") {
+									if (input$plot_type  == "histplot") {
+										o_parameter$f <- ifelse(input$f_radio == "yes", input$f_text, NA)
+									}
+									else {
+										if (input$plot_type == "plot") {
+											o_parameter$dim_num <- input$dim_num
+											o_parameter$model <- input$model
+											o_parameter$id <- ifelse(input$id == "yes", input$var_id, NA)
 											o_parameter$f <- ifelse(input$f_radio == "yes", input$f_text, NA)
-										}
-										else {
-											if (input$plot_type == "plot") {
-												o_parameter$dim_num <- input$dim_num
-												o_parameter$model <- input$model
-												o_parameter$id <- ifelse(input$id == "yes", input$var_id, NA)
-												o_parameter$f <- ifelse(input$f_radio == "yes", input$f_text, NA)
-												
-												if (input$dim_num == "3d") {
-													o_parameter$z <- input$var_z
-													o_parameter$h <- ifelse(input$h_radio == "yes", input$h_text, NA)
-												}
-												else {
-													if (input$model %in% c("calib", "valid")) {
-														eval(parse(text = paste0("o_parameter$ref <- ", ifelse(input$ref_radio == "yes", "input$ref", "NA"))))
-														
-														if (input$model == "calib") {
-															if (input$wres_radio == "yes") {
-																o_parameter$wres_vfun <- input$wres_vfun
-																eval(parse(text = paste0("o_parameter$wres_group <- ", ifelse(input$wres_cbox, "input$wres_group", "NA"))))
-															}
-															else {
-																o_parameter$wres_vfun <- NA
-																o_parameter$wres_group <- NA
-															}
+											
+											if (input$dim_num == "3d") {
+												o_parameter$z <- input$var_z
+												o_parameter$h <- ifelse(input$h_radio == "yes", input$h_text, NA)
+											}
+											else {
+												if (input$model %in% c("calib", "valid")) {
+													eval(parse(text = paste0("o_parameter$ref <- ", ifelse(input$ref_radio == "yes", "input$ref", "NA"))))
+													
+													if (input$model == "calib") {
+														if (input$wres_radio == "yes") {
+															o_parameter$wres_vfun <- input$wres_vfun
+															eval(parse(text = paste0("o_parameter$wres_group <- ", ifelse(input$wres_cbox, "input$wres_group", "NA"))))
+														}
+														else {
+															o_parameter$wres_vfun <- NA
+															o_parameter$wres_group <- NA
 														}
 													}
-													else {
-														o_parameter$ref <- NA
-														o_parameter$wres_vfun <- NA
-														o_parameter$wres_group <- NA
-													}
+												}
+												else {
+													o_parameter$ref <- NA
+													o_parameter$wres_vfun <- NA
+													o_parameter$wres_group <- NA
 												}
 											}
-											
-											o_parameter$g <- ifelse(input$g_radio == "yes", input$g_text, NA)
-											o_parameter$y <- input$var_y
 										}
+										
+										o_parameter$g <- ifelse(input$g_radio == "yes", input$g_text, NA)
+										o_parameter$y <- input$var_y
 									}
-									
-									if (input$concat1) {
-										e_data[[isolate(o_parameter$data_name)]]$.concat1. <- f_create_concat_variable(e_data[[isolate(o_parameter$data_name)]], input$var_x)
-										o_parameter$x <- ".concat1."
-									}
-									else {
-										o_parameter$x <- input$var_x
-									}
+								}
+								
+								if (input$concat1) {
+									e_data[[isolate(o_parameter$data_name)]]$.concat1. <- f_create_concat_variable(e_data[[isolate(o_parameter$data_name)]], input$var_x)
+									o_parameter$x <- ".concat1."
 								}
 								else {
-									o_parameter$y <- input$var_y
+									o_parameter$x <- input$var_x
 								}
-								
-								if (input$group == "yes") {
-									if (input$concat2) {
-										e_data[[isolate(o_parameter$data_name)]]$.concat2. <- f_create_concat_variable(e_data[[isolate(o_parameter$data_name)]], input$var_group)
-										o_parameter$group <- ".concat2."
-									}
-									else {
-										o_parameter$group <- input$var_group
-									}
-								}
-								else {
-									o_parameter$group <- NA
-								}
-								
-								# Checking process: (check selected variables)
-								# -----------------
-								
-								s_e_message <- f_check_variables("normal", ifelse(input$plot_type == "plot" & input$model == "none", T, F), e_data, o_parameter)
 							}
 							else {
-								v_name <- names(v_cond)[v_pos]
-								s_e_message <- paste0("Please complete the following field(s): ", paste(v_name, collapse = ", "))
+								o_parameter$y <- input$var_y
 							}
+							
+							if (input$group == "yes") {
+								if (input$concat2) {
+									e_data[[isolate(o_parameter$data_name)]]$.concat2. <- f_create_concat_variable(e_data[[isolate(o_parameter$data_name)]], input$var_group)
+									o_parameter$group <- ".concat2."
+								}
+								else {
+									o_parameter$group <- input$var_group
+								}
+							}
+							else {
+								o_parameter$group <- NA
+							}
+							
+							# Checking process: (check selected variables)
+							# -----------------
+							
+							s_e_message <- f_check_variables("normal", ifelse(input$plot_type == "plot" & input$model == "none", T, F), e_data, o_parameter)
 						}
+						else {
+							v_name <- names(v_cond)[v_pos]
+							s_e_message <- paste0("Please complete the following field(s): ", paste(v_name, collapse = ", "))
+						}
+					}
+					
+					if (isolate(o_cond$save2) == 1) {s_e_message <- character(0)}
+					
+					if (length(s_e_message) > 0) { # error message returned by checking processes
+						f_showNotification(s_e_message, duration = 15, type = "error")
+					}
+					else { # no error
+						# Data preparation: (process 1)
+						# -----------------
 						
-						if (isolate(o_cond$save2) == 1) {s_e_message <- character(0)}
+						eval(parse(text = paste0("l_results <- f_prepare_data(\"normal\", 1, e_data[[isolate(o_parameter$data_name)]], ", ifelse("sub" %in% ls(e_data), "isolate(o_sdata_cond$row_num)", "NULL"), ", NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", isolate(o_flag$name), NULL, NULL, NULL, NULL, o_parameter, NULL)")))
 						
-						if (length(s_e_message) > 0) { # error message returned by checking processes
-							f_showNotification(s_e_message, duration = 15, type = "error")
+						if (length(l_results[[4]]) > 0) { # error (all values with a qc = 2)
+							f_showNotification(l_results[[4]], duration = 15, type = "error")
 						}
 						else { # no error
-							# Data preparation: (process 1)
-                            # -----------------
+							df_all <- l_results[[1]]
+							if (dim(l_results[[2]])[1] > 0) {o_plot$data_qc2 <- l_results[[2]]}
+							o_cond$qc2 <- l_results[[3]]
+							s_w_message <- l_results[[5]] 
+							rm(list = "l_results")
 							
-							eval(parse(text = paste0("l_results <- f_prepare_data(\"normal\", 1, e_data[[isolate(o_parameter$data_name)]], ", ifelse("sub" %in% ls(e_data), "isolate(o_sdata_cond$row_num)", "NULL"), ", NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", isolate(o_flag$name), NULL, NULL, NULL, NULL, o_parameter, NULL)")))
-							
-							if (length(l_results[[4]]) > 0) { # error (all values with a qc = 2)
-								f_showNotification(l_results[[4]], duration = 15, type = "error")
-							}
-							else { # no error
-								df_all <- l_results[[1]]
-								if (dim(l_results[[2]])[1] > 0) {o_plot$data_qc2 <- l_results[[2]]}
-								o_cond$qc2 <- l_results[[3]]
-								s_w_message <- l_results[[5]] 
-								rm(list = "l_results")
+							if (isolate(o_parameter$plot_type) != "corplot") { # corplot not concerned
+								# Graph default option assignment: (color, opacity, point type/size)
+								# --------------------------------
 								
-								if (isolate(o_parameter$plot_type) != "corplot") { # corplot not concerned
-									# Graph default option assignment: (color, opacity, point type/size)
-									# --------------------------------
+								l_results <- f_create_default_graph_opt_list("normal", df_all, o_parameter)
+								eval(parse(text = paste(paste0("o_name_option$", names(l_results), "_default <- l_results[[", 1:length(l_results), "]]"), collapse = "; ")))
+								
+								if (isolate(o_parameter$model) %in% c("calib", "valid")) { # calibration/validation model added
+									# Checking process: (check model)
+									# -----------------
 									
-									l_results <- f_create_default_graph_opt_list("normal", df_all, o_parameter)
-									eval(parse(text = paste(paste0("o_name_option$", names(l_results), "_default <- l_results[[", 1:length(l_results), "]]"), collapse = "; ")))
-									
-									if (isolate(o_parameter$model) %in% c("calib", "valid")) { # calibration/validation model added
-										# Checking process: (check model)
+									l_results <- f_check_model(df_all, e_data$m_param, o_parameter)
+									l_fun_val <- l_results[[1]]
+									s_e_message <- l_results[[2]]
+									rm(list = "l_results")
+								}
+								else { # no model added
+									if (!is.na(isolate(o_parameter$f)) | !is.na(isolate(o_parameter$g)) | !is.na(isolate(o_parameter$h))) { # (f, g, h) function(s) added
+										# Checking process: (check transformed variables)
 										# -----------------
 										
-										l_results <- f_check_model(df_all, e_data$m_param, o_parameter)
+										l_results <- f_check_trsf_variables("normal", df_all, o_parameter)
 										l_fun_val <- l_results[[1]]
 										s_e_message <- l_results[[2]]
 										rm(list = "l_results")
 									}
-									else { # no model added
-										if (!is.na(isolate(o_parameter$f)) | !is.na(isolate(o_parameter$g)) | !is.na(isolate(o_parameter$h))) { # (f, g, h) function(s) added
-											# Checking process: (check transformed variables)
-											# -----------------
-											
-											l_results <- f_check_trsf_variables("normal", df_all, o_parameter)
-											l_fun_val <- l_results[[1]]
-											s_e_message <- l_results[[2]]
-											rm(list = "l_results")
-										}
-										else { # no function added
-											l_fun_val <- list()
-											s_e_message <- NULL
-										}
-									}
-									
-									if (length(s_e_message) > 0) { # error with model/transformed variables
-										f_showNotification(s_e_message, duration = 15, type = "error")
-									}
-									else { # no error
-										if (isolate(o_parameter$model) %in% c("calib", "valid")) { # calibration/validation model
-											o_plot$model <- as.data.frame(l_fun_val[which(names(l_fun_val) %in% c("fit", "variance"))]) # save a data.frame with fit/error variance values
-										}
-										
-										# Data preparation: (process 2)
-										# -----------------
-										
-										o_plot$data <- f_prepare_data(s_data_type = "normal", i_proc_num = 2, df_all = df_all, o_parameter = o_parameter, l_fun_val = l_fun_val)
-										rm(list = "l_fun_val")
-										v_e_message <- c()
-										
-										if (isolate(o_cond$display) == 0) {	# executed with the display button		
-											o_zoom$coord <- NULL
-											l_axis_layout <- NULL
-											
-											# assign default graph labels
-											o_parameter$xlab <- ifelse(input$f_radio == "yes", "f(x)", "x")
-											o_parameter$ylab <- ifelse(input$g_radio == "yes", "g(y)", "y")
-											o_parameter$zlab <- ifelse(input$h_radio == "yes", "h(z)", "z")
-											
-											# Checking process: (check tp1 inputs)
-											# -----------------
-											
-											v_pos <- which(c(!isolate(o_parameter$autodec_num), !isolate(o_parameter$autobw)))
-											
-											if (length(v_pos) > 0) {
-												l_opt_name <- list(input$dec_num, tryCatch({suppressWarnings(eval(parse(text = input$bw)))}, error = function(e) FALSE))[v_pos]
-												names(l_opt_name) <- c("dec_num", "bw")[v_pos]
-												v_e_message <- f_check_tp1_inputs(l_opt_name, o_plot, o_parameter)
-												if (length(v_e_message) == 0) {eval(parse(text = paste(paste0("o_parameter$", names(l_opt_name), " <- l_opt_name[[", 1:length(l_opt_name), "]]"), collapse = "; ")))}
-												rm(list = "l_opt_name")
-											}
-										}
-										
-										if (length(v_e_message) > 0) { # error with graphic options
-											f_showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
-											o_plot$data <- data.frame()
-										}
-										else { # no error
-											# Build legend items (process 1) 
-											# ------------------
-											
-											l_results <- f_build_legend_items("normal", 1, o_parameter, o_cond, o_legend_group, o_plot)
-											o_legend_group <- l_results[[1]]
-											o_click_legend$item <- l_results[[2]]
-											rm(list = "l_results")
-											
-											# Create element data
-											# -------------------
-											
-											if (isolate(o_parameter$plot_type) == "plot") {
-												if (isolate(o_parameter$model) == "none") {o_plot$elt <- f_create_element_data(s_data_type = "normal", o_parameter = o_parameter, o_cond = o_cond, o_plot = o_plot)}
-											}
-										}
+									else { # no function added
+										l_fun_val <- list()
+										s_e_message <- NULL
 									}
 								}
-								else { # corplot
-									if (isolate(o_cond$display) == 0) {o_zoom$coord <- NULL} # executed with the display button
-									o_plot$data <- df_all
-								}
 								
-								rm(list = "df_all")
-							}
-						}
-					}
-					
-					if (dim(isolate(o_plot$data))[1] > 0) {
-						if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
-							if (length(s_w_message) > 0) {
-								f_showNotification(s_w_message, duration = 15, type = "warning")
-								rm(list = "s_w_message")
-							}
-						}
-						
-						if (isolate(o_cond$display) == 1) { # executed if the graph is already displayed and one of options available from Graphic/Statistics tabs is modified
-							o_cond$display <- 0
-							
-							# Edit axis layout (axis range/camera position)
-							# ----------------
-							
-							l_axis_layout <- f_edit_axis_layout("normal", o_parameter, o_zoom)
-							
-							# Build legend items (processes 2) 
-							# ------------------
-							
-							if (is.list(input$traces)) {
-								l_traces <- list(T, names(input$traces)[which(as.vector(unlist(input$traces)) == "legendonly")])
-							}
-							else {
-								l_traces <- list(F, c())
-							}
-							
-							l_results <- f_build_legend_items("normal", 2, o_parameter, o_cond, o_legend_group, o_plot, isolate(o_click_legend$item), l_traces)
-							o_legend_group <- l_results[[1]]
-							if (!is.na(o_cond$stat)) {o_cond$stat <- ifelse(o_cond$stat != 0, ifelse(is.null(o_legend_group[[o_cond$stat]]) & o_parameter[[o_cond$stat]], -1, NA), NA)}
-							o_click_legend$item <- l_results[[2]]
-							rm(list = "l_results")
-						}
-						else { # no graph displayed
-							if (!is.na(isolate(o_parameter$model))) { # model added
-								if (isolate(o_parameter$model) == "calib") { # calib (update "select_graph" list items)
-									if (!"variance" %in% names(isolate(o_plot$model))) {
-										v_group <- c("Residuals vs fitted values", paste0("Residuals vs x", 1:length(isolate(o_parameter$x)))) 
-									}
-									else {
-										v_group <- c("QQplot", "Standardized residuals vs fitted values", paste0("Standardized residuals vs x", 1:length(isolate(o_parameter$x)))) 
-									}
-									
-									if (is.na(isolate(o_parameter$select_graph))) {
-										o_cond$select_graph1 <- 0
-										o_parameter$select_graph <- v_group[1]
-										updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
-									}
-									else {
-										if (isolate(o_parameter$select_graph) != v_group[1]) {
-											o_cond$select_graph1 <- 0
-											o_parameter$select_graph <- v_group[1]
-											updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
-										}
-										else {
-											o_cond$select_graph1 <- 1
-										}
-									}
-									
-									shinyjs::show(id = "tmainpanel")
-									shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 1, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 3, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 2, 4)))))
-									shinyjs::addClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
-								}
-								else { # valid (initialize values of "sh_popup2" button)
-									if (length(isolate(o_legend_group$lreg)) > 0) {
-										o_lreg_info$xpos <- 0
-										o_lreg_info$ypos <- 1
-										o_lreg_info$elt <- NA
-										shinyjs::disable(id = "reset3_button")
-										
-										if (isolate(o_parameter$model) == "valid") {
-											v_choice <- c("lreg parameters", "R2", "t-test on lreg parameters") 
-										}
-										else {
-											v_choice <- c("lreg parameters", "R2", "RMSE")
-										}
-										
-										updateSelectizeInput(session, "lreg_info_elt", choices = v_choice, selected = input$lreg_info_elt)
-										shinyjs::show(id = "sh_popup2")
-									}
-								}
-							}
-							else { # no model added
-								if (isolate(o_parameter$plot_type) == "corplot") { # corplot (update "select_graph" list items)
-									if (!is.na(isolate(o_parameter$group))) {
-										v_group <- unique(as.vector(isolate(o_plot$data)[, isolate(o_parameter$group)]))
-										v_group <- v_group[order(v_group)]
-										
-										if (is.na(isolate(o_parameter$select_graph))) {
-											o_parameter$corplot_group <- v_group
-											o_cond$select_graph1 <- 0
-											o_parameter$select_graph <- v_group[1]
-											updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
-											shinyjs::show(id = "tmainpanel")
-											shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 1, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 3, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 2, 4)))))
-											shinyjs::addClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
-										}
-										else {
-											if (length(isolate(o_parameter$corplot_group)) != length(v_group)) {
-												o_parameter$corplot_group <- v_group
-												o_cond$select_graph1 <- 0
-												o_parameter$select_graph <- v_group[1]
-												updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
-											}
-											else {
-												if (length(which(!isolate(o_parameter$corplot_group) %in% v_group)) > 0) {
-													o_parameter$corplot_group <- v_group
-													o_cond$select_graph1 <- 0
-													o_parameter$select_graph <- v_group[1]
-													updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
-												}
-												else {
-													o_cond$select_graph1 <- 1
-												}
-											}
-										}
-									}
-									else {
-										if (input$select_graph != " ") {
-											o_parameter$select_graph <- NA
-											o_cond$select_graph1 <- 0
-											updateSelectizeInput(session, "select_graph", choices = " ")
-											shinyjs::hide(id = "tmainpanel")
-											shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
-											shinyjs::addClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 1, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 3, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 2, 4)))))
-										}
-									}
-								}
-							}
-						}
-						
-						# Output (main panel)
-						# -------------------
-						
-						output$graphic <- renderPlotly({
-							v_dimension <- input$dimension
-							df_click_legend <- isolate(o_click_legend$item)
-							eval(parse(text = paste0("l_graph_opt <- ", ifelse(isolate(o_parameter$plot_type) == "corplot", "NULL", "f_create_graph_opt_list(isolate(o_name_option))"))))
-							
-							# build graph:
-							
-							ply_1 <- f_build_graph("normal", "graphic", v_dimension, o_click_button, df_click_legend, o_plot, o_parameter, l_axis_layout, o_picture_info, o_label_text, l_graph_opt)
-							
-							# add flags:
-							
-							v_cond <- c(rep(0, 2), isolate(o_cond$qc2))
-							ply_1 <- f_add_flag("normal", ply_1, v_cond, df_click_legend, o_plot, o_parameter, NULL, e_current_flag)
-							
-							# add statistics:
-							
-							v_stat_method <- c("lreg", "conf_ellipsoid", "centroid", "dens_curve", "norm_dens_curve")[which(c(isolate(o_parameter$lreg), isolate(o_parameter$conf_ellipsoid), isolate(o_parameter$centroid), isolate(o_parameter$dens_curve), isolate(o_parameter$norm_dens_curve)))]
-							
-							if (length(v_stat_method) > 0) {
-								for (i in v_stat_method) {
-									eval(parse(text = paste0("v_group <- isolate(o_legend_group$", i, ")")))
-									
-									if (i == "centroid") {
-										ply_1 <- f_add_centroid(ply_1, df_click_legend, o_plot, o_parameter, l_graph_opt)
-									}
-									else {
-										eval(parse(text = paste0("l_results <- f_add_", i, "(ply_1, v_group, df_click_legend, o_plot, o_parameter, ", ifelse(i == "lreg", "o_lreg_info, ", ""), "o_w_message$", i, ", l_graph_opt$color)")))
-										
-										if (length(l_results[[3]]) > 0) {
-											f_showNotification(l_results[[3]], duration = 15, type = "error")
-											updateCheckboxInput(session, i, value = F)
-										}
-										else {
-											if (length(l_results[[2]]) > 0) {
-												f_showNotification(l_results[[2]], duration = 15, type = "warning")
-												eval(parse(text = paste0("o_w_message$", i, " <- 1")))
-											}
-											
-											ply_1 <- l_results[[1]] 
-										}
-									}
-								}
-							}
-							
-							# add java script to save legend item status:
-							
-							ply_1 %>% onRender(s_js_2)
-						})
-						
-						shinyjs::show(id = "graphic")
-						shinyjs::show(id = "sh_popup1")
-						if ((!is.na(isolate(o_parameter$dim_num)) & isolate(o_parameter$dim_num) == "2d") | isolate(o_parameter$plot_type) == "histplot") {shinyjs::show(id = "sh_reset")}
-					}
-				}
-				else if (input$data_type == "temporal") {
-					# B. Type : Temporal
-					# ------------------
-					
-					if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
-						eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 3), rep("o_plot", 12)), "id" = c("flag", paste0("qc", 1:2), "data", "y_coord", "add_pt", "pt_pos", "var_pt", paste0("data_qc", 1:2), paste0("var_qc", 1:2), "leg_name_qc", "elt", "elt_pt_pos"), "value" = c(rep("0", 3), "data.frame()", "NULL", "T", rep("NA", 9))))))
-						if ("data" %in% ls(e_previous_flag)) {rm("data", envir = e_previous_flag)}
-						s_w_message <- character(0)
-						
-						if (isolate(o_cond$display) == 0) { # executed with the display button
-							if (length(e_current_flag) > 0) {
-								eval(parse(text = f_update_rv(list("rv" = rep("o_click_graph", 2), "id" = paste0("prev_", c("date", "var")), "value" = rep("NULL", 2)))))
-								rm(list = ls(e_current_flag), envir = e_current_flag)
-								js$resetClick()
-							}
-							
-							# Checking process: all fields are filled ?
-							# -----------------
-							
-							v_input_id <- c("var_x", "var_y", "g_radio", "g_text")
-							eval(parse(text = paste0("l_input_id_value <- list(", paste(paste0("\"", v_input_id, "\" = input$", v_input_id), collapse = ", "), ")")))
-							v_cond <- f_check_fields(input$data_type, input$plot_type, input$dim_num, input$model, l_input_id_value) 
-							v_pos <- which(v_cond)
-
-							if (length(v_pos) == 0) {
-								# Parameter value assignment: (o_parameter reactive value)
-								# ---------------------------
-								
-								o_parameter$data_name <- "all"
-								o_parameter$x <- input$var_x
-								o_parameter$date_format <- input$date_format
-								o_parameter$y <- input$var_y
-								o_parameter$g <- ifelse(input$g_radio == "yes", input$g_text, NA)
-							
-								# Checking process: (check selected variables)
-								# -----------------
-								
-								l_results <- f_check_variables("temporal", F, e_data, o_parameter)
-								s_e_message <- l_results[[1]]
-								s_w_message <- l_results[[2]]
-								v_date <- l_results[[3]]
-							}
-							else {
-								v_name <- names(v_cond)[v_pos]
-								s_e_message <- paste0("Please complete the following field(s): ", paste(v_name, collapse = ", "))
-							}
-						}
-						
-						if (isolate(o_cond$save2) == 1) {s_e_message <- NULL}
-						
-						if (length(s_e_message) > 0) { # error message returned by the checking process
-							f_showNotification(s_e_message, duration = 15, type = "error")
-							if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
-						}
-						else { # no error
-							# # Graph default option assignment: (color, opacity, point type/size)
-							# ----------------------------------
-							
-							l_results <- f_create_default_graph_opt_list("temporal", data.frame(), o_parameter)
-							eval(parse(text = paste(paste0("o_name_option$", names(l_results), "_default <- l_results[[", 1:length(l_results), "]]"), collapse = "; ")))
-							v_e_message <- c()
-							
-							if (isolate(o_cond$display) == 0) {
-								o_zoom$coord <- NULL
-								l_axis_layout <- NULL
-								
-								# assign default graph label
-								o_parameter$ylab <- ifelse(input$g_radio == "yes", "g(y)", "y")
-								
-								# Checking process: (check tp1 inputs)
-								# -----------------
-								
-								v_pos <- which(c(!isolate(o_parameter$autodec_num)))
-								
-								if (length(v_pos) > 0) {
-									l_opt_name <- list(input$dec_num)[v_pos]
-									names(l_opt_name) <- c("dec_num")[v_pos]
-									v_e_message <- f_check_tp1_inputs(l_opt_name, NULL, o_parameter)
-									if (length(v_e_message) == 0) {eval(parse(text = paste(paste0("o_parameter$", names(l_opt_name), " <- l_opt_name[[", 1:length(l_opt_name), "]]"), collapse = "; ")))}
-									rm(list = "l_opt_name")
-								}
-							}
-							
-							if (length(v_e_message) > 0) { # error with graphic options
-								f_showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
-								if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
-							}
-							else { # no error
-								s_e_message <- character(0)
-								
-								if (!is.na(isolate(o_parameter$g))) { # g function added
-									# Checking process: (check transformed variables: function filled in text field)
-									# -----------------
-									
-									s_e_message <- f_check_trsf_variables("temporal", NULL, o_parameter)
-								}
-								
-								if (length(s_e_message) > 0) { # error with g function text field
+								if (length(s_e_message) > 0) { # error with model/transformed variables
 									f_showNotification(s_e_message, duration = 15, type = "error")
-									if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
 								}
 								else { # no error
-									v_w_message <- c()
-									if (length(s_w_message) > 0) {v_w_message <- s_w_message}
-									df_all <- e_data$all[, c(isolate(o_parameter$x), isolate(o_parameter$y))]
-									
-									if (isolate(o_cond$display) == 0) {
-										df_all[, isolate(o_parameter$x)] <- v_date
+									if (isolate(o_parameter$model) %in% c("calib", "valid")) { # calibration/validation model
+										o_plot$model <- as.data.frame(l_fun_val[which(names(l_fun_val) %in% c("fit", "variance"))]) # save a data.frame with fit/error variance values
 									}
-									else {
-										df_all[, isolate(o_parameter$x)] <- f_create_date_variable(df_all, isolate(o_parameter$x), isolate(o_parameter$date_format))
-									}
-									
-									# Data preparation: (process 1)
-									# -----------------
-									
-									eval(parse(text = paste0("l_results <- f_prepare_data(\"temporal\", 1, df_all, NULL, NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", NULL, ", ifelse("data" %in% ls(e_previous_flag), "e_previous_flag$data", "NULL"), ", NULL, NULL, NULL, o_parameter)")))
-									
-									if (length(l_results[[9]]) > 0) { # error (all values with a qc = 2)
-										f_showNotification(l_results[[9]], duration = 15, type = "error")
-										if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
-									}
-									else { # no error
-										df_all <- l_results[[1]]
-										e_previous_flag$data <- l_results[[2]]
-										eval(parse(text = paste(paste0("o_plot$", c("data_qc1", "data_qc2", "var_qc1", "var_qc2", "leg_name_qc"), " <- l_results[[", c(3, 4, 6:8), "]]"), collapse = "; ")))
-										eval(parse(text = paste(paste0("o_cond$", c("flag", "qc1", "qc2"), " <- l_results[[5]][", 1:3, "]"), collapse = "; ")))
-										v_w_message <- c(v_w_message, l_results[[10]])
-										s_e_message <- character(0)
-										
-										if (!is.na(isolate(o_parameter$g))) { # only if a g function is added
-											# Checking process: (check transformed variables: calculation)
-											# -----------------
-											
-											l_results <- f_check_trsf_variables("temporal", df_all, o_parameter)
-											s_e_message <- l_results[[2]]
-											
-											if (length(s_e_message) == 0) {
-												# Data preparation: (process 2)
-												# -----------------
-												
-												df_all <- f_prepare_data(s_data_type = "temporal", i_proc_num = 2, df_all = df_all, o_parameter = o_parameter, l_fun_val = l_results[[1]])
-											}
-										}
-										
-										if (length(s_e_message) > 0) { # error with g function calculation
-											f_showNotification(s_e_message, duration = 15, type = "error")
-											if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
-										}
-										else { # no error
-											if (length(v_w_message) > 0) {f_showNotification(paste(v_w_message, collapse = "<br/>"), duration = 15, type = "warning")}
-											o_plot$data <- df_all
-											rm(list = c("l_results", "df_all"))
-											
-											# Data preparation: (process 3)
-											# -----------------
-											
-											l_pt_pos <- f_prepare_data(s_data_type = "temporal", i_proc_num = 3, df_all = isolate(o_plot$data), o_parameter = o_parameter)
-											
-											# create data corresponding to isolated points of Y variable(s)
-											
-											v_pos <- which(as.vector(lengths(l_pt_pos)) > 0)
-											
-											if (length(v_pos) > 0) {
-												o_plot$pt_pos <- l_pt_pos
-												o_plot$var_pt <- isolate(o_parameter$y)[v_pos]
-												o_plot$elt_pt_pos <- c(length(isolate(o_parameter$y)) + 1, length(isolate(o_parameter$y)) + length(isolate(o_plot$var_pt)))
-												o_plot$add_pt <- ifelse(input$mode == "line", T, F)
-											}
-											else {
-												o_plot$add_pt <- F
-											}
-											
-											# Build legend items (process 1) 
-											# ------------------
-											
-											o_click_legend$item <- f_build_legend_items("temporal", 1, o_parameter, o_cond, NULL, o_plot)
-											
-											# Create element data (process 1)
-											# -------------------
-											
-											o_plot$elt <- f_create_element_data("temporal", 1, o_parameter, o_cond, o_plot)
-										}
-									}
-								}
-							}
-						}
-					}
-					
-					if (dim(isolate(o_plot$data))[1] > 0) {
-						if (isolate(o_cond$display) == 1) {
-							if (isolate(o_cond$save2) == 0) {
-								if (isolate(o_cond$mode) == 1) { # "mode" radio button (Graphic tab) modified
-									if (length(isolate(o_plot$elt_pt_pos)) == 2) {
-										# Create element data (process 2)
-										# -------------------
-										
-										o_plot$elt <- f_create_element_data("temporal", 2, o_parameter, o_cond, o_plot, input$mode)
-										o_plot$add_pt <- ifelse(input$mode == "line", T, F)
-									}
-									
-									o_cond$mode <- 0
-								}
-							}
-							
-							# Edit axis layout (axis range)
-							# ----------------
-							
-							l_axis_layout <- f_edit_axis_layout("temporal", NULL, o_zoom)
-							
-							# Build legend items (process 2)
-							# ------------------
-							
-							if (is.list(input$traces)) {
-								l_traces <- list(T, names(input$traces)[which(as.vector(unlist(input$traces)) == "legendonly")])
-							}
-							else {
-								l_traces <- list(F, c())
-							}
-							
-							o_click_legend$item <- f_build_legend_items("temporal", 2, o_parameter, o_cond, NULL, o_plot, isolate(o_click_legend$item), l_traces)
-							o_cond$display <- 0
-						}
-						
-						if (input$y_scale %in% c("auto", "manual")) {
-							# Update Y axis range (y_scale radio button: auto or manual)
-							# -------------------
-							
-							eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(\"temporal\", input$y_scale, e_data$all, o_parameter, o_zoom, o_plot, o_cond, isolate(o_click_legend$item), ifelse(input$y_scale == \"auto\", input$fraction, NULL), ", ifelse(input$y_scale == "manual", "c(input$ymin, input$ymax)", "NULL"), ")")))
-							l_axis_layout[[2]] <- l_results[[1]]
-							
-							if (input$y_scale == "auto") {
-								o_plot$y_coord <- l_results[[2]] 
-							}
-							else {
-								if (input$ymin != l_results[[1]][1]) {updateTextInput(session, "ymin", value = as.character(l_results[[1]][1]))}
-								if (input$ymax != l_results[[1]][2]) {updateTextInput(session, "ymax", value = as.character(l_results[[1]][2]))}
-							}
-							
-							if (length(l_results[[length(l_results)]]) > 0) {f_showNotification(l_results[[length(l_results)]], duration = 15, type = "warning")}
-							rm(list = "l_results")
-						}
-						
-						# Output (main panel)
-						# -------------------
-						
-						output$graphic <- renderPlotly({
-							v_dimension <- input$dimension
-							df_click_legend <- isolate(o_click_legend$item)
-							l_graph_opt <- f_create_graph_opt_list(o_name_option)
-							
-							# build graph:
-							
-							ply_1 <- f_build_graph("temporal", "graphic", v_dimension, o_click_button, df_click_legend, o_plot, o_parameter, l_axis_layout, o_picture_info, o_label_text, l_graph_opt)
-							
-							# add flags:
-							
-							v_cond <- c(isolate(o_cond$flag), isolate(o_cond$qc1), isolate(o_cond$qc2))
-							ply_1 <- f_add_flag("temporal", ply_1, v_cond, df_click_legend, o_plot, o_parameter, NULL, e_current_flag)
-							
-							# add java script to save legend item status:
-							
-							ply_1 %>% onRender(s_js_2)
-						})
-						
-						shinyjs::show(id = "graphic")
-						shinyjs::show(id = "sh_popup1")
-					}		
-				}
-				else {
-					# C. Type : IR
-					# ------------
-					
-					if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
-						eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 3), rep("o_plot", 8)), "id" = c("flag", paste0("qc", 1:2), "data", "id_group", "y_coord", "add_pt", "pt_pos", paste0("data_qc", 1:2), "elt"), "value" = c(rep("0", 3), "data.frame()", "NA", "NULL", "F", rep("NA", 4))))))
-						
-						if (isolate(o_cond$display) == 0) {
-							if (length(e_current_flag) > 0) {
-								rm(list = ls(e_current_flag), envir = e_current_flag)
-								js$resetClick()
-							}
-							
-							# Checking process: all fields are filled ?
-							# -----------------
-							
-							v_input_id <- c("id", "var_id", "group", "concat2", "var_group")
-							eval(parse(text = paste0("l_input_id_value <- list(", paste(paste0("\"", v_input_id, "\" = input$", v_input_id), collapse = ", "), ")")))
-							v_cond <- f_check_fields(input$data_type, input$plot_type, input$dim_num, input$model, l_input_id_value) 
-							v_pos <- which(v_cond)
-							
-							if (length(v_pos) == 0) {
-								# Parameter value assignment: (o_parameter reactive value)
-								# ---------------------------
-								
-								o_parameter$data_name <- ifelse(isolate(o_click_button$create) == 1, "sub", "all")
-								o_parameter$id <- ifelse(input$id == "yes", input$var_id, NA)
-								o_parameter$concat2 <- input$concat2
-								if (input$concat2) {o_parameter$concat2_group <- input$var_group}
-								
-								if (input$group == "yes") {
-									if (input$concat2) {
-										e_data$all$.concat2. <- f_create_concat_variable(e_data$all, input$var_group)
-										o_parameter$group <- ".concat2."
-									}
-									else {
-										o_parameter$group <- input$var_group
-									}
-								}
-								else {
-									o_parameter$group <- NA
-								}
-								
-								# Checking process: (check selected variables)
-								# -----------------
-								
-								s_e_message <- f_check_variables("ir", F, e_data, o_parameter)
-							}
-							else {
-								v_name <- names(v_cond)[v_pos]
-								s_e_message <- paste0("Please complete the following field(s): ", paste(v_name, collapse = ", "))
-							}
-						}
-						
-						if (isolate(o_cond$save2) == 1) {s_e_message <- NULL}
-						
-						if (length(s_e_message) > 0) {
-							f_showNotification(s_e_message, duration = 15, type = "error")
-						}
-						else {
-							v_e_message <- c()
-							
-							if (isolate(o_cond$display) == 0) {
-								o_zoom$coord <- NULL
-								
-								# assign default graph label
-								o_parameter$ylab <- "y"
-								
-								# Checking process: (check tp1 inputs)
-								# -----------------
-								
-								v_pos <- which(c(!isolate(o_parameter$autodec_num)))
-								
-								if (length(v_pos) > 0) {
-									l_opt_name <- list(input$dec_num)[v_pos]
-									names(l_opt_name) <- c("dec_num")[v_pos]
-									v_e_message <- f_check_tp1_inputs(l_opt_name, NULL, o_parameter)
-									if (length(v_e_message) == 0) {eval(parse(text = paste(paste0("o_parameter$", names(l_opt_name), " <- l_opt_name[[", 1:length(l_opt_name), "]]"), collapse = "; ")))}
-									rm(list = "l_opt_name")
-								}
-							}
-							
-							if (length(v_e_message) > 0) { # error with graphic options
-								f_showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
-							} 
-							else { # no error
-								# Data preparation: (process 1)
-								# -----------------
-								
-								eval(parse(text = paste0("l_results <- f_prepare_data(\"ir\", 1, e_data[[isolate(o_parameter$data_name)]], ", ifelse("sub" %in% ls(e_data), "isolate(o_sdata_cond$row_num)", "NULL"), ", e_data$code_freq, isolate(o_data_info$code), ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", NULL, NULL, NULL, NULL, NULL, o_parameter)")))
-								
-								if (length(l_results[[8]]) > 0) { # error with data preparation
-									f_showNotification(l_results[[8]], duration = 15, type = "error")
-								} 
-								else { # no error
-									eval(parse(text = paste(paste0("df_", c("all", "code_freq", "qc1", "qc2"), " <- l_results[[", 1:4, "]]"), collapse = "; ")))
-									eval(parse(text = paste(paste0("o_cond$", c("flag", "qc1", "qc2"), " <- l_results[[5]][", 1:3, "]"), collapse = "; ")))
-									l_id <- l_results[[6]]
-									o_plot$pt_pos <- l_results[[7]]
-									if (isolate(o_cond$display) == 0) {l_axis_layout <- list(rev(range(as.vector(df_code_freq$Frequency))), NULL)}
-									
-									# Graph default option assignment: (color, opacity, point type/size)
-									# --------------------------------
-									
-									l_results <- f_create_default_graph_opt_list("ir", l_results[[1]], o_parameter)
-									eval(parse(text = paste(paste0("o_name_option$", names(l_results), "_default <- l_results[[", 1:length(l_results), "]]"), collapse = "; ")))
 									
 									# Data preparation: (process 2)
 									# -----------------
 									
-									l_graph_opt <- f_create_graph_opt_list(o_name_option)
-									l_results <- f_prepare_data("ir", 2, df_all, NULL, df_code_freq, NULL, NULL, NULL, NULL, list(df_qc1, df_qc2), l_id, NULL, o_parameter, l_graph_opt)
-									eval(parse(text = paste(paste0("o_plot$", c("data", "data_qc1", "data_qc2", "id_group"), " <- l_results[[", 1:4, "]]"), collapse = "; ")))
-									rm(list = c("l_results", "df_all", "df_code_freq", "df_qc1", "df_qc2", "l_id"))
+									o_plot$data <- f_prepare_data(s_data_type = "normal", i_proc_num = 2, df_all = df_all, o_parameter = o_parameter, l_fun_val = l_fun_val)
+									rm(list = "l_fun_val")
+									v_e_message <- c()
 									
-									# Create element data (process 1)
-									# -------------------
+									if (isolate(o_cond$display) == 0) {	# executed with the display button		
+										o_zoom$coord <- NULL
+										l_axis_layout <- NULL
+										
+										# assign default graph labels
+										o_parameter$xlab <- ifelse(input$f_radio == "yes", "f(x)", "x")
+										o_parameter$ylab <- ifelse(input$g_radio == "yes", "g(y)", "y")
+										o_parameter$zlab <- ifelse(input$h_radio == "yes", "h(z)", "z")
+										
+										# Checking process: (check tp1 inputs)
+										# -----------------
+										
+										v_pos <- which(c(!isolate(o_parameter$autodec_num), !isolate(o_parameter$autobw)))
+										
+										if (length(v_pos) > 0) {
+											l_opt_name <- list(input$dec_num, tryCatch({suppressWarnings(eval(parse(text = input$bw)))}, error = function(e) FALSE))[v_pos]
+											names(l_opt_name) <- c("dec_num", "bw")[v_pos]
+											v_e_message <- f_check_tp1_inputs(l_opt_name, o_plot, o_parameter)
+											if (length(v_e_message) == 0) {eval(parse(text = paste(paste0("o_parameter$", names(l_opt_name), " <- l_opt_name[[", 1:length(l_opt_name), "]]"), collapse = "; ")))}
+											rm(list = "l_opt_name")
+										}
+									}
 									
-									o_plot$elt <- f_create_element_data("ir", 1, NULL, o_cond, o_plot, input$mode)
-									if (length(which(!is.na(isolate(o_plot$pt_pos)))) > 0 & input$mode == "line") {o_plot$add_pt <- T}
-									
-									# Build legend items (process 1)
-									# ------------------
-									
-									o_click_legend$item <- f_build_legend_items("ir", 1, o_parameter, NULL, NULL, o_plot)
+									if (length(v_e_message) > 0) { # error with graphic options
+										f_showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
+										o_plot$data <- data.frame()
+									}
+									else { # no error
+										# Build legend items (process 1) 
+										# ------------------
+										
+										l_results <- f_build_legend_items("normal", 1, o_parameter, o_cond, o_plot, o_stat_method)
+										eval(parse(text = paste(paste0("o_stat_method$", c("inv", "level", "message"), " <- l_results[[", 1:3, "]]"), collapse = "; ")))
+										if (nrow(l_results[[4]]) > 0) {eval(parse(text = paste(paste0("f_showNotification(\"", l_results[[4]]$message, "\", duration = 15, type = \"", l_results[[4]]$type, "\")"), collapse = "; ")))}
+										if (length(l_results[[5]]) > 0) {eval(parse(text = paste(paste0("updateCheckboxInput(session, \"", l_results[[5]], "\", value = F)"), collapse = "; ")))}
+										o_click_legend$item <- l_results[[6]]
+										rm(list = "l_results")
+										
+										# Create element data
+										# -------------------
+										
+										if (isolate(o_parameter$plot_type) == "plot") {
+											if (isolate(o_parameter$model) == "none") {o_plot$elt <- f_create_element_data(s_data_type = "normal", o_parameter = o_parameter, o_cond = o_cond, o_plot = o_plot)}
+										}
+									}
 								}
 							}
+							else { # corplot
+								if (isolate(o_cond$display) == 0) {o_zoom$coord <- NULL} # executed with the display button
+								o_plot$data <- df_all
+							}
+							
+							rm(list = "df_all")
+						}
+					}
+				}
+				
+				if (dim(isolate(o_plot$data))[1] > 0) {
+					if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
+						if (length(s_w_message) > 0) {
+							f_showNotification(s_w_message, duration = 15, type = "warning")
+							rm(list = "s_w_message")
 						}
 					}
 					
-					if (dim(isolate(o_plot$data))[1] > 0) {
-						if (isolate(o_cond$display) == 1) {
-							if (isolate(o_cond$save2) == 0) {
-								if (isolate(o_cond$mode) == 1) { # "mode" radio button (Graphic tab) modified
-									if (length(which(!is.na(isolate(o_plot$pt_pos)))) > 0) {
-										# Create element data (process 2)
-										# -------------------
-										
-										o_plot$elt <- f_create_element_data("ir", 2, o_parameter, o_cond, o_plot, input$mode)
-										o_plot$add_pt <- ifelse(input$mode == "line", T, F)
-									}
-									
-									o_cond$mode <- 0
+					if (isolate(o_cond$display) == 1) { # executed if the graph is already displayed and one of options available from Graphic/Statistics tabs is modified
+						o_cond$display <- 0
+						
+						# Edit axis layout (axis range/camera position)
+						# ----------------
+						
+						l_axis_layout <- f_edit_axis_layout("normal", o_parameter, o_zoom)
+						
+						# Build legend items (process 2) 
+						# ------------------
+						
+						l_results <- f_build_legend_items("normal", 2, o_parameter, o_cond, o_plot, o_stat_method, o_click_legend$item)
+						eval(parse(text = paste(paste0("o_stat_method$", c("inv", "level", "message"), " <- l_results[[", 1:3, "]]"), collapse = "; ")))
+						if (nrow(l_results[[4]]) > 0) {f_showNotification(l_results[[4]]$message, duration = 15, type = l_results[[4]]$type)}
+						if (length(l_results[[5]]) > 0) {updateCheckboxInput(session, l_results[[5]], value = F)}
+						o_click_legend$item <- l_results[[6]]
+						rm(list = "l_results")
+					}
+					else { # no graph displayed
+						if (!is.na(isolate(o_parameter$model))) { # model added
+							if (isolate(o_parameter$model) == "calib") { # calib (update "select_graph" list items)
+								if (!"variance" %in% names(isolate(o_plot$model))) {
+									v_group <- c("Residuals vs fitted values", paste0("Residuals vs x", 1:length(isolate(o_parameter$x)))) 
 								}
-							}
-							
-							if (o_cond$ok_color_opacity == 1 | o_cond$ok_point_type_size == 1) {
-								# Update graph option (color, opacity, point type/size)
-								# -------------------
+								else {
+									v_group <- c("QQplot", "Standardized residuals vs fitted values", paste0("Standardized residuals vs x", 1:length(isolate(o_parameter$x)))) 
+								}
 								
-								l_graph_opt <- f_create_graph_opt_list(o_name_option)
-								
-								if (is.na(o_parameter$group)) {
-									if (o_cond$ok_color_opacity == 1) {
-										eval(parse(text = paste(paste0("o_plot$id_group$no_flag$", c("color", "opacity"), " <- l_graph_opt$", c("color", "opacity")), collapse = "; ")))
+								if (is.na(isolate(o_parameter$select_graph))) {
+									o_cond$select_graph <- 0
+									o_parameter$select_graph <- v_group[1]
+									updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
+								}
+								else {
+									if (isolate(o_parameter$select_graph) != v_group[1]) {
+										o_cond$select_graph <- 0
+										o_parameter$select_graph <- v_group[1]
+										updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
 									}
 									else {
-										eval(parse(text = paste(paste0("o_plot$id_group$no_flag$", c("point_type", "point_size"), " <- l_graph_opt$", c("point_type", "point_size")), collapse = "; ")))
+										o_cond$select_graph <- 1
+									}
+								}
+								
+								shinyjs::show(id = "tmainpanel")
+								shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 1, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 3, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 2, 4)))))
+								shinyjs::addClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
+							}
+							else { # valid (initialize values of "sh_popup2" button)
+								if (o_parameter$lreg & o_stat_method$inv[o_stat_method$inv$name == "lreg", "check_process"] != (-1)) {
+									o_lreg_info$xpos <- 0
+									o_lreg_info$ypos <- 1
+									o_lreg_info$elt <- NA
+									shinyjs::disable(id = "reset3_button")
+									
+									if (isolate(o_parameter$model) == "valid") {
+										v_choice <- c("lreg parameters", "R2", "t-test on lreg parameters") 
+									}
+									else {
+										v_choice <- c("lreg parameters", "R2", "RMSE")
+									}
+									
+									updateSelectizeInput(session, "lreg_info_elt", choices = v_choice, selected = input$lreg_info_elt)
+									shinyjs::show(id = "sh_popup2")
+								}
+							}
+						}
+						else { # no model added
+							if (isolate(o_parameter$plot_type) == "corplot") { # corplot (update "select_graph" list items)
+								if (!is.na(isolate(o_parameter$group))) {
+									v_group <- unique(as.vector(isolate(o_plot$data)[, isolate(o_parameter$group)]))
+									v_group <- v_group[order(v_group)]
+									
+									if (is.na(isolate(o_parameter$select_graph))) {
+										o_parameter$corplot_group <- v_group
+										o_cond$select_graph <- 0
+										o_parameter$select_graph <- v_group[1]
+										updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
+										shinyjs::show(id = "tmainpanel")
+										shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 1, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 3, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 2, 4)))))
+										shinyjs::addClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
+									}
+									else {
+										if (length(isolate(o_parameter$corplot_group)) != length(v_group)) {
+											o_parameter$corplot_group <- v_group
+											o_cond$select_graph <- 0
+											o_parameter$select_graph <- v_group[1]
+											updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
+										}
+										else {
+											if (length(which(!isolate(o_parameter$corplot_group) %in% v_group)) > 0) {
+												o_parameter$corplot_group <- v_group
+												o_cond$select_graph <- 0
+												o_parameter$select_graph <- v_group[1]
+												updateSelectizeInput(session, "select_graph", choices = v_group, selected = v_group[1])
+											}
+											else {
+												o_cond$select_graph <- 1
+											}
+										}
 									}
 								}
 								else {
-									if (o_cond$ok_color_opacity == 1) {
-										eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"color\"] <- \"", l_graph_opt$color, "\""), collapse = "; ")))
-										eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"opacity\"] <- ", l_graph_opt$opacity), collapse = "; ")))
-									}
-									else {
-										eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"point_type\"] <- ", l_graph_opt$point_type), collapse = "; ")))
-										eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"point_size\"] <- ", l_graph_opt$point_size), collapse = "; ")))
+									if (input$select_graph != " ") {
+										o_parameter$select_graph <- NA
+										o_cond$select_graph <- 0
+										updateSelectizeInput(session, "select_graph", choices = " ")
+										shinyjs::hide(id = "tmainpanel")
+										shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
+										shinyjs::addClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 1, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 3, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 2, 4)))))
 									}
 								}
-								
-								eval(parse(text = paste(paste0("o_cond$ok_", c("color_opacity", "point_type_size"), " <- 0"), collapse = "; ")))
 							}
-							
-							# Edit axis layout (axis range)
-							# ----------------
-							
-							l_axis_layout <- f_edit_axis_layout("ir", NULL, o_zoom, range(as.vector(isolate(o_plot$data)$Frequency)))
-							
-							# Build legend items (process 2)
-							# ------------------
-							
-							if (is.list(input$traces)) {
-								l_traces <- list(T, names(input$traces)[which(as.vector(unlist(input$traces)) == "legendonly")])
-							}
-							else {
-								l_traces <- list(F, c())
-							}
-							
-							o_click_legend$item <- f_build_legend_items("ir", 2, o_parameter, NULL, NULL, NULL, isolate(o_click_legend$item), l_traces)
-							o_cond$display <- 0
 						}
-						
-						if (input$y_scale %in% c("auto", "manual")) {
-							# Update Y axis range (y_scale radio button: auto or manual)
-							# -------------------
-							
-							eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(\"ir\", input$y_scale, e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, NULL, isolate(o_click_legend$item), ifelse(input$y_scale == \"auto\", input$fraction, NULL), ", ifelse(input$y_scale == "manual", "c(input$ymin, input$ymax)", "NULL"), ")")))
-							l_axis_layout[[2]] <- l_results[[1]]
-							
-							if (input$y_scale == "auto") {
-								o_plot$y_coord <- l_results[[2]] 
-							}
-							else {
-								if (input$ymin != l_results[[1]][1]) {updateTextInput(session, "ymin", value = as.character(l_results[[1]][1]))}
-								if (input$ymax != l_results[[1]][2]) {updateTextInput(session, "ymax", value = as.character(l_results[[1]][2]))}
-							}
-							
-							if (length(l_results[[length(l_results)]]) > 0) {f_showNotification(l_results[[length(l_results)]], duration = 15, type = "warning")}
-							rm(list = "l_results")
-						}
-						
-						# Output (main panel)
-						# -------------------
-						
-						output$graphic <- renderPlotly({	
-							v_dimension <- input$dimension
-							df_click_legend <- isolate(o_click_legend$item)
-							
-							# build graph:
-							
-							ply_1 <- f_build_graph("ir", "graphic", v_dimension, o_click_button, df_click_legend, o_plot, o_parameter, l_axis_layout, o_picture_info, o_label_text)
-							
-							# add flags:
-							
-							v_cond <- c(isolate(o_cond$flag), isolate(o_cond$qc1), isolate(o_cond$qc2))
-							eval(parse(text = paste0("ply_1 <- f_add_flag(\"ir\", ply_1, v_cond, df_click_legend, o_plot, o_parameter, ", ifelse(v_cond[1] == 1, "e_data$flag", "NULL"), ", e_current_flag)")))
-							
-							# add statistics:
-							
-							if (isolate(o_parameter$mean_spect)) {ply_1 <- f_add_mean_spect(ply_1, df_click_legend, o_plot, o_parameter)}
-							
-							# add java script to save legend item status:
-							
-							ply_1 %>% onRender(s_js_2)
-						})
-						
-						shinyjs::show(id = "graphic")
-						shinyjs::show(id = "sh_popup1")
-						shinyjs::show(id = "sh_reset")
 					}
-				}
-			)
-			
-			shinyjs::delay(i_ms, {
-				v_graphic_opt <- c("y_scale", "bw", "dec_num")
-				v_id_all <- as.vector(o_input_status$val[which(o_input_status$val$panel == "tp_t2" | o_input_status$val$id %in% paste0(v_graphic_opt, "_button")), "id"])
-				v_id_on <- c()
-				
-				if (dim(isolate(o_plot$data))[1] > 0) {
-					if (length(e_current_flag) > 0) {v_id_all <- v_id_all[!v_id_all %in% paste0(c("clear1", "clear2", "save"), "_button")]}
 					
-					if (input$plot_type == "plot" & input$model == "none") {
-						i_cond <- 0
-						v_id_stat <- f_create_t3_input_id_vector(input$data_type, paste(input$plot_type, input$dim_num, sep = "_"))
-						if (length(v_id_stat) > 0) {eval(parse(text = paste0("i_cond <- length(which(c(", paste(paste0("input$", v_id_stat), collapse = ", "), ")))")))}
+					# Output (main panel)
+					# -------------------
+					
+					output$graphic <- renderPlotly({
+						v_dimension <- input$dimension
+						df_click_legend <- isolate(o_click_legend$item)
+						eval(parse(text = paste0("l_graph_opt <- ", ifelse(isolate(o_parameter$plot_type) == "corplot", "NULL", "f_create_graph_opt_list(isolate(o_name_option))"))))
 						
-						if (i_cond == 0 & is.na(o_parameter$f) & is.na(o_parameter$g) & is.na(o_parameter$h)) {
-							v_id_on <- f_create_input_id_vector(s_data = input$data_type, s_graph = paste(input$plot_type, input$dim_num, sep = "_"), b_display = T)
-							if (input$action == "replace_qc") {v_id_on <- v_id_on[v_id_on != "qc"]}
+						# build graph:
+						
+						ply_1 <- f_build_graph("normal", "graphic", v_dimension, o_click_button, df_click_legend, o_plot, o_parameter, l_axis_layout, o_picture_info, o_label_text, l_graph_opt)
+						
+						# add flags:
+						
+						v_cond <- c(rep(0, 2), isolate(o_cond$qc2))
+						ply_1 <- f_add_flag("normal", ply_1, v_cond, df_click_legend, o_plot, o_parameter, NULL, e_current_flag)
+						
+						# add statistics:
+						
+						df_stat_method_inv <- isolate(o_stat_method$inv)
+						v_name <- as.vector(df_stat_method_inv[df_stat_method_inv$data_type == "normal", "name"])
+						eval(parse(text = paste0("v_pos <- which(c(", paste(paste0("isolate(o_parameter$", v_name, ")"), collapse = ", "), "))")))
+						
+						if (length(v_pos) > 0) {
+							v_name <- v_name[v_pos]
+							v_code <- as.vector(df_stat_method_inv[df_stat_method_inv$name %in% v_name, "code"]) 
+							
+							for (i in v_name) {
+								if (is.na(v_code[which(v_name == i)])) { # statistical methods without preliminary checks
+									eval(parse(text = paste0("ply_1 <- f_add_", i, "(ply_1, df_click_legend, o_plot, o_parameter, l_graph_opt)")))
+								}
+								else { # statistical methods with preliminary checks
+									l_stat_method_level <- isolate(o_stat_method$level)
+									v_group <- l_stat_method_level[[v_code[which(v_name == i)]]]
+									eval(parse(text = paste0("ply_1 <- f_add_", i, "(ply_1, v_group, df_click_legend, o_plot, o_parameter, ", ifelse(i == "lreg", "o_lreg_info, ", ""), "l_graph_opt$color)")))
+								}
+							}
+							
+							df_stat_method_inv[v_pos, "click"] <- 0
+							o_stat_method$inv <- df_stat_method_inv
+						}
+						
+						ply_1 %>% 
+						onRender("function(el, x){el.on('plotly_legenddoubleclick', function(){return false;})}") %>%
+						event_register("plotly_legendclick") # add register associated to legend click
+					})
+					
+					eval(parse(text = paste(paste0("shinyjs::show(id = \"", c("graphic", "sh_popup1"), "\")"), collapse = "; ")))
+					eval(parse(text = paste(paste0("shinyjs::", ifelse(length(which(nrow(o_click_legend$item) > 1)) > 0, "show", "hide"), "(id = \"", c("sh_select_leg", "sh_deselect_leg"), "\")"), collapse = "; ")))
+					if ((!is.na(isolate(o_parameter$dim_num)) & isolate(o_parameter$dim_num) == "2d") | isolate(o_parameter$plot_type) == "histplot") {shinyjs::show(id = "sh_reset")}
+				}
+			}
+			else if (input$data_type == "temporal") {
+				# B. Type : Temporal
+				# ------------------
+				
+				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 12), "o_click_legend"), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "y_coord", "add_pt", "pt_pos", "var_pt", paste0("data_qc", 1:2), paste0("var_qc", 1:2), "leg_name_qc", "elt", "elt_pt_pos", "item"), "value" = c(rep("0", 5), "data.frame()", "NULL", "T", rep("NA", 9), "NULL")))))
+					if ("data" %in% ls(e_previous_flag)) {rm("data", envir = e_previous_flag)}
+					s_w_message <- character(0)
+					
+					if (isolate(o_cond$display) == 0) { # executed with the display button
+						if (length(e_current_flag) > 0) {
+							eval(parse(text = f_update_rv(list("rv" = rep("o_click_graph", 2), "id" = paste0("prev_", c("date", "var")), "value" = rep("NULL", 2)))))
+							rm(list = ls(e_current_flag), envir = e_current_flag)
+							js$resetClick()
+						}
+						
+						# Checking process: all fields are filled ?
+						# -----------------
+						
+						v_input_id <- c("var_x", "var_y", "g_radio", "g_text")
+						eval(parse(text = paste0("l_input_id_value <- list(", paste(paste0("\"", v_input_id, "\" = input$", v_input_id), collapse = ", "), ")")))
+						v_cond <- f_check_fields(input$data_type, input$plot_type, input$dim_num, input$model, l_input_id_value) 
+						v_pos <- which(v_cond)
+
+						if (length(v_pos) == 0) {
+							# Parameter value assignment: (o_parameter reactive value)
+							# ---------------------------
+							
+							o_parameter$data_name <- "all"
+							o_parameter$x <- input$var_x
+							o_parameter$date_format <- input$date_format
+							o_parameter$y <- input$var_y
+							o_parameter$g <- ifelse(input$g_radio == "yes", input$g_text, NA)
+						
+							# Checking process: (check selected variables)
+							# -----------------
+							
+							l_results <- f_check_variables("temporal", F, e_data, o_parameter)
+							s_e_message <- l_results[[1]]
+							s_w_message <- l_results[[2]]
+							v_date <- l_results[[3]]
 						}
 						else {
-							if (o_cond$flag_msg == 0) {o_cond$flag_msg <- 1}
+							v_name <- names(v_cond)[v_pos]
+							s_e_message <- paste0("Please complete the following field(s): ", paste(v_name, collapse = ", "))
 						}
 					}
 					
-					if (isolate(o_click_button$display) == 0) {
-						eval(parse(text = paste0("v_pos <- which(c(", paste(paste0("input$", c("y_scale", paste0(v_graphic_opt[-1], "_radio"))), collapse = ", "), ") == \"manual\")")))
-						if (length(v_pos) > 0) {v_id_on <- c(v_id_on, paste0(v_graphic_opt, "_button")[v_pos])}
-						o_click_button$display <- 1
-					}
-					else {
-						v_pos <- which(v_id_all %in% paste0(v_graphic_opt, "_button"))
-						if (length(v_pos) > 0) {v_id_all <- v_id_all[-v_pos]}
-					}
+					if (isolate(o_cond$save2) == 1) {s_e_message <- NULL}
 					
-					o_input_status$display <- o_input_status$val[which(o_input_status$val$id %in% f_create_varsel_input_id_vector(input$data_type, ifelse(input$plot_type != "plot", input$plot_type, paste(input$plot_type, input$dim_num, sep = "_")), input$model, ifelse(input$data_type != "temporal" & "flag" %in% ls(e_data), T, F))),] 
-					shinyjs::enable("graph_clear_button")
-					o_graphic_click$resume() # remove suspension for plotly_click associated to the "graphic" output
-					o_graphic_relayout$resume() # remove suspension for plotly_relayout associated to the "graphic" output
-				}
-				else {
-					if (o_click_button$display == 0) {eval(parse(text = paste(paste0("o_name_option$", c("color", "opacity", "point_type", "point_size"), "_default <- c()"), collapse = "; ")))}
-					o_reset$concat <- 1
-					click("reset1_button")
+					if (length(s_e_message) > 0) { # error message returned by the checking process
+						f_showNotification(s_e_message, duration = 15, type = "error")
+						if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
+					}
+					else { # no error
+						# # Graph default option assignment: (color, opacity, point type/size)
+						# ----------------------------------
+						
+						l_results <- f_create_default_graph_opt_list("temporal", data.frame(), o_parameter)
+						eval(parse(text = paste(paste0("o_name_option$", names(l_results), "_default <- l_results[[", 1:length(l_results), "]]"), collapse = "; ")))
+						v_e_message <- c()
+						
+						if (isolate(o_cond$display) == 0) {
+							o_zoom$coord <- NULL
+							l_axis_layout <- NULL
+							
+							# assign default graph label
+							o_parameter$ylab <- ifelse(input$g_radio == "yes", "g(y)", "y")
+							
+							# Checking process: (check tp1 inputs)
+							# -----------------
+							
+							v_pos <- which(c(!isolate(o_parameter$autodec_num)))
+							
+							if (length(v_pos) > 0) {
+								l_opt_name <- list(input$dec_num)[v_pos]
+								names(l_opt_name) <- c("dec_num")[v_pos]
+								v_e_message <- f_check_tp1_inputs(l_opt_name, NULL, o_parameter)
+								if (length(v_e_message) == 0) {eval(parse(text = paste(paste0("o_parameter$", names(l_opt_name), " <- l_opt_name[[", 1:length(l_opt_name), "]]"), collapse = "; ")))}
+								rm(list = "l_opt_name")
+							}
+						}
+						
+						if (length(v_e_message) > 0) { # error with graphic options
+							f_showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
+							if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
+						}
+						else { # no error
+							s_e_message <- character(0)
+							
+							if (!is.na(isolate(o_parameter$g))) { # g function added
+								# Checking process: (check transformed variables: function filled in text field)
+								# -----------------
+								
+								s_e_message <- f_check_trsf_variables("temporal", NULL, o_parameter)
+							}
+							
+							if (length(s_e_message) > 0) { # error with g function text field
+								f_showNotification(s_e_message, duration = 15, type = "error")
+								if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
+							}
+							else { # no error
+								v_w_message <- c()
+								if (length(s_w_message) > 0) {v_w_message <- s_w_message}
+								df_all <- e_data$all[, c(isolate(o_parameter$x), isolate(o_parameter$y))]
+								
+								if (isolate(o_cond$display) == 0) {
+									df_all[, isolate(o_parameter$x)] <- v_date
+								}
+								else {
+									df_all[, isolate(o_parameter$x)] <- f_create_date_variable(df_all, isolate(o_parameter$x), isolate(o_parameter$date_format))
+								}
+								
+								# Data preparation: (process 1)
+								# -----------------
+								
+								eval(parse(text = paste0("l_results <- f_prepare_data(\"temporal\", 1, df_all, NULL, NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", NULL, ", ifelse("data" %in% ls(e_previous_flag), "e_previous_flag$data", "NULL"), ", NULL, NULL, NULL, o_parameter)")))
+								
+								if (length(l_results[[9]]) > 0) { # error (all values with a qc = 2)
+									f_showNotification(l_results[[9]], duration = 15, type = "error")
+									if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
+								}
+								else { # no error
+									df_all <- l_results[[1]]
+									e_previous_flag$data <- l_results[[2]]
+									eval(parse(text = paste(paste0("o_plot$", c("data_qc1", "data_qc2", "var_qc1", "var_qc2", "leg_name_qc"), " <- l_results[[", c(3, 4, 6:8), "]]"), collapse = "; ")))
+									eval(parse(text = paste(paste0("o_cond$", c("flag", "qc1", "qc2"), " <- l_results[[5]][", 1:3, "]"), collapse = "; ")))
+									v_w_message <- c(v_w_message, l_results[[10]])
+									s_e_message <- character(0)
+									
+									if (!is.na(isolate(o_parameter$g))) { # only if a g function is added
+										# Checking process: (check transformed variables: calculation)
+										# -----------------
+										
+										l_results <- f_check_trsf_variables("temporal", df_all, o_parameter)
+										s_e_message <- l_results[[2]]
+										
+										if (length(s_e_message) == 0) {
+											# Data preparation: (process 2)
+											# -----------------
+											
+											df_all <- f_prepare_data(s_data_type = "temporal", i_proc_num = 2, df_all = df_all, o_parameter = o_parameter, l_fun_val = l_results[[1]])
+										}
+									}
+									
+									if (length(s_e_message) > 0) { # error with g function calculation
+										f_showNotification(s_e_message, duration = 15, type = "error")
+										if (length(s_w_message) > 0) {f_showNotification(s_w_message, duration = 15, type = "warning")}
+									}
+									else { # no error
+										if (length(v_w_message) > 0) {f_showNotification(paste(v_w_message, collapse = "<br/>"), duration = 15, type = "warning")}
+										o_plot$data <- df_all
+										rm(list = c("l_results", "df_all"))
+										
+										# Data preparation: (process 3)
+										# -----------------
+										
+										l_pt_pos <- f_prepare_data(s_data_type = "temporal", i_proc_num = 3, df_all = isolate(o_plot$data), o_parameter = o_parameter)
+										
+										# create data corresponding to isolated points of Y variable(s)
+										
+										v_pos <- which(as.vector(lengths(l_pt_pos)) > 0)
+										
+										if (length(v_pos) > 0) {
+											o_plot$pt_pos <- l_pt_pos
+											o_plot$var_pt <- isolate(o_parameter$y)[v_pos]
+											o_plot$elt_pt_pos <- c(length(isolate(o_parameter$y)) + 1, length(isolate(o_parameter$y)) + length(isolate(o_plot$var_pt)))
+											o_plot$add_pt <- ifelse(input$mode == "line", T, F)
+										}
+										else {
+											o_plot$add_pt <- F
+										}
+										
+										# Build legend items (process 1) 
+										# ------------------
+										
+										o_click_legend$item <- f_build_legend_items("temporal", 1, o_parameter, o_cond, o_plot)
+										
+										# Create element data (process 1)
+										# -------------------
+										
+										o_plot$elt <- f_create_element_data("temporal", 1, o_parameter, o_cond, o_plot)
+									}
+								}
+							}
+						}
+					}
 				}
 				
-				o_on_off$val <- f_update_input_status_list(f_create_input_status_list(v_id_all, ifelse(v_id_all %in% v_id_on, 1, 0)), o_input_status$val)
-			})
+				if (dim(isolate(o_plot$data))[1] > 0) {
+					if (isolate(o_cond$display) == 1) {
+						if (isolate(o_cond$save2) == 0) {
+							if (isolate(o_cond$mode) == 1) { # "mode" radio button (Graphic tab) modified
+								if (length(isolate(o_plot$elt_pt_pos)) == 2) {
+									# Create element data (process 2)
+									# -------------------
+									
+									o_plot$elt <- f_create_element_data("temporal", 2, o_parameter, o_cond, o_plot, input$mode)
+									o_plot$add_pt <- ifelse(input$mode == "line", T, F)
+								}
+								
+								o_cond$mode <- 0
+							}
+						}
+						
+						# Edit axis layout (axis range)
+						# ----------------
+						
+						l_axis_layout <- f_edit_axis_layout("temporal", NULL, o_zoom)
+						o_cond$display <- 0
+					}
+					
+					if (input$y_scale %in% c("auto", "manual")) {
+						# Update Y axis range (y_scale radio button: auto or manual)
+						# -------------------
+						
+						eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(\"temporal\", input$y_scale, e_data$all, o_parameter, o_zoom, o_plot, o_cond, isolate(o_click_legend$item), ifelse(input$y_scale == \"auto\", input$fraction, NULL), ", ifelse(input$y_scale == "manual", "c(input$ymin, input$ymax)", "NULL"), ")")))
+						l_axis_layout[[2]] <- l_results[[1]]
+						
+						if (input$y_scale == "auto") {
+							o_plot$y_coord <- l_results[[2]] 
+						}
+						else {
+							if (input$ymin != l_results[[1]][1]) {updateTextInput(session, "ymin", value = as.character(l_results[[1]][1]))}
+							if (input$ymax != l_results[[1]][2]) {updateTextInput(session, "ymax", value = as.character(l_results[[1]][2]))}
+						}
+						
+						if (length(l_results[[length(l_results)]]) > 0) {f_showNotification(l_results[[length(l_results)]], duration = 15, type = "warning")}
+						rm(list = "l_results")
+					}
+					
+					# Output (main panel)
+					# -------------------
+					
+					output$graphic <- renderPlotly({
+						v_dimension <- input$dimension
+						df_click_legend <- isolate(o_click_legend$item)
+						l_graph_opt <- f_create_graph_opt_list(o_name_option)
+						
+						# build graph:
+						
+						ply_1 <- f_build_graph("temporal", "graphic", v_dimension, o_click_button, df_click_legend, o_plot, o_parameter, l_axis_layout, o_picture_info, o_label_text, l_graph_opt)
+						
+						# add flags:
+						
+						v_cond <- c(isolate(o_cond$flag), isolate(o_cond$qc1), isolate(o_cond$qc2))
+						ply_1 <- f_add_flag("temporal", ply_1, v_cond, df_click_legend, o_plot, o_parameter, NULL, e_current_flag)
+						
+						ply_1 %>% 
+						onRender("function(el, x){el.on('plotly_legenddoubleclick', function(){return false;})}") %>%
+						event_register("plotly_legendclick") # add register associated to legend click
+					})
+					
+					eval(parse(text = paste(paste0("shinyjs::show(id = \"", c("graphic", "sh_popup1"), "\")"), collapse = "; ")))
+					eval(parse(text = paste(paste0("shinyjs::", ifelse(length(which(nrow(o_click_legend$item) > 1)) > 0, "show", "hide"), "(id = \"", c("sh_select_leg", "sh_deselect_leg"), "\")"), collapse = "; ")))
+				}		
+			}
+			else {
+				# C. Type : IR
+				# ------------
+				
+				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 8), "o_stat_method", "o_click_legend"), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "id_group", "y_coord", "add_pt", "pt_pos", paste0("data_qc", 1:2), "elt", "inv", "item"), "value" = c(rep("0", 5), "data.frame()", "NA", "NULL", "F", rep("NA", 4), "df_stat_method_inv_ini", "NULL")))))
+					
+					if (isolate(o_cond$display) == 0) {
+						if (length(e_current_flag) > 0) {
+							rm(list = ls(e_current_flag), envir = e_current_flag)
+							js$resetClick()
+						}
+						
+						# Checking process: all fields are filled ?
+						# -----------------
+						
+						v_input_id <- c("id", "var_id", "group", "concat2", "var_group")
+						eval(parse(text = paste0("l_input_id_value <- list(", paste(paste0("\"", v_input_id, "\" = input$", v_input_id), collapse = ", "), ")")))
+						v_cond <- f_check_fields(input$data_type, input$plot_type, input$dim_num, input$model, l_input_id_value) 
+						v_pos <- which(v_cond)
+						
+						if (length(v_pos) == 0) {
+							# Parameter value assignment: (o_parameter reactive value)
+							# ---------------------------
+							
+							o_parameter$data_name <- ifelse(isolate(o_click_button$create) == 1, "sub", "all")
+							o_parameter$id <- ifelse(input$id == "yes", input$var_id, NA)
+							o_parameter$concat2 <- input$concat2
+							if (input$concat2) {o_parameter$concat2_group <- input$var_group}
+							
+							if (input$group == "yes") {
+								if (input$concat2) {
+									e_data$all$.concat2. <- f_create_concat_variable(e_data$all, input$var_group)
+									o_parameter$group <- ".concat2."
+								}
+								else {
+									o_parameter$group <- input$var_group
+								}
+							}
+							else {
+								o_parameter$group <- NA
+							}
+							
+							# Checking process: (check selected variables)
+							# -----------------
+							
+							s_e_message <- f_check_variables("ir", F, e_data, o_parameter)
+						}
+						else {
+							v_name <- names(v_cond)[v_pos]
+							s_e_message <- paste0("Please complete the following field(s): ", paste(v_name, collapse = ", "))
+						}
+					}
+					
+					if (isolate(o_cond$save2) == 1) {s_e_message <- NULL}
+					
+					if (length(s_e_message) > 0) {
+						f_showNotification(s_e_message, duration = 15, type = "error")
+					}
+					else {
+						v_e_message <- c()
+						
+						if (isolate(o_cond$display) == 0) {
+							o_zoom$coord <- NULL
+							
+							# assign default graph label
+							o_parameter$ylab <- "y"
+							
+							# Checking process: (check tp1 inputs)
+							# -----------------
+							
+							v_pos <- which(c(!isolate(o_parameter$autodec_num)))
+							
+							if (length(v_pos) > 0) {
+								l_opt_name <- list(input$dec_num)[v_pos]
+								names(l_opt_name) <- c("dec_num")[v_pos]
+								v_e_message <- f_check_tp1_inputs(l_opt_name, NULL, o_parameter)
+								if (length(v_e_message) == 0) {eval(parse(text = paste(paste0("o_parameter$", names(l_opt_name), " <- l_opt_name[[", 1:length(l_opt_name), "]]"), collapse = "; ")))}
+								rm(list = "l_opt_name")
+							}
+						}
+						
+						if (length(v_e_message) > 0) { # error with graphic options
+							f_showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
+						} 
+						else { # no error
+							# Data preparation: (process 1)
+							# -----------------
+							
+							eval(parse(text = paste0("l_results <- f_prepare_data(\"ir\", 1, e_data[[isolate(o_parameter$data_name)]], ", ifelse("sub" %in% ls(e_data), "isolate(o_sdata_cond$row_num)", "NULL"), ", e_data$code_freq, isolate(o_data_info$code), ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", NULL, NULL, NULL, NULL, NULL, o_parameter)")))
+							
+							if (length(l_results[[8]]) > 0) { # error with data preparation
+								f_showNotification(l_results[[8]], duration = 15, type = "error")
+							} 
+							else { # no error
+								eval(parse(text = paste(paste0("df_", c("all", "code_freq", "qc1", "qc2"), " <- l_results[[", 1:4, "]]"), collapse = "; ")))
+								eval(parse(text = paste(paste0("o_cond$", c("flag", "qc1", "qc2"), " <- l_results[[5]][", 1:3, "]"), collapse = "; ")))
+								l_id <- l_results[[6]]
+								o_plot$pt_pos <- l_results[[7]]
+								if (isolate(o_cond$display) == 0) {l_axis_layout <- list(rev(range(as.vector(df_code_freq$Frequency))), NULL)}
+								
+								# Graph default option assignment: (color, opacity, point type/size)
+								# --------------------------------
+								
+								l_results <- f_create_default_graph_opt_list("ir", l_results[[1]], o_parameter)
+								eval(parse(text = paste(paste0("o_name_option$", names(l_results), "_default <- l_results[[", 1:length(l_results), "]]"), collapse = "; ")))
+								
+								# Data preparation: (process 2)
+								# -----------------
+								
+								l_graph_opt <- f_create_graph_opt_list(o_name_option)
+								l_results <- f_prepare_data("ir", 2, df_all, NULL, df_code_freq, NULL, NULL, NULL, NULL, list(df_qc1, df_qc2), l_id, NULL, o_parameter, l_graph_opt)
+								eval(parse(text = paste(paste0("o_plot$", c("data", "data_qc1", "data_qc2", "id_group"), " <- l_results[[", 1:4, "]]"), collapse = "; ")))
+								rm(list = c("l_results", "df_all", "df_code_freq", "df_qc1", "df_qc2", "l_id"))
+								
+								# Create element data (process 1)
+								# -------------------
+								
+								o_plot$elt <- f_create_element_data("ir", 1, NULL, o_cond, o_plot, input$mode)
+								if (length(which(!is.na(isolate(o_plot$pt_pos)))) > 0 & input$mode == "line") {o_plot$add_pt <- T}
+								
+								# Build legend items (process 1)
+								# ------------------
+								
+								o_click_legend$item <- f_build_legend_items("ir", 1, o_parameter, NULL, o_plot)
+							}
+						}
+					}
+				}
+				
+				if (dim(isolate(o_plot$data))[1] > 0) {
+					if (isolate(o_cond$display) == 1) {
+						if (isolate(o_cond$save2) == 0) {
+							if (isolate(o_cond$mode) == 1) { # "mode" radio button (Graphic tab) modified
+								if (length(which(!is.na(isolate(o_plot$pt_pos)))) > 0) {
+									# Create element data (process 2)
+									# -------------------
+									
+									o_plot$elt <- f_create_element_data("ir", 2, o_parameter, o_cond, o_plot, input$mode)
+									o_plot$add_pt <- ifelse(input$mode == "line", T, F)
+								}
+								
+								o_cond$mode <- 0
+							}
+						}
+						
+						if (o_cond$ok_color_opacity == 1 | o_cond$ok_point_type_size == 1) {
+							# Update graph option (color, opacity, point type/size)
+							# -------------------
+							
+							l_graph_opt <- f_create_graph_opt_list(o_name_option)
+							
+							if (is.na(o_parameter$group)) {
+								if (o_cond$ok_color_opacity == 1) {
+									eval(parse(text = paste(paste0("o_plot$id_group$no_flag$", c("color", "opacity"), " <- l_graph_opt$", c("color", "opacity")), collapse = "; ")))
+								}
+								else {
+									eval(parse(text = paste(paste0("o_plot$id_group$no_flag$", c("point_type", "point_size"), " <- l_graph_opt$", c("point_type", "point_size")), collapse = "; ")))
+								}
+							}
+							else {
+								if (o_cond$ok_color_opacity == 1) {
+									eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"color\"] <- \"", l_graph_opt$color, "\""), collapse = "; ")))
+									eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"opacity\"] <- ", l_graph_opt$opacity), collapse = "; ")))
+								}
+								else {
+									eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"point_type\"] <- ", l_graph_opt$point_type), collapse = "; ")))
+									eval(parse(text = paste(paste0("o_plot$id_group$no_flag[which(o_plot$id_group$no_flag$group == \"", o_name_option$name, "\"), \"point_size\"] <- ", l_graph_opt$point_size), collapse = "; ")))
+								}
+							}
+							
+							eval(parse(text = paste(paste0("o_cond$ok_", c("color_opacity", "point_type_size"), " <- 0"), collapse = "; ")))
+						}
+						
+						# Edit axis layout (axis range)
+						# ----------------
+						
+						l_axis_layout <- f_edit_axis_layout("ir", NULL, o_zoom, range(as.vector(isolate(o_plot$data)$Frequency)))
+						
+						# Build legend items (process 2)
+						# ------------------
+						
+						o_click_legend$item <- f_build_legend_items("ir", 2, o_parameter, NULL, NULL, NULL, isolate(o_click_legend$item))
+						o_cond$display <- 0
+					}
+					
+					if (input$y_scale %in% c("auto", "manual")) {
+						# Update Y axis range (y_scale radio button: auto or manual)
+						# -------------------
+						
+						eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(\"ir\", input$y_scale, e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, NULL, isolate(o_click_legend$item), ifelse(input$y_scale == \"auto\", input$fraction, NULL), ", ifelse(input$y_scale == "manual", "c(input$ymin, input$ymax)", "NULL"), ")")))
+						l_axis_layout[[2]] <- l_results[[1]]
+						
+						if (input$y_scale == "auto") {
+							o_plot$y_coord <- l_results[[2]] 
+						}
+						else {
+							if (input$ymin != l_results[[1]][1]) {updateTextInput(session, "ymin", value = as.character(l_results[[1]][1]))}
+							if (input$ymax != l_results[[1]][2]) {updateTextInput(session, "ymax", value = as.character(l_results[[1]][2]))}
+						}
+						
+						if (length(l_results[[length(l_results)]]) > 0) {f_showNotification(l_results[[length(l_results)]], duration = 15, type = "warning")}
+						rm(list = "l_results")
+					}
+					
+					# Output (main panel)
+					# -------------------
+					
+					output$graphic <- renderPlotly({	
+						v_dimension <- input$dimension
+						df_click_legend <- isolate(o_click_legend$item)
+						
+						# build graph:
+						
+						ply_1 <- f_build_graph("ir", "graphic", v_dimension, o_click_button, df_click_legend, o_plot, o_parameter, l_axis_layout, o_picture_info, o_label_text)
+						
+						# add flags:
+						
+						v_cond <- c(isolate(o_cond$flag), isolate(o_cond$qc1), isolate(o_cond$qc2))
+						eval(parse(text = paste0("ply_1 <- f_add_flag(\"ir\", ply_1, v_cond, df_click_legend, o_plot, o_parameter, ", ifelse(v_cond[1] == 1, "e_data$flag", "NULL"), ", e_current_flag)")))
+						
+						# add statistics:
+						
+						if (isolate(o_parameter$mean_spect)) {
+							ply_1 <- f_add_mean_spect(ply_1, df_click_legend, o_plot, o_parameter)
+							df_stat_method_inv <- isolate(o_stat_method$inv)
+							df_stat_method_inv[df_stat_method_inv$name == "mean_spect", "click"] <- 0
+							o_stat_method$inv <- df_stat_method_inv
+						}
+						
+						ply_1 %>% 
+						onRender("function(el, x){el.on('plotly_legenddoubleclick', function(){return false;})}") %>%
+						event_register("plotly_legendclick") # add register associated to legend click
+					})
+					
+					eval(parse(text = paste(paste0("shinyjs::show(id = \"", c("graphic", "sh_popup1", "sh_reset"), "\")"), collapse = "; ")))
+					eval(parse(text = paste(paste0("shinyjs::", ifelse(length(which(nrow(o_click_legend$item) > 1)) > 0, "show", "hide"), "(id = \"", c("sh_select_leg", "sh_deselect_leg"), "\")"), collapse = "; ")))
+				}
+			}
+			
+			v_graphic_opt <- c("y_scale", "bw", "dec_num")
+			v_id_all <- as.vector(o_input_status$val[which(o_input_status$val$panel == "tp_t2" | o_input_status$val$id %in% paste0(v_graphic_opt, "_button")), "id"])
+			v_id_on <- c()
+			
+			if (dim(isolate(o_plot$data))[1] > 0) {
+				if (length(e_current_flag) > 0) {v_id_all <- v_id_all[!v_id_all %in% paste0(c("clear1", "clear2", "save"), "_button")]}
+				
+				if (input$plot_type == "plot" & input$model == "none") {
+					i_cond <- 0
+					v_id_stat <- f_create_t3_input_id_vector(input$data_type, paste(input$plot_type, input$dim_num, sep = "_"))
+					if (length(v_id_stat) > 0) {eval(parse(text = paste0("i_cond <- length(which(c(", paste(paste0("input$", v_id_stat), collapse = ", "), ")))")))}
+					
+					if (i_cond == 0 & is.na(o_parameter$f) & is.na(o_parameter$g) & is.na(o_parameter$h)) {
+						v_id_on <- f_create_input_id_vector(s_data = input$data_type, s_graph = paste(input$plot_type, input$dim_num, sep = "_"), b_display = T)
+						if (input$action == "replace_qc") {v_id_on <- v_id_on[v_id_on != "qc"]}
+					}
+					else {
+						if (o_cond$flag_msg == 0) {o_cond$flag_msg <- 1}
+					}
+				}
+				
+				if (isolate(o_click_button$display) == 0) {
+					eval(parse(text = paste0("v_pos <- which(c(", paste(paste0("input$", c("y_scale", paste0(v_graphic_opt[-1], "_radio"))), collapse = ", "), ") == \"manual\")")))
+					if (length(v_pos) > 0) {v_id_on <- c(v_id_on, paste0(v_graphic_opt, "_button")[v_pos])}
+					o_click_button$display <- 1
+				}
+				else {
+					v_pos <- which(v_id_all %in% paste0(v_graphic_opt, "_button"))
+					if (length(v_pos) > 0) {v_id_all <- v_id_all[-v_pos]}
+				}
+				
+				o_input_status$display <- o_input_status$val[which(o_input_status$val$id %in% f_create_varsel_input_id_vector(input$data_type, ifelse(input$plot_type != "plot", input$plot_type, paste(input$plot_type, input$dim_num, sep = "_")), input$model, ifelse(input$data_type != "temporal" & "flag" %in% ls(e_data), T, F))),] 
+				shinyjs::enable("graph_clear_button")
+				
+				# remove suspension for plotly_click and plotly_relayout
+				# eval(parse(text = paste(paste0("o_graphic_", c("click", "legend_click", "relayout"), "$resume()"), collapse = "; ")))
+				eval(parse(text = paste(paste0("o_graphic_", c("click", "relayout"), "$resume()"), collapse = "; ")))
+			}
+			else {
+				if (o_click_button$display == 0) {eval(parse(text = paste(paste0("o_name_option$", c("color", "opacity", "point_type", "point_size"), "_default <- c()"), collapse = "; ")))}
+				o_reset$concat <- 1
+				click("reset1_button")
+			}
+			
+			o_on_off$val <- f_update_input_status_list(f_create_input_status_list(v_id_all, ifelse(v_id_all %in% v_id_on, 1, 0)), o_input_status$val)
 		}
 	})
 	
@@ -3084,14 +3044,7 @@ f_server <- function(input, output, session) {
 				
 				if (isolate(o_click_button$display) == 1) {
 					if (!is.na(input$fraction) & input$fraction >= 0 & input$fraction <= 0.1) { 
-						df_click_legend <- isolate(o_click_legend$item)
-						
-						if (is.list(input$traces)) {
-							v_name <- names(input$traces)[which(as.vector(unlist(input$traces)) == "legendonly")]
-							df_click_legend$statut <- ifelse(df_click_legend$name %in% v_name, "\"legendonly\"", "T")
-						}
-						
-						eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(input$data_type, \"auto\", e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, ", ifelse(input$data_type == "temporal", "o_cond", "NULL"), ", df_click_legend, input$fraction, NULL)")))
+						eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(input$data_type, \"auto\", e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, ", ifelse(input$data_type == "temporal", "o_cond", "NULL"), ", o_click_legend$item, input$fraction, NULL)")))
 						o_plot$y_coord <- l_results[[2]] 
 						s_ylab <- ifelse(length(o_label_text$text) > 0, ifelse(o_label_text$text[which(o_label_text$label == "y")] != "", o_label_text$text[which(o_label_text$label == "y")], o_parameter$ylab), o_parameter$ylab)
 						ply_1 <- plotlyProxyInvoke(p = plotlyProxy("graphic", session), "relayout", list(yaxis = list(title = s_ylab, range = l_results[[1]])))
@@ -3809,10 +3762,25 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$lreg, {
 		if ("all" %in% ls(e_data)) {
-			o_parameter$lreg <- input$lreg
+			df_stat_method_inv <- o_stat_method$inv
 			
-			if (is.na(o_cond$stat)) {
-				if (isolate(o_click_button$display) == 1) {
+			if (isolate(o_click_button$display) == 1) {
+				if (df_stat_method_inv[which(df_stat_method_inv$name == "lreg"), "check_process"] == (-1)) { # preliminary checks failed for all (Group) levels
+					if (input$lreg) {
+						if (o_stat_method$message[["lreg"]] == 0) { # display error message
+							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "lreg", o_parameter)
+							f_showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+						}
+						
+						updateCheckboxInput(session, "lreg", value = F)
+					}
+				}
+				else {
+					o_parameter$lreg <- input$lreg
+					df_stat_method_inv[which(df_stat_method_inv$name == "lreg"), "click"] <- 1
+					o_stat_method$inv <- df_stat_method_inv
+					js$resetClick()
+					
 					if (input$lreg) {
 						updateSelectizeInput(session, "lreg_info_elt", choices = c("lreg parameters", "R2", ifelse(input$model == "valid", "t-test on lreg parameters", "RMSE")))
 						shinyjs::show(id = "sh_popup2")
@@ -3834,15 +3802,11 @@ f_server <- function(input, output, session) {
 						shinyjs::disable("reset3_button")
 					}
 					
-					l_results <- f_update_traces_input("lreg", input$traces, o_cond$legend, o_input_status$val, o_parameter)
-					if (length(l_results[[1]]) > 0) {eval(parse(text = l_results[[1]]))}
-					o_cond$legend <- l_results[[2]]
-					js$resetClick()
-					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 3), "id" = c("update", "stat", "display"), "value" = c("1", "\"lreg\"", "1")))))
+					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep("1", 2)))))
 				}
 			}
 			else {
-				if (o_cond$stat == -1) {o_cond$stat <- NULL}
+				o_parameter$lreg <- input$lreg
 			}
 		}
 	})
@@ -3852,19 +3816,29 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$conf_ellipsoid, {
 		if ("all" %in% ls(e_data)) {
-			o_parameter$conf_ellipsoid <- input$conf_ellipsoid
+			df_stat_method_inv <- o_stat_method$inv
 			
-			if (is.na(o_cond$stat)) {
-				if (isolate(o_click_button$display) == 1) {
-					l_results <- f_update_traces_input("conf_ellipsoid", input$traces, o_cond$legend, o_input_status$val, o_parameter)
-					if (length(l_results[[1]]) > 0) {eval(parse(text = l_results[[1]]))}
-					o_cond$legend <- l_results[[2]]
+			if (isolate(o_click_button$display) == 1) {
+				if (df_stat_method_inv[which(df_stat_method_inv$name == "conf_ellipsoid"), "check_process"] == (-1)) { # preliminary checks failed for all (Group) levels
+					if (input$conf_ellipsoid) {
+						if (o_stat_method$message[["conf_ellipsoid"]] == 0) { # display error message
+							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "conf_ellipsoid", o_parameter)
+							f_showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+						}
+						
+						updateCheckboxInput(session, "conf_ellipsoid", value = F)
+					}
+				}
+				else {
+					o_parameter$conf_ellipsoid <- input$conf_ellipsoid
+					df_stat_method_inv[which(df_stat_method_inv$name == "conf_ellipsoid"), "click"] <- 1
+					o_stat_method$inv <- df_stat_method_inv
 					js$resetClick()
-					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 3), "id" = c("update", "stat", "display"), "value" = c("1", "\"conf_ellipsoid\"", "1")))))
+					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep("1", 2)))))
 				}
 			}
 			else {
-				if (o_cond$stat == -1) {o_cond$stat <- NULL}
+				o_parameter$conf_ellipsoid <- input$conf_ellipsoid
 			}
 		}
 	})
@@ -3874,16 +3848,14 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$centroid, {
 		if ("all" %in% ls(e_data)) {
+			df_stat_method_inv <- o_stat_method$inv
 			o_parameter$centroid <- input$centroid
 			
-			if (is.na(o_cond$stat)) {
-				if (isolate(o_click_button$display) == 1) {
-					l_results <- f_update_traces_input("centroid", input$traces, o_cond$legend, o_input_status$val, o_parameter)
-					if (length(l_results[[1]]) > 0) {eval(parse(text = l_results[[1]]))}
-					o_cond$legend <- l_results[[2]]
-					js$resetClick()
-					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 3), "id" = c("update", "stat", "display"), "value" = c(1, 0, 1)))))
-				}
+			if (isolate(o_click_button$display) == 1) {
+				df_stat_method_inv[which(df_stat_method_inv$name == "centroid"), "click"] <- 1
+				o_stat_method$inv <- df_stat_method_inv
+				js$resetClick()
+				eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep("1", 2)))))
 			}
 		}
 	})
@@ -3903,18 +3875,29 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$dens_curve, {
 		if ("all" %in% ls(e_data)) {
-			o_parameter$dens_curve <- input$dens_curve
+			df_stat_method_inv <- o_stat_method$inv
 			
-			if (is.na(o_cond$stat)) {
-				if (isolate(o_click_button$display) == 1) {
-					l_results <- f_update_traces_input("dens_curve", input$traces, o_cond$legend, o_input_status$val, o_parameter)
-					if (length(l_results[[1]]) > 0) {eval(parse(text = l_results[[1]]))}
-					o_cond$legend <- l_results[[2]]
-					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 3), "id" = c("update", "stat", "display"), "value" = c("1", "\"dens_curve\"", "1")))))
+			if (isolate(o_click_button$display) == 1) {
+				if (df_stat_method_inv[which(df_stat_method_inv$name == "dens_curve"), "check_process"] == (-1)) { # preliminary checks failed for all (Group) levels
+					if (input$dens_curve) {
+						if (o_stat_method$message[["dens_curve"]] == 0) { # display error message
+							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "dens_curve", o_parameter)
+							f_showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+						}
+						
+						updateCheckboxInput(session, "dens_curve", value = F)
+					}
+				}
+				else {
+					o_parameter$dens_curve <- input$dens_curve
+					df_stat_method_inv[which(df_stat_method_inv$name == "dens_curve"), "click"] <- 1
+					o_stat_method$inv <- df_stat_method_inv
+					js$resetClick()
+					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep("1", 2)))))
 				}
 			}
 			else {
-				if (o_cond$stat == -1) {o_cond$stat <- NULL}
+				o_parameter$dens_curve <- input$dens_curve
 			}
 		}
 	})
@@ -3924,18 +3907,29 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$norm_dens_curve, {
 		if ("all" %in% ls(e_data)) {
-			o_parameter$norm_dens_curve <- input$norm_dens_curve
+			df_stat_method_inv <- o_stat_method$inv
 			
-			if (is.na(o_cond$stat)) {
-				if (isolate(o_click_button$display) == 1) {
-					l_results <- f_update_traces_input("norm_dens_curve", input$traces, o_cond$legend, o_input_status$val, o_parameter)
-					if (length(l_results[[1]]) > 0) {eval(parse(text = l_results[[1]]))}
-					o_cond$legend <- l_results[[2]]
-					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 3), "id" = c("update", "stat", "display"), "value" = c("1", "\"norm_dens_curve\"", "1")))))
+			if (isolate(o_click_button$display) == 1) {
+				if (df_stat_method_inv[which(df_stat_method_inv$name == "norm_dens_curve"), "check_process"] == (-1)) { # preliminary checks failed for all (Group) levels
+					if (input$norm_dens_curve) {
+						if (o_stat_method$message[["norm_dens_curve"]] == 0) { # display error message
+							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "norm_dens_curve", o_parameter)
+							f_showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+						}
+						
+						updateCheckboxInput(session, "norm_dens_curve", value = F)
+					}
+				}
+				else {
+					o_parameter$norm_dens_curve <- input$norm_dens_curve
+					df_stat_method_inv[which(df_stat_method_inv$name == "norm_dens_curve"), "click"] <- 1
+					o_stat_method$inv <- df_stat_method_inv
+					js$resetClick()
+					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep("1", 2)))))
 				}
 			}
 			else {
-				if (o_cond$stat == -1) {o_cond$stat <- NULL}
+				o_parameter$norm_dens_curve <- input$norm_dens_curve
 			}
 		}
 	})
@@ -3945,13 +3939,14 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$mean_spect, {
 		if (length(ls(e_data)) > 0) {
+			df_stat_method_inv <- o_stat_method$inv
 			o_parameter$mean_spect <- input$mean_spect
 			
 			if (isolate(o_click_button$display) == 1) {
-				l_results <- f_update_traces_input("mean_spect", input$traces, o_cond$legend, o_input_status$val, o_parameter)
-				if (length(l_results[[1]]) > 0) {eval(parse(text = l_results[[1]]))}
-				o_cond$legend <- l_results[[2]]
-				eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep(1, 2)))))
+				df_stat_method_inv[which(df_stat_method_inv$name == "mean_spect"), "click"] <- 1
+				o_stat_method$inv <- df_stat_method_inv
+				js$resetClick()
+				eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep("1", 2)))))
 			}
 		}
 	})
@@ -3980,6 +3975,65 @@ f_server <- function(input, output, session) {
 	observe({
 		if (!is.numeric(input$picture_height) | input$picture_height < 100 | is.na(input$picture_height)) {updateNumericInput(session, "picture_height", value = ifelse(!is.numeric(input$picture_height) | is.na(input$picture_height), 800, 100))}
 		if (!is.numeric(input$picture_width) | input$picture_width < 300 | is.na(input$picture_width)) {updateNumericInput(session, "picture_width", value = ifelse(!is.numeric(input$picture_width) | is.na(input$picture_width), 1000, 300))}
+	})
+	
+	# 4.3. Add events on (de)select all legend items button
+	# ======================================================
+	
+	observeEvent(o_click_legend$item, {
+		if (!is.null(o_click_legend$item)) {
+			v_val <- unique(as.vector(o_click_legend$item$statut))
+			
+			if  (length(v_val) == 1) {
+				if (v_val == "T") {
+					shinyjs::disable("sh_select_leg")
+					o_cond$selec_leg <- 1
+					
+					if (o_cond$deselec_leg == 1) {
+						shinyjs::enable("sh_deselect_leg")
+						o_cond$deselec_leg <- 0
+					}
+				}
+				else {
+					shinyjs::disable("sh_deselect_leg")
+					o_cond$deselec_leg <- 1
+					
+					if (o_cond$selec_leg == 1) {
+						shinyjs::enable("sh_select_leg")
+						o_cond$selec_leg <- 0
+					}
+				}
+			}
+			else {
+				if (o_cond$deselec_leg == 1) {
+					shinyjs::enable("sh_deselect_leg")
+					o_cond$deselec_leg <- 0
+				}
+				
+				if (o_cond$selec_leg == 1) {
+					shinyjs::enable("sh_select_leg")
+					o_cond$selec_leg <- 0
+				}
+			}
+		}
+	})
+	
+	observeEvent(input$select_leg_button, {
+		if (isolate(o_click_button$display) == 1) {
+			df_click_legend <- isolate(o_click_legend$item)
+			df_click_legend$statut <- "T"
+			o_click_legend$item <- df_click_legend
+			eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep(1, 2)))))
+		}
+	})
+	
+	observeEvent(input$deselect_leg_button, {
+		if (isolate(o_click_button$display) == 1) {
+			df_click_legend <- isolate(o_click_legend$item)
+			df_click_legend$statut <- "\"legendonly\""
+			o_click_legend$item <- df_click_legend
+			eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep(1, 2)))))
+		}
 	})
 	
 	# 4.3. Add events on "reset axes" button
@@ -4047,11 +4101,10 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$select_graph, {
 		if (isolate(o_click_button$display) == 1 & !is.na(o_parameter$select_graph)) {
-			if (isolate(o_cond$select_graph1) == 0) {
-				o_cond$select_graph1 <- 1
+			if (isolate(o_cond$select_graph) == 0) {
+				o_cond$select_graph <- 1
 			}
 			else {
-				if (!is.na(isolate(o_parameter$group)) & paste(isolate(o_parameter$model), input$select_graph, sep = "_") == "calib_QQplot") {o_cond$select_graph2 <- 1}
 				o_parameter$select_graph <- input$select_graph
 				if (length(o_label_text$label) > 0) {eval(parse(text = f_update_rv(list("rv" = rep("o_label_text", 2), "id" = c("label", "text"), "value" = rep("c()", 2)))))} # delete custom labels
 				eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep(1, 2)))))
@@ -4238,7 +4291,31 @@ f_server <- function(input, output, session) {
 		}
 	})
 	
-	# 4.8. Add events on zoom 
+	# 4.8. Add events on legend click
+	# ===============================
+	
+	observeEvent(event_data("plotly_legendclick", source = "graphic"), {	
+		if (isolate(o_click_button$display) == 1) {
+			o_legend_click_ev <- event_data("plotly_legendclick", source = "graphic")
+			s_legend_click <- ifelse(!is.null(o_legend_click_ev$name), o_legend_click_ev$name, o_legend_click_ev[[1]]$legendgroup)
+			df_click_legend <- isolate(o_click_legend$item)
+			s_statut <- as.vector(df_click_legend[which(df_click_legend$name == s_legend_click), "statut"])
+			df_click_legend[which(df_click_legend$name == s_legend_click), "statut"] <- ifelse(s_statut == "T", "\"legendonly\"", "T")
+			o_click_legend$item <- df_click_legend
+			
+			if (input$y_scale == "auto") {
+				o_plot$y_coord <- NULL
+				eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(input$data_type, \"auto\", e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, ", ifelse(input$data_type == "temporal", "o_cond", "NULL"), ", df_click_legend, input$fraction, NULL)")))
+				o_plot$y_coord <- l_results[[2]]
+				s_ylab <- ifelse(length(o_label_text$text) > 0, ifelse(o_label_text$text[which(o_label_text$label == "y")] != "", o_label_text$text[which(o_label_text$label == "y")], o_parameter$ylab), o_parameter$ylab)
+				ply_1 <- plotlyProxyInvoke(p = plotlyProxy("graphic", session), "relayout", list(yaxis = list(title = s_ylab, range = l_results[[1]])))
+				if (length(l_results[[3]]) > 0) {showNotification(l_results[[3]], duration = 15, type = "warning")}
+				rm(list = "l_results")
+			}
+		}
+	})
+	
+	# 4.9. Add events on zoom 
 	# =======================
 	
 	o_graphic_relayout <- observeEvent(event_data("plotly_relayout", source = "graphic"), suspended = T, {
@@ -4346,15 +4423,8 @@ f_server <- function(input, output, session) {
 						}
 						
 						if (input$y_scale == "auto") {
-							df_click_legend <- isolate(o_click_legend$item)
-							
-							if (is.list(input$traces)) {
-								v_name <- names(input$traces)[which(as.vector(unlist(input$traces)) == "legendonly")]
-								df_click_legend$statut <- ifelse(df_click_legend$name %in% v_name, "\"legendonly\"", "T")
-							}
-							
 							o_plot$y_coord <- NULL
-							eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(input$data_type, \"auto\", e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, ", ifelse(input$data_type == "temporal", "o_cond", "NULL"), ", df_click_legend, input$fraction, NULL)")))
+							eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(input$data_type, \"auto\", e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, ", ifelse(input$data_type == "temporal", "o_cond", "NULL"), ", o_click_legend$item, input$fraction, NULL)")))
 							o_plot$y_coord <- l_results[[2]]
 							s_ylab <- ifelse(length(o_label_text$text) > 0, ifelse(o_label_text$text[which(o_label_text$label == "y")] != "", o_label_text$text[which(o_label_text$label == "y")], o_parameter$ylab), o_parameter$ylab)
 							ply_1 <- plotlyProxyInvoke(p = plotlyProxy("graphic", session), "relayout", list(yaxis = list(title = s_ylab, range = l_results[[1]])))
@@ -4362,35 +4432,6 @@ f_server <- function(input, output, session) {
 							rm(list = "l_results")
 						}
 					}
-				}
-			}
-		}
-	})
-	
-	# 4.9. Add events on check/uncheck legend items
-	# =============================================
-	
-	observeEvent(input$traces, {
-		if (isolate(o_click_button$display) == 1) {
-			if (input$data_type == "normal") {
-				if (isolate(o_cond$legend) == 1) {o_cond$legend <- 0}
-			}
-			else {
-				if (input$y_scale == "auto") {
-					df_click_legend <- isolate(o_click_legend$item)
-					
-					if (is.list(input$traces)) {
-						v_name <- names(input$traces)[which(as.vector(unlist(input$traces)) == "legendonly")]
-						df_click_legend$statut <- ifelse(df_click_legend$name %in% v_name, "\"legendonly\"", "T")
-					}
-					
-					o_plot$y_coord <- NULL
-					eval(parse(text = paste0("l_results <- f_calcul_y_axis_range(input$data_type, \"auto\", e_data[[isolate(o_parameter$data_name)]], o_parameter, o_zoom, o_plot, ", ifelse(input$data_type == "temporal", "o_cond", "NULL"), ", df_click_legend, input$fraction, NULL)")))
-					o_plot$y_coord <- l_results[[2]]
-					s_ylab <- ifelse(length(o_label_text$text) > 0, ifelse(o_label_text$text[which(o_label_text$label == "y")] != "", o_label_text$text[which(o_label_text$label == "y")], o_parameter$ylab), o_parameter$ylab)
-					ply_1 <- plotlyProxyInvoke(p = plotlyProxy("graphic", session), "relayout", list(yaxis = list(title = s_ylab, range = l_results[[1]])))
-					if (length(l_results[[3]]) > 0) {showNotification(l_results[[3]], duration = 15, type = "warning")}
-					rm(list = "l_results")
 				}
 			}
 		}

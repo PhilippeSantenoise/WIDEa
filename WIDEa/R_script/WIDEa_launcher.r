@@ -75,7 +75,7 @@ library(car) # levene test
 # Loading R scripts
 #===================================================================================
 
-v_rscript_name <- c("WIDEa_ui", "WIDEa_server", "utils", paste0(c("on_off", "update"), "_ui_inputs"), "input_inventories", "update_reactive_values", "build_modal_dialog", "load_data", "create_sub_data")
+v_rscript_name <- c("WIDEa_ui", "WIDEa_server", "utils", paste0(c("on_off", "update"), "_ui_inputs"), "input_inventories", "stat_method_inventory", "create_stat_method_message", "update_reactive_values", "build_modal_dialog", "load_data", "create_sub_data")
 eval(parse(text = paste(paste0("source(\"", s_WIDEa_path, "R_script/", v_rscript_name, ".r\")"), collapse = "; ")))
 
 # Display button (lp)

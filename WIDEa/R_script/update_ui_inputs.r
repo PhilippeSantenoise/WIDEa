@@ -35,9 +35,6 @@
 # b_value: value for check box inputs
 # df_match_id: data frame with matching IDs between UI's input and o_parameter reactive value (created with the function f_create_match_id_data)
 # i_delay: add a delay (in ms) to update commands (no delay as default value)
-# df_id_status: data frame of input IDs with status information obtained by the reactive value o_input_status
-# i_cond_legend: binary value associated to o_cond$legend reactive value 
-# o_parameter: reactive values
 # s_data_type: data type (3 values: "normal", "temporal", "ir")
 # s_plot_type: plot type (5 values: "plot", "boxplot", "histplot", "barplot", "corplot")
 # s_mode: graph mode (3 values: "marker", "line", "line_marker")
@@ -75,44 +72,6 @@ f_update_radio_button_input <- function (s_id, s_selected) {
 f_update_check_box_input <- function (s_id, b_value) {
 	s_cmd <- paste0("updateCheckboxInput(session, \"", s_id, "\", value = ", b_value, ")")
 	return(s_cmd)
-}
-
-# Create command lines to update the input associated to graph legend items (input$traces)
-f_update_traces_input <- function(s_id, l_traces = NULL, i_cond_legend, df_id_status, o_parameter) {
-	s_cmd <- character(0)
-	df_id_traces <- f_create_id_traces_data()
-	df_id_traces <- df_id_traces[which(df_id_traces$id %in% as.vector(df_id_status[df_id_status$panel == "tp_t3" & df_id_status$status == 1, "id"])),] 
-	
-	if (o_parameter[[s_id]]) {
-		if (i_cond_legend == 1) {
-			s_cmd <- "js$reloadClick_leg()"
-			i_cond_legend <- 0
-		}
-	}
-	else {
-		if (is.list(l_traces)) {
-			v_pos_1 <- which(as.vector(unlist(l_traces)) == "legendonly")
-			
-			if (length(v_pos_1) > 0) {
-				eval(parse(text = paste0("v_pos_2 <- c(", paste(paste0("grep(\"[(]", as.vector(df_id_traces$traces), "[)]\", names(l_traces))"), collapse = ", "), ")")))
-				i_sum <- 0
-				if (nrow(df_id_traces) > 1) {eval(parse(text = paste0("i_sum <- sum(which(c(", paste(paste0("o_parameter$", as.vector(df_id_traces$id[df_id_traces$id != s_id])), collapse = ", "), ")))")))}
-				
-				if (i_sum == 0 & (length(names(l_traces)) - length(v_pos_2)) == 1 & 1 %in% v_pos_1) {
-					if (i_cond_legend == 1) {i_cond_legend <- 0}
-					s_cmd <- "js$resetClick_leg()"
-				}
-				else {
-					if (i_cond_legend == 0) {
-						v_pos_1 <- grep(paste0("[(]", as.vector(df_id_traces[df_id_traces$id == s_id, "traces"]), "[)]"), names(l_traces)[v_pos_1])
-						if (length(v_pos_1) > 0) {i_cond_legend <- 1}
-					}
-				}
-			}
-		}
-	}
-	
-	return(list(s_cmd, i_cond_legend))
 }
 
 # Create command lines to update option (label, color/opacity, point type/size) selectize input
@@ -156,9 +115,6 @@ f_update_inputs <- function (l_id_value, df_all = NULL, l_selectize_option = lis
 		return(v_cmd_x)
 	})))
 	
-	# print("-- UPDATE --")
-	# print(v_cmd)
-	# print("------------")
 	if (i_delay > 0) {
 		s_cmd <- paste0("shinyjs::delay(", i_delay, ", {", paste(v_cmd, collapse = "; "), "})")
 	}

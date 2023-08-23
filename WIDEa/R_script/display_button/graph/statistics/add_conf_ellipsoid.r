@@ -33,68 +33,48 @@
 #          is selected, then v_group = "all". 
 # df_click_legend: legend item informations (name and status)
 # (o_plot, o_parameter): reactive values from the R script "WIDEa_launcher"
-# i_w_message: binary value used to display (= 0) or not (= 1) the warning message returned by the function               
 # v_color: graph color vector
 
 # Output:
 # -------
-# return a list containing a plotly object and warning/error messages
+# return a plotly object
 
-f_add_conf_ellipsoid <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, i_w_message, v_color) {
-	s_w_message <- NULL
-	s_e_message <- NULL
+f_add_conf_ellipsoid <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, v_color) {
+	df_all <- isolate(o_plot$data)
 	
-	if (length(v_group) > 0) {
-		df_all <- isolate(o_plot$data)
+	if (isolate(o_parameter$model) == "valid") { # validation model
+		df_model <- isolate(o_plot$model)
+		v_pos <- match(c(ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y)), isolate(o_parameter$group)), names(df_all))
+		df_all <- as.data.frame(df_all[, v_pos[!is.na(v_pos)]])
+		names(df_all) <- c("y", "group")[which(!is.na(v_pos))]
+		df_all$x <- as.vector(df_model$fit)
+		rm(list = "df_model")
+	}
+	else { # no model
+		v_pos <- match(c(ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x)), ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y)), isolate(o_parameter$group)), names(df_all))
+		names(df_all)[v_pos[!is.na(v_pos)]] <- c("x", "y", "group")[which(!is.na(v_pos))]
+	}
+	
+	if (!is.na(isolate(o_parameter$group))) {
+		v_group_all <- as.vector(unique(df_all$group))
+		v_group_all <- v_group_all[order(v_group_all)]
 		
-		if (isolate(o_parameter$model) == "valid") { # validation model
-			df_model <- isolate(o_plot$model)
-			v_pos <- match(c(ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y)), isolate(o_parameter$group)), names(df_all))
-			df_all <- as.data.frame(df_all[, v_pos[!is.na(v_pos)]])
-			names(df_all) <- c("y", "group")[which(!is.na(v_pos))]
-			df_all$x <- as.vector(df_model$fit)
-			rm(list = "df_model")
-		}
-		else { # no model
-			v_pos <- match(c(ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x)), ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y)), isolate(o_parameter$group)), names(df_all))
-			names(df_all)[v_pos[!is.na(v_pos)]] <- c("x", "y", "group")[which(!is.na(v_pos))]
-		}
+		l_val <- lapply(v_group, function(x) {
+			df_group <- df_all[which(df_all$group == x),]
+			df_out <- dataEllipse(x = as.vector(df_group$x), y = as.vector(df_group$y), levels = 0.95, draw = F, segments = 100)
+			return(df_out)
+		})
 		
-		if (!is.na(isolate(o_parameter$group))) {
-			v_group_all <- as.vector(unique(df_all$group))
-			v_group_all <- v_group_all[order(v_group_all)]
-			
-			l_val <- lapply(v_group, function(x) {
-				df_group <- df_all[which(df_all$group == x),]
-				df_out <- dataEllipse(x = as.vector(df_group$x), y = as.vector(df_group$y), levels = 0.95, draw = F, segments = 100)
-				return(df_out)
-			})
-			
-			v_pos_1 <- which(v_group_all %in% v_group) 
-			v_pos_2 <- which(!v_group_all %in% v_group) 
-			v_visible <- df_click_legend[which(df_click_legend$name %in% paste0(v_group_all[v_pos_1], " (ellipsoid)")), "statut"]
-			eval(parse(text = paste(paste0("ply_1  <- add_trace(p = ply_1, x = l_val[[", 1:length(l_val), "]][, 1], y = l_val[[", 1:length(l_val), "]][, 2], name = \"", v_group, " (ellipsoid)\", type = \"", ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), "\", mode = \"lines\", line = list(color = adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 1), width = 1.5), fill = \"toself\", fillcolor = list(color = adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 0.3)), hoverlabel = list(bgcolor = adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 1)), hoverinfo = \"name\", showlegend = T, visible = ", v_visible, ")"), collapse = "; ")))
-			
-			if (length(v_pos_2) > 0) {
-				if (i_w_message == 0) {
-					s_w_message <- paste0("Error with confidence ellipsoid calculation: insufficient size of data (< 3) or the standard deviation of ", ifelse(isolate(o_parameter$model) == "none", "X" , "fit"), " and/or Y variable(s) is equal to zero for one or more groups (", paste(v_group_all[v_pos_2], collapse = ", "), ")")
-				}
-			}
-		}
-		else {
-			df_val <- dataEllipse(x = as.vector(df_all$x), y = as.vector(df_all$y), levels = 0.95, draw = F, segments = 100)
-			eval(parse(text = paste0("v_visible <- ", df_click_legend[which(df_click_legend$name == "all (ellipsoid)"), "statut"])))
-			ply_1  <- add_trace(p = ply_1, x = df_val[, 1], y = df_val[, 2], name = "all (ellipsoid)", type = ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), mode = "lines", line = list(color = adjustcolor(v_color, alpha.f = 1), width = 1.5), fill = "toself", fillcolor = list(color = adjustcolor(v_color, alpha.f = 0.3)), hoverlabel = list(bgcolor = adjustcolor(v_color, alpha.f = 1)), hoverinfo = "name", showlegend = T, visible = v_visible)
-		}
+		v_pos_1 <- which(v_group_all %in% v_group) 
+		v_pos_2 <- which(!v_group_all %in% v_group) 
+		v_visible <- df_click_legend[which(df_click_legend$name %in% paste0(v_group_all[v_pos_1], " (ellipsoid)")), "statut"]
+		eval(parse(text = paste(paste0("ply_1  <- add_trace(p = ply_1, x = l_val[[", 1:length(l_val), "]][, 1], y = l_val[[", 1:length(l_val), "]][, 2], name = \"", v_group, " (ellipsoid)\", type = \"", ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), "\", mode = \"lines\", line = list(color = adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 1), width = 1.5), fill = \"toself\", fillcolor = list(color = adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 0.3)), hoverlabel = list(bgcolor = adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 1)), hoverinfo = \"name\", showlegend = T, visible = ", v_visible, ")"), collapse = "; ")))
 	}
 	else {
-		if (!is.na(isolate(o_parameter$group))) {
-			s_e_message <- paste0("Error with confidence ellipsoid calculation: insufficient size of data (< 3) or the standard deviation of ", ifelse(isolate(o_parameter$model) == "none", "X" , "fit"), " and/or Y variable(s) is equal to zero for each group")
-		}
-		else {
-			s_e_message <- paste0("Error with confidence ellipsoid calculation: insufficient size of data (< 3) or the standard deviation of ", ifelse(isolate(o_parameter$model) == "none", "X" , "fit"), " and/or Y variable(s) is equal to zero")
-		}
+		df_val <- dataEllipse(x = as.vector(df_all$x), y = as.vector(df_all$y), levels = 0.95, draw = F, segments = 100)
+		eval(parse(text = paste0("v_visible <- ", df_click_legend[which(df_click_legend$name == "all (ellipsoid)"), "statut"])))
+		ply_1  <- add_trace(p = ply_1, x = df_val[, 1], y = df_val[, 2], name = "all (ellipsoid)", type = ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), mode = "lines", line = list(color = adjustcolor(v_color, alpha.f = 1), width = 1.5), fill = "toself", fillcolor = list(color = adjustcolor(v_color, alpha.f = 0.3)), hoverlabel = list(bgcolor = adjustcolor(v_color, alpha.f = 1)), hoverinfo = "name", showlegend = T, visible = v_visible)
 	}
 	
-	return (list(ply_1, s_w_message, s_e_message))
+	return (ply_1)
 }

@@ -323,9 +323,6 @@ f_on_off_inputs <- function(l_id_status, df_all = NULL, l_selectize_option = lis
 		return(v_cmd_x)
 	})))
 	
-	# print("-- ON OFF --")
-	# print(v_cmd)
-	# print("------------")
 	s_cmd <- paste(v_cmd, collapse = "; ")
 	return(s_cmd)
 }

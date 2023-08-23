@@ -18,19 +18,16 @@
 # <http://www.gnu.org/licenses/>
 #
 #
-# Description : function used to create data corresponding to legend items. Legend items are saved in a
-#               two columns data.frame (item name and status: selected/unselected on the current graph).
-#               This data.frame is returned for all data type. 
-#               A second element is also returned for the normal data type and concern the o_legend_group 
-#               reactive value (created in the R script "WIDEa_launcher"). This reactive value returns the  
-#               name of legend items assigned to 4 statistical methods. If one of these boxes are checked
-#               in the Statitics tab (top panel), then the function update the corresponding reactive
-#               value.      
+# Description : function used to build legend item data and update reactive values o_stat_method (created 
+#               in the R script "WIDEa_server") associated to statistical methods (Statistics tab). Legend 
+#               item data are saved in a two columns data frame (item name and status: selected/unselected 
+#               on the current graph). This data frame is returned for all data type.       
 #               The function is separated into 2 processes,
 #               (1) the first process is executed when a graph is created in the main panel by clicking 
 #                   on the display button (left panel); 
-#               (2) the second process is executed when the graph (already created) is updated by  
-#                   clicking on one of parameters in the top panel (Graphic, Flag, Statistics tabs).
+#               (2) the second process is executed when the current graph is updated by (de)selecting a
+#                   statistical method from the Statistics tab (top panel) and changing the graph when a
+#                   calibration model is added (normal data type).
 #
 # Creation date : March 2021
 #########################################################################################################
@@ -40,118 +37,139 @@
 # ------
 # s_data_type: data type (3 values: "normal", "temporal", "ir")
 # i_proc_num: process number (2 values: 1, 2) 
-# (o_parameter, o_cond, o_legend_group, o_plot): reactive values from the R script "WIDEa_launcher"
+# (o_parameter, o_cond, o_plot, o_stat_method): reactive values from the R script "WIDEa_server"
 # df_click_legend: legend item informations (name and status)
-# l_traces: list created from the "traces" input (see R script "WIDEa_launcher"). The "traces" input allows to save the status of legend items (selected/unselected).
-#           The "l_traces" input returns the name of legend items with an unselected status (= "legendonly") if the "traces" input is not empty (boolean value: T). 
 
-# Output:
-# -------
-# return a data.frame or a list (normal data type) corresponding to legend item informations 
-
-f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_parameter, o_cond, o_legend_group, o_plot, df_click_legend = data.frame(), l_traces = list(F, c())) {
+f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_parameter, o_cond, o_plot, o_stat_method = NULL, df_click_legend = data.frame()) {
 	if (s_data_type == "normal") {
 		df_all <- isolate(o_plot$data)
 		df_model <- isolate(o_plot$model)
+		df_stat_method <- o_stat_method$inv
+		l_stat_method_level <- o_stat_method$level
+		l_stat_method_message <- o_stat_method$message
+		df_message <- data.frame() # data frame including warning/error messages for statistical methods with preliminary checks
+		v_stat_method_uncheck <- c() # vector used to uncheck the box of statistic method if an error message is returned
+		v_pos <- which(df_stat_method$click == 1 & df_stat_method$check_process == 1)
 		
-		if (i_proc_num == 1) {
-			i_elt_num <- integer(0)
-			b_cond_1 <- isolate(o_parameter$lreg) == T | isolate(o_parameter$conf_ellipsoid) == T
-			b_cond_2 <- isolate(o_parameter$dens_curve) == T | isolate(o_parameter$norm_dens_curve) == T
+		if (length(v_pos) > 0) {
+			v_stat_method_name <- df_stat_method$name[v_pos]
+			eval(parse(text = paste0("v_pos <- which(c(", paste(paste0("o_parameter$", v_stat_method_name), collapse = ", "), "))")))
 			
-			if (b_cond_1 | b_cond_2) {
-				s_data_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "df_model", "df_all")
-				s_var_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "fit", ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x)))
+			if (length(v_pos) > 0) { # update o_stat_method$level (levels for statistical methods after preliminary checks)
+				v_name <- v_stat_method_name[v_pos]
+				v_stat_method_cp <- as.vector(sort(unique(df_stat_method[which(df_stat_method$name %in% v_name), "code"])))
+				v_pos <- which(as.vector(lengths(l_stat_method_level[v_stat_method_cp])) == 0)
 				
-				if (b_cond_1) {
-					s_var_y <- ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y))
-				}
-				
-				if (!is.na(isolate(o_parameter$group))) {
-					v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
-					v_group <- v_group[order(v_group)]
-					df_num <- as.data.frame(addmargins(table(df_all[, isolate(o_parameter$group)])))
-					df_num <- df_num[-dim(df_num)[1],]
-					df_num <- df_num[order(df_num[, 1]),]
+				if (length(v_pos) > 0) {
+					v_stat_method_cp <- v_stat_method_cp[v_pos]
+					s_data_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "df_model", "df_all")
+					s_var_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "fit", ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x)))
 					
-					if (b_cond_1) {
-						v_pos <- which(df_num[, 2] > 2)
+					if (!is.na(isolate(o_parameter$group))) {
+						v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
+						v_group <- v_group[order(v_group)]
+						df_num <- as.data.frame(addmargins(table(df_all[, isolate(o_parameter$group)])))
+						df_num <- df_num[-dim(df_num)[1],]
+						df_num <- df_num[order(df_num[, 1]),]
+					}
+					
+					if ("cp1" %in% v_stat_method_cp) { # check process cp1 for the following stat methods: lreg, ellipsoid
+						s_var_y <- ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y))
 						
-						if (length(v_pos) > 0) {
-							eval(parse(text = paste0("v_sd_x <- c(", paste(paste0("sd(as.vector(", s_data_x, "[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos], "\"), \"", s_var_x, "\"]))"), collapse = ", "), ")")))
-							eval(parse(text = paste0("v_sd_y <- c(", paste(paste0("sd(as.vector(df_all[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos], "\"), \"", s_var_y, "\"]))"), collapse = ", "), ")")))
-							
-							if (length(unique(c(which(v_sd_x == 0), which(v_sd_y == 0)))) > 0) {
-								v_pos <- v_pos[-unique(c(which(v_sd_x == 0), which(v_sd_y == 0)))]
-							}
-							
+						if (!is.na(isolate(o_parameter$group))) {
+							v_pos <- which(df_num[, 2] > 2)
+						
 							if (length(v_pos) > 0) {
-								if (isolate(o_parameter$lreg)) {
-									o_legend_group$lreg <- v_group[v_pos]
-								}
+								eval(parse(text = paste0("v_sd_x <- c(", paste(paste0("sd(as.vector(", s_data_x, "[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos], "\"), \"", s_var_x, "\"]))"), collapse = ", "), ")")))
+								eval(parse(text = paste0("v_sd_y <- c(", paste(paste0("sd(as.vector(df_all[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos], "\"), \"", s_var_y, "\"]))"), collapse = ", "), ")")))
+								if (length(unique(c(which(v_sd_x == 0), which(v_sd_y == 0)))) > 0) {v_pos <- v_pos[-unique(c(which(v_sd_x == 0), which(v_sd_y == 0)))]}
 								
-								if (isolate(o_parameter$conf_ellipsoid)) {
-									o_legend_group$conf_ellipsoid <- v_group[v_pos]
+								if (length(v_pos) > 0) {
+									l_stat_method_level[["cp1"]] <- v_group[v_pos]
+								}
+								else {
+									df_stat_method[which(df_stat_method$code == "cp1"), "check_process"] <- (-1)
+								}
+							}
+						}
+						else {
+							if (dim(df_all)[1] > 2) {
+								eval(parse(text = paste0("b_sd <- sd(as.vector(", s_data_x, "[, \"", s_var_x, "\"])) > 0 & sd(as.vector(df_all[, \"", s_var_y, "\"])) > 0")))
+								
+								if (b_sd) {
+									l_stat_method_level[["cp1"]] <- "all"
+								}
+								else {
+									df_stat_method[which(df_stat_method$code == "cp1"), "check_process"] <- (-1)
 								}
 							}
 						}
 					}
-					else {
-						v_pos <- which(df_num[, 2] > 1)
-						
-						if (length(v_pos) > 0) {
-							eval(parse(text = paste0("v_sd <- c(", paste(paste0("sd(as.vector(", s_data_x, "[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos], "\"), \"", s_var_x, "\"]))"), collapse = ", "), ")")))
-							
-							if (length(which(v_sd == 0)) > 0) {
-								v_pos <- v_pos[-which(v_sd == 0)]
-							}
+					
+					if ("cp2" %in% v_stat_method_cp) { # check process cp2 for the following stat methods: dens_curve, norm_dens_curve
+						if (!is.na(isolate(o_parameter$group))) {
+							v_pos <- which(df_num[, 2] > 1)
 							
 							if (length(v_pos) > 0) {
-								if (isolate(o_parameter$dens_curve)) {
-									o_legend_group$dens_curve <- v_group[v_pos]
-								}
+								eval(parse(text = paste0("v_sd <- c(", paste(paste0("sd(as.vector(", s_data_x, "[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos], "\"), \"", s_var_x, "\"]))"), collapse = ", "), ")")))
+								if (length(which(v_sd == 0)) > 0) {v_pos <- v_pos[-which(v_sd == 0)]}
 								
-								if (isolate(o_parameter$norm_dens_curve)) {
-									o_legend_group$norm_dens_curve <- v_group[v_pos]
+								if (length(v_pos) > 0) {
+									l_stat_method_level[["cp2"]] <- v_group[v_pos]
+								}
+								else {
+									df_stat_method[which(df_stat_method$code == "cp2"), "check_process"] <- (-1)
+								}
+							}
+						}
+						else {
+							if (dim(df_all)[1] > 1) {
+								eval(parse(text = paste0("b_sd <- sd(as.vector(", s_data_x, "[, \"", s_var_x, "\"])) > 0")))
+								
+								if (b_sd) {
+									l_stat_method_level[["cp2"]] <- "all"
+								}
+								else {
+									df_stat_method[which(df_stat_method$code == "cp2"), "check_process"] <- (-1)
 								}
 							}
 						}
 					}
 				}
-				else {
-					if (b_cond_1) {
-						if (dim(df_all)[1] > 2) {
-							eval(parse(text = paste0("b_sd <- sd(as.vector(", s_data_x, "[, \"", s_var_x, "\"])) > 0 & sd(as.vector(df_all[, \"", s_var_y, "\"])) > 0")))
+				
+				v_pos <- which(as.vector(unlist(l_stat_method_message)) == 0)
+				
+				if (length(v_pos) > 0) { # update l_stat_method_message
+					v_pos <- which(v_name %in% names(l_stat_method_message)[v_pos])
+					
+					if (length(v_pos) > 0) {
+						v_name <- v_name[v_pos]
+						v_pos <- which(as.vector(lengths(l_stat_method_level)) == length(as.vector(unique(df_all[, isolate(o_parameter$group)]))))
+						
+						if (length(v_pos) > 0) {
+							v_pos <- which(df_stat_method$name %in% v_name & df_stat_method$code %in% names(l_stat_method_level))
 							
-							if (b_sd) {
-								if (isolate(o_parameter$lreg)) {
-									o_legend_group$lreg <- "all"
-								}
+							if (length(v_pos) > 0) {	
+								v_del <- as.vector(df_stat_method[v_pos, "name"])
+								l_stat_method_message[v_del] <- (-1)
 								
-								if (isolate(o_parameter$conf_ellipsoid)) {
-									o_legend_group$conf_ellipsoid <- "all"
-								}
-							}
-						}
-					}
-					else {
-						if (dim(df_all)[1] > 1) {
-							eval(parse(text = paste0("b_sd <- sd(as.vector(", s_data_x, "[, \"", s_var_x, "\"])) > 0")))
-							
-							if (b_sd) {
-								if (isolate(o_parameter$dens_curve)) {
-									o_legend_group$dens_curve <- "all"
-								}
-								
-								if (isolate(o_parameter$norm_dens_curve)) {
-									o_legend_group$norm_dens_curve <- "all"
+								if (length(v_del) < length(v_name)) {
+									v_name <- v_name[!v_name %in% v_del]
+									df_message <- f_create_stat_method_message(df_stat_method, l_stat_method_level, v_name, o_parameter)
+									l_stat_method_message[v_name] <- 1
 								}
 							}
 						}
 					}
 				}
+				
+				v_pos <- which(df_stat_method$click == 1 & df_stat_method$check_process == (-1))
+				# df_stat_method[v_pos, "click"] <- 0
+				v_stat_method_uncheck <- df_stat_method$name[v_pos]
 			}
-			
+		}
+		
+		if (i_proc_num == 1) {  # build legend item data
 			if (length(which(isolate(o_parameter$model) == "calib")) > 0) {
 				if ("variance" %in% names(df_model)) {
 					df_click_legend <- data.frame("name" = "all", "statut" = "T")
@@ -188,418 +206,101 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 			
 				v_group <- v_group[order(v_group)]
 				df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
+				if (isolate(o_parameter$plot_type) == "plot" & isolate(o_parameter$model) == "none" & isolate(o_cond$qc2) == 1) {df_click_legend <- rbind(df_click_legend, data.frame("name" = "qc = 2", "statut" = "T"))}
+			}
+			
+			v_pos <- which(df_stat_method$click == 1 & df_stat_method$check_process != (-1))
+			
+			if (length(v_pos) > 0) { # add legend items associated to statistical methods
+				v_name_clicked <- as.vector(df_stat_method$name[v_pos])
+				v_leg_name_clicked <- as.vector(df_stat_method$leg_name[v_pos])
+				v_name <- paste0(rep(v_group, length(v_name_clicked)), " (", rep(v_leg_name_clicked, each = length(v_group)), ")")
+				v_pos <- which(df_stat_method$name %in% v_name_clicked & df_stat_method$check_process == 1) # statistic methods with check process 
 				
-				if (isolate(o_parameter$plot_type) %in% c("plot", "histplot")) {
-					if (isolate(o_parameter$plot_type) == "plot") {
-						if (isolate(o_parameter$model) == "none") {
-							if (isolate(o_cond$qc2) == 1) {
-								df_add <- data.frame("name" = "qc = 2", "statut" = "T")
-								df_click_legend <- rbind(df_click_legend, df_add) 
-							}
-						}
-						
-						if (isolate(o_parameter$lreg)) {
-							if (length(isolate(o_legend_group$lreg)) > 0) {
-								df_add <- data.frame("name" = paste0(isolate(o_legend_group$lreg), " (lreg)"), "statut" = rep("T", length(isolate(o_legend_group$lreg))))
-								df_click_legend <- rbind(df_click_legend, df_add)
-							}
-						}
-						
-						if (isolate(o_parameter$conf_ellipsoid)) {
-							if (length(isolate(o_legend_group$conf_ellipsoid)) > 0) {
-								df_add <- data.frame("name" = paste0(isolate(o_legend_group$conf_ellipsoid), " (ellipsoid)"), "statut" = rep("T", length(isolate(o_legend_group$conf_ellipsoid))))
-								df_click_legend <- rbind(df_click_legend, df_add)
-							}
-						}
-						
-						if (isolate(o_parameter$centroid)) {
-							df_add <- data.frame("name" = paste0(v_group, " (centroid)"), "statut" = rep("T", length(v_group)))
-							df_click_legend <- rbind(df_click_legend, df_add)
-						}
-					}
-					else {
-						if (isolate(o_parameter$dens_curve)) {
-							if (length(isolate(o_legend_group$dens_curve)) > 0) {
-								df_add <- data.frame("name" = paste0(isolate(o_legend_group$dens_curve), " (curve)"), "statut" = rep("T", length(isolate(o_legend_group$dens_curve))))
-								df_click_legend <- rbind(df_click_legend, df_add)
-							}
-						}
-						
-						if (isolate(o_parameter$norm_dens_curve)) {
-							if (length(isolate(o_legend_group$norm_dens_curve)) > 0) {
-								df_add <- data.frame("name" = paste0(isolate(o_legend_group$norm_dens_curve), " (normal curve)"), "statut" = rep("T", length(isolate(o_legend_group$norm_dens_curve))))
-								df_click_legend <- rbind(df_click_legend, df_add)
-							}
-						}
-					}
+				if (length(v_pos) > 0) {
+					v_name_sub <- as.vector(df_stat_method$name[v_pos])
+					v_leg_name_sub <- as.vector(df_stat_method$leg_name[v_pos])
+					l_sub <- l_stat_method_level[as.vector(df_stat_method[which(df_stat_method$name %in% v_name_sub), "code"])]
+					names(l_sub) <- v_name_sub
+					v_size <- as.vector(lengths(l_sub))
+					eval(parse(text = paste0("v_name_proc_1 <- c(", paste(paste0("rep(\"", names(l_sub), "\", ", v_size,")"), collapse = ", "), ")"))) 
+					v_name_proc_1 <- paste0(as.vector(unlist(l_sub)), " (", v_leg_name_sub[match(v_name_proc_1, v_name_sub)], ")")
+					v_name_proc_2 <- paste0(rep(v_group, length(v_leg_name_sub)), " (", rep(v_leg_name_sub, each = length(v_group)), ")")
+					v_pos <- which(!v_name_proc_2 %in% v_name_proc_1)
+					if (length(v_pos) > 0) {v_name <- v_name[!v_name %in% v_name_proc_2[v_pos]]}
 				}
+				
+				df_click_legend <- rbind(df_click_legend, data.frame("name" = v_name, "statut" = rep("T", length(v_name))))
 			}
 		}
-		else { # process = 2
-			df_click_legend$statut <- "T"
-			
-			if (!is.na(o_cond$stat)) {
-				v_legend_group <- c()
-				
-				if (isolate(o_parameter$plot_type) == "plot" & isolate(o_cond$qc2) == 1) {
-					i_qc <- 1
+		else { # process = 2: update legend item data
+			if (length(which(isolate(o_parameter$model) == "calib")) > 0) { # legend items for the calibration model
+				if (isolate(o_parameter$select_graph) == "QQplot") {
+					df_click_legend <- data.frame("name" = "all", "statut" = "T")
 				}
 				else {
-					i_qc <- 0
-				}
-				
-				if (!is.na(isolate(o_parameter$group))) {
 					v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
 					v_group <- v_group[order(v_group)]
+					df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
 				}
-				else {
-					v_group <- "all"
-				}
-				
-				if (isolate(o_parameter$plot_type) == "plot") {
-					if (isolate(o_parameter$dim_num) == "3d") {
-						if (isolate(o_parameter$centroid)) {
-							df_add <- data.frame("name" = paste0(v_group, " (centroid)"), "statut" = rep("T", length(v_group)))
-							df_click_legend <- rbind(df_click_legend, df_add)
-						}
-						else {
-							df_click_legend <- df_click_legend[c(1:(length(v_group) + i_qc)),]
-						}
-					}
-					else {
-						v_pos_1 <- grep("[(]lreg[)]", df_click_legend$name)
-						v_pos_2 <- grep("[(]ellipsoid[)]", df_click_legend$name)
-						v_pos_3 <- grep("[(]centroid[)]", df_click_legend$name)
-						v_num_1 <- c(ifelse(isolate(o_parameter$lreg), 1, 0), ifelse(isolate(o_parameter$conf_ellipsoid), 1, 0), ifelse(isolate(o_parameter$centroid), 1, 0))
-						v_num_2 <- c(ifelse(length(v_pos_1) > 0, 1, 0), ifelse(length(v_pos_2) > 0, 1, 0), ifelse(length(v_pos_3) > 0, 1, 0))
-						v_num <- v_num_1 + v_num_2
-						v_pos <- which(v_num == 1)
-						
-						if (v_pos %in% c(1, 2)) {
-							if (v_num_1[v_pos] == 1) {
-								if (sum(v_num_1[1:2]) == 2) {
-									if (v_pos == 1) {
-										v_legend_group <- isolate(o_legend_group$conf_ellipsoid)
-									}
-									else {
-										v_legend_group <- isolate(o_legend_group$lreg)
-									}
-								}
-								else {
-									s_data_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "df_model", "df_all")
-									s_var_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "fit", ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x)))
-									s_var_y <- ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y))
-									
-									if (!is.na(isolate(o_parameter$group))) {
-										df_num <- as.data.frame(addmargins(table(df_all[, isolate(o_parameter$group)])))
-										df_num <- df_num[-dim(df_num)[1],]
-										df_num <- df_num[order(df_num[, 1]),]
-										v_pos_4 <- which(df_num[, 2] > 2)
-										
-										if (length(v_pos_4) > 0) {
-											eval(parse(text = paste0("v_sd_x <- c(", paste(paste0("sd(as.vector(", s_data_x, "[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos_4], "\"), \"", s_var_x, "\"]))"), collapse = ", "), ")")))
-											eval(parse(text = paste0("v_sd_y <- c(", paste(paste0("sd(as.vector(df_all[which(df_all[, isolate(o_parameter$group)] == \"", v_group[v_pos_4], "\"), \"", s_var_y, "\"]))"), collapse = ", "), ")")))
-											
-											if (length(unique(c(which(v_sd_x == 0), which(v_sd_y == 0)))) > 0) {
-												v_pos_4 <- v_pos_4[-unique(c(which(v_sd_x == 0), which(v_sd_y == 0)))]
-											}
-											
-											if (length(v_pos_4) > 0) {
-												v_legend_group <- v_group[v_pos_4]
-											}
-										}
-									}
-									else {
-										if (dim(df_all)[1] > 2) {
-											eval(parse(text = paste0("b_sd <- sd(as.vector(", s_data_x, "[, \"", s_var_x, "\"])) > 0 & sd(as.vector(df_all[, \"", s_var_y, "\"])) > 0")))
-											
-											if (b_sd) {
-												v_legend_group <- "all"
-											}
-										}
-									}
-								}
-								
-								if (length(v_legend_group) > 0) {
-									if (v_pos == 1) {
-										df_add <- data.frame("name" = paste0(v_legend_group, " (lreg)"), "statut" = rep("T", length(v_legend_group)))
-										eval(parse(text = paste0("df_click_legend <- rbind(df_click_legend[1:(length(v_group) + i_qc),], df_add", ifelse(length(v_pos_2) > 0, ", df_click_legend[v_pos_2,]", ""), ifelse(length(v_pos_3) > 0, ", df_click_legend[v_pos_3,]", ""), ")")))
-									}
-									else {
-										df_add <- data.frame("name" = paste0(v_legend_group, " (ellipsoid)"), "statut" = rep("T", length(v_legend_group)))
-										eval(parse(text = paste0("df_click_legend <- rbind(df_click_legend[1:(length(v_group) + i_qc),]", ifelse(length(v_pos_1) > 0, ", df_click_legend[v_pos_1,]", ""), ", df_add", ifelse(length(v_pos_3) > 0, ", df_click_legend[v_pos_3,]", ""), ")")))
-									}
-								}
-							}
-							else {
-								if (v_pos == 1) {
-									df_click_legend <- df_click_legend[-v_pos_1,]
-								}
-								else {
-									df_click_legend <- df_click_legend[-v_pos_2,]
-								}
-							}
-						}
-						else {
-							if (v_num_1[v_pos] == 1) {
-								df_add <- data.frame("name" = paste0(v_group, " (centroid)"), "statut" = rep("T", length(v_group)))
-								df_click_legend <- rbind(df_click_legend, df_add)
-							}
-							else {
-								df_click_legend <- df_click_legend[-v_pos_3,]
-							}
-						}
-					}
-				}
-				else {
-					if (isolate(o_parameter$dens_curve) == T | isolate(o_parameter$norm_dens_curve) == T) {
-						v_pos_1 <- grep("[(]curve[)]", df_click_legend$name)
-						v_pos_2 <- grep("[(]normal curve[)]", df_click_legend$name)
-						s_var_x <- ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x))
-						
-						if (isolate(o_parameter$dens_curve) == T & isolate(o_parameter$norm_dens_curve) == T) {
-							if (length(v_pos_1) == 0 | length(v_pos_2) == 0) {
-								if (length(v_pos_1) == 0) {
-									v_legend_group <- isolate(o_legend_group$norm_dens_curve)
-									df_add <- data.frame("name" = paste0(v_legend_group, " (curve)"), "statut" = rep("T", length(v_legend_group)))
-									df_click_legend <- rbind(df_click_legend[1:length(v_group),], df_add, df_click_legend[v_pos_2,])
-								}
-								else {
-									v_legend_group <- isolate(o_legend_group$dens_curve)
-									df_add <- data.frame("name" = paste0(v_legend_group, " (normal curve)"), "statut" = rep("T", length(v_legend_group)))
-									df_click_legend <- rbind(df_click_legend, df_add)
-								}
-							}
-						}
-						else if (isolate(o_parameter$dens_curve) == T & isolate(o_parameter$norm_dens_curve) == F) {
-							if (length(v_pos_1) == 0 | length(v_pos_2) > 0) {
-								if (!is.na(isolate(o_parameter$group))) {
-									if (length(v_pos_1) == 0) {
-										df_num <- as.data.frame(addmargins(table(df_all[, isolate(o_parameter$group)])))
-										df_num <- df_num[-dim(df_num)[1],]
-										v_pos_3 <- which(df_num[, 2] > 1)
-										
-										if (length(v_pos_3) > 0) {
-											v_legend_group <- v_group[which(v_group %in% df_num[v_pos_3, 1])]
-											eval(parse(text = paste0("v_sd <- c(", paste(paste0("sd(as.vector(df_all[which(df_all[, isolate(o_parameter$group)] == \"", v_legend_group, "\"), \"", s_var_x, "\"]))"), collapse = ", "), ")")))
-											v_pos_3 <- which(v_sd > 0)
-											
-											if (length(v_pos_3) > 0) {
-												v_legend_group <- v_legend_group[v_pos_3]
-												df_add <- data.frame("name" = paste0(v_legend_group, " (curve)"), "statut" = rep("T", length(v_legend_group)))
-												df_click_legend <- rbind(df_click_legend, df_add)
-											}
-										}
-									}
-									else {
-										df_click_legend <- df_click_legend[-v_pos_2,]
-									}
-								}
-								else {
-									if (length(v_pos_1) == 0) {
-										if (dim(df_all)[1] > 1) {
-											eval(parse(text = paste0("b_sd <- sd(as.vector(df_all[, \"", s_var_x, "\"])) > 0")))
-											
-											if (b_sd) {
-												v_legend_group <- "all"
-												df_add <- data.frame("name" = "all (curve)", "statut" = "T")
-												df_click_legend <- rbind(df_click_legend, df_add)
-											}
-										}
-									}
-									else {
-										df_click_legend <- df_click_legend[-v_pos_2,]
-									}
-								}
-							}
-						}
-						else {
-							if (length(v_pos_1) > 0 | length(v_pos_2) == 0) {
-								if (!is.na(isolate(o_parameter$group))) {
-									if (length(v_pos_1) > 0) {
-										df_click_legend <- df_click_legend[-v_pos_1,]
-									}
-									else {
-										df_num <- as.data.frame(addmargins(table(df_all[, isolate(o_parameter$group)])))
-										df_num <- df_num[-dim(df_num)[1],]
-										v_pos_3 <- which(df_num[, 2] > 1)
-										
-										if (length(v_pos_3) > 0) {
-											v_legend_group <- v_group[which(v_group %in% df_num[v_pos_3, 1])]
-											eval(parse(text = paste0("v_sd <- c(", paste(paste0("sd(as.vector(df_all[which(df_all[, isolate(o_parameter$group)] == \"", v_legend_group, "\"), \"", s_var_x, "\"]))"), collapse = ", "), ")")))
-											v_pos_3 <- which(v_sd > 0)
-											
-											if (length(v_pos_3) > 0) {
-												v_legend_group <- v_legend_group[v_pos_3]
-												df_add <- data.frame("name" = paste0(v_legend_group, " (normal curve)"), "statut" = rep("T", length(v_legend_group)))
-												df_click_legend <- rbind(df_click_legend, df_add)
-											}
-										}
-									}
-								}
-								else {
-									if (length(v_pos_1) > 0) {
-										df_click_legend <- df_click_legend[-v_pos_1,]
-									}
-									else {
-										if (dim(df_all)[1] > 1) {
-											eval(parse(text = paste0("b_sd <- sd(as.vector(df_all[, \"", s_var_x, "\"])) > 0")))
-											
-											if (b_sd) {
-												v_legend_group <- "all"
-												df_add <- data.frame("name" = "all (normal curve)", "statut" = "T")
-												df_click_legend <- rbind(df_click_legend, df_add)
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-					else {
-						df_click_legend <- df_click_legend[1:(length(v_group) + i_qc),]
-					}
-				}
-				
-				if (o_cond$stat != 0) {o_legend_group[[o_cond$stat]] <- v_legend_group}
 			}
 			
-			if (l_traces[[1]]) {
-				v_traces <- l_traces[[2]]
+			i_pos <- which(df_stat_method$click == 1)
+			
+			if (length(i_pos) > 0) { # legend items for the statistical method
+				s_name <- as.vector(df_stat_method[i_pos, "name"])
+				s_leg_name <- as.vector(df_stat_method[i_pos, "leg_name"])
 				
-				if (length(v_traces) > 0) {
-					if (isolate(o_cond$qc2) == 1) {
-						if (!is.na(isolate(o_parameter$group))) {
-							v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
-							v_group <- v_group[order(v_group)]
-						}
-						else {
-							v_group <- "all"
-						}
-						
-						v_group <- c(v_group, "qc = 2")
-						
-						if (isolate(o_parameter$centroid)) {
-							v_group_centroid <- v_group
-						}
-						
-						if (length(isolate(o_legend_group$lreg)) > 0 | length(isolate(o_legend_group$conf_ellipsoid)) > 0 | isolate(o_parameter$centroid) == T) {
-							if (length(isolate(o_legend_group$lreg)) > 0) {
-								v_group <- c(v_group, paste0(isolate(o_legend_group$lreg), " (lreg)"))
-							}
-							
-							if (length(isolate(o_legend_group$conf_ellipsoid)) > 0) {
-								v_group <- c(v_group, paste0(isolate(o_legend_group$conf_ellipsoid), " (ellipsoid)"))
-							}
-							
-							if (isolate(o_parameter$centroid)) {
-								v_group <- c(v_group, paste0(v_group_centroid, " (centroid)"))
-							}
-						}
-						
-						v_pos <- which(v_group %in% v_traces)
+				if (o_parameter[[s_name]]) {
+					v_name <- as.vector(df_stat_method[df_stat_method$data_type == "normal", "name"])
+					v_leg_name <- as.vector(df_stat_method[df_stat_method$data_type == "normal", "leg_name"])
+					i_pos <- which(v_name == s_name)
+					eval(parse(text = paste0("l_pos <- list(", paste(paste0("grep(\" [(]", v_leg_name, "[)]\", df_click_legend$name)"), collapse = ", "), ")")))
+					v_size <- as.vector(lengths(l_pos))
+					i_qc <- ifelse(isolate(o_parameter$plot_type) == "plot" & isolate(o_cond$qc2) == 1, 1, 0)
+					i_nlevel <- ifelse(sum(v_size) == 0, nrow(df_click_legend), as.vector(unlist(l_pos))[1] - 1) - i_qc
+					i_code <- as.vector(df_stat_method[df_stat_method$name == s_name, "code"])
+					
+					if (is.na(i_code)) {
+						v_group <- as.vector(df_click_legend[1:i_nlevel, "name"])
 					}
 					else {
-						if (paste(isolate(o_parameter$model), isolate(o_parameter$select_graph), sep = "_") != "calib_QQplot") {
-							if (!is.na(isolate(o_parameter$group))) {
-								if (isolate(o_parameter$plot_type) %in% c("boxplot", "barplot")) {
-									v_group <- as.vector(unique(df_all[, isolate(o_parameter$x)]))
-								}
-								else {
-									v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
-								}
-								
-								v_group <- v_group[order(v_group)]
-								
-								if (isolate(o_parameter$centroid)) {
-									v_group_centroid <- v_group
-								}
-								
-								if (length(isolate(o_legend_group$lreg)) > 0 | length(isolate(o_legend_group$conf_ellipsoid)) > 0 | isolate(o_parameter$centroid) == T | length(isolate(o_legend_group$dens_curve)) > 0 | length(isolate(o_legend_group$norm_dens_curve)) > 0) {
-									if (length(isolate(o_legend_group$lreg)) > 0) {
-										v_group <- c(v_group, paste0(isolate(o_legend_group$lreg), " (lreg)"))
-									}
-									
-									if (length(isolate(o_legend_group$conf_ellipsoid)) > 0) {
-										v_group <- c(v_group, paste0(isolate(o_legend_group$conf_ellipsoid), " (ellipsoid)"))
-									}
-									
-									if (isolate(o_parameter$centroid)) {
-										v_group <- c(v_group, paste0(v_group_centroid, " (centroid)"))
-									}
-									
-									if (length(isolate(o_legend_group$dens_curve)) > 0) {
-										v_group <- c(v_group, paste0(isolate(o_legend_group$dens_curve), " (curve)"))
-									}
-									
-									if (length(isolate(o_legend_group$norm_dens_curve)) > 0) {
-										v_group <- c(v_group, paste0(isolate(o_legend_group$norm_dens_curve), " (normal curve)"))
-									}
-								}
-							}
-							else {
-								if (isolate(o_parameter$plot_type) %in% c("plot", "histplot")) {
-									v_group <- "all"
-									
-									if (length(isolate(o_legend_group$lreg)) > 0 | length(isolate(o_legend_group$conf_ellipsoid)) > 0 | isolate(o_parameter$centroid) == T | length(isolate(o_legend_group$dens_curve)) > 0 | length(isolate(o_legend_group$norm_dens_curve)) > 0) {
-										if (length(isolate(o_legend_group$lreg)) > 0) {
-											v_group <- c(v_group, paste0(isolate(o_legend_group$lreg), " (lreg)"))
-										}
-										
-										if (length(isolate(o_legend_group$conf_ellipsoid)) > 0) {
-											v_group <- c(v_group, paste0(isolate(o_legend_group$conf_ellipsoid), " (ellipsoid)"))
-										}
-										
-										if (isolate(o_parameter$centroid)) {
-											v_group <- c(v_group, "all (centroid)")
-										}
-										
-										if (length(isolate(o_legend_group$dens_curve)) > 0) {
-											v_group <- c(v_group, paste0(isolate(o_legend_group$dens_curve), " (curve)"))
-										}
-										
-										if (length(isolate(o_legend_group$norm_dens_curve)) > 0) {
-											v_group <- c(v_group, paste0(isolate(o_legend_group$norm_dens_curve), " (normal curve)"))
-										}
-									}
-								}
-								else {
-									v_group <- as.vector(unique(df_all[, isolate(o_parameter$x)]))
-									v_group <- v_group[order(v_group)]
-								}
-							}
-							
-							v_pos <- which(v_group %in% v_traces)
-						}
-						else {
-							v_pos <- c()
-							df_click_legend <- data.frame("name" = "all", "statut" = "T")
-						}
+						v_group <- l_stat_method_level[[i_code]]
 					}
 					
-					if (length(v_pos) > 0) {
-						df_click_legend[v_pos, "statut"] <- "\"legendonly\""
-					}
-				}
-			}
-			else {
-				if (!is.na(isolate(o_parameter$group)) & !is.na(isolate(o_parameter$model)) & isolate(o_parameter$model) == "calib") {
-					if (isolate(o_parameter$select_graph) == "QQplot") {
-						df_click_legend <- data.frame("name" = "all", "statut" = "T")
+					if (sum(v_size) == 0) {
+						df_click_legend <- rbind(df_click_legend, data.frame("name" = paste0(v_group, " (", s_leg_name, ")"), "statut" = "T"))
 					}
 					else {
-						v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
+						b_cond <- ifelse(i_pos == 1, T, ifelse(sum(v_size[1:(i_pos - 1)]) == 0, T, F))
 						
-						if (length(which(v_group %in% as.vector(df_click_legend$name))) != length(v_group)) {
-							v_group <- v_group[order(v_group)]
-							df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
+						if (b_cond) {
+							df_click_legend <- rbind(df_click_legend[1:(i_nlevel + i_qc),], data.frame("name" = paste0(v_group, " (", s_leg_name, ")"), "statut" = "T"), df_click_legend[(i_nlevel + i_qc + 1):nrow(df_click_legend),])
+						}
+						else {
+							b_cond <- ifelse(i_pos == length(l_pos), T, ifelse(sum(v_size[(i_pos + 1):length(l_pos)]) == 0, T, F))
+							
+							if (b_cond) {
+								df_click_legend <- rbind(df_click_legend, data.frame("name" = paste0(v_group, " (", s_leg_name, ")"), "statut" = "T"))
+							}
+							else {
+								v_pos_1 <- as.vector(unlist(l_pos[1:(i_pos - 1)]))
+								v_pos_2 <- as.vector(unlist(l_pos[(i_pos + 1):length(l_pos)]))
+								df_click_legend <- rbind(df_click_legend[1:v_pos_1[length(v_pos_1)],], data.frame("name" = paste0(v_group, " (", s_leg_name, ")"), "statut" = "T"), df_click_legend[v_pos_2[1]:nrow(df_click_legend),])
+							}
 						}
 					}
+				}
+				else {
+					v_pos <- grep(paste0(" [(]", s_leg_name, "[)]"), df_click_legend$name)
+					df_click_legend <- df_click_legend[-v_pos,]
+					df_stat_method[which(df_stat_method$name == s_name), "click"] <- 0
 				}
 			}
 		}
 		
-		return(list(o_legend_group, df_click_legend))
+		df_stat_method$click <- 0
+		return(list(df_stat_method, l_stat_method_level, l_stat_method_message, df_message, v_stat_method_uncheck, df_click_legend))
 	}
 	else if (s_data_type == "temporal") {
 		if (i_proc_num == 1) {
@@ -612,26 +313,6 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 			
 			df_click_legend$name <- as.vector(df_click_legend$name)
 			df_click_legend$statut <- as.vector(df_click_legend$statut)
-		}
-		else { # process = 2
-			df_click_legend$statut <- "T"
-			
-			if (l_traces[[1]]) {
-				v_traces <- l_traces[[2]]
-				
-				if (length(v_traces) > 0) {
-					if (isolate(o_cond$flag) == 1) {
-						v_pos <- which(c(isolate(o_parameter$y), isolate(o_plot$leg_name_qc)) %in% v_traces)
-					}
-					else {
-						v_pos <- which(isolate(o_parameter$y) %in% v_traces)
-					}
-					
-					if (length(v_pos) > 0) {
-						df_click_legend[v_pos, "statut"] <- "\"legendonly\""
-					}
-				}
-			}
 		}
 		
 		return(df_click_legend)
@@ -657,8 +338,7 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 			df_click_legend$statut <- as.vector(df_click_legend$statut)
 		}
 		else { # process = 2
-			df_click_legend$statut <- "T"
-			v_pos <- grep("[(]mean[)]", df_click_legend$name)
+			v_pos <- grep(" [(]mean[)]", df_click_legend$name)
 			
 			if (isolate(o_parameter$mean_spect)) {
 				if (length(v_pos) == 0) {
@@ -678,18 +358,6 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 			else {
 				if (length(v_pos) > 0) {
 					df_click_legend <- df_click_legend[-v_pos,]
-				}
-			}
-			
-			if (l_traces[[1]]) {
-				v_traces <- l_traces[[2]]
-				
-				if (length(v_traces) > 0) {
-					v_pos <- which(df_click_legend$name %in% v_traces)
-					
-					if (length(v_pos) > 0) {
-						df_click_legend[v_pos, "statut"] <- "\"legendonly\""
-					}
 				}
 			}
 		}

@@ -45,22 +45,8 @@ s_js_1 <- 'shinyjs.backgroundCol = function(params) {
 	el.css("background-color", params.col);
 }'
 
-# Save name with status when a legend item is checked/unchecked (visible/not visible on graph) 
-s_js_2 <- c(
-"function(el, x) {",
-"	var d3 = Plotly.d3;",
-"	el.on('plotly_restyle', function(evtData) {",
-"		var out = {};",
-"		d3.select('g.legend').selectAll('.traces').each(function() {",
-"			var trace = d3.select(this)[0][0].__data__[0].trace;",
-"			out[trace.name] = trace.visible;",
-"		});",
-"		Shiny.setInputValue('traces', out);",
-"	});",
-"}")
-
 # Resize graph window
-s_js_3 <- '
+s_js_2 <- '
 	var dimension = [0, 0];
 	$(document).on("shiny:connected", function(e) {
 		dimension[0] = window.innerWidth;
@@ -96,26 +82,13 @@ o_ui <- fluidPage(theme = shinytheme("flatly"),
 	useShinyjs(),
 	extendShinyjs(text = s_js_1, functions = c("backgroundCol")),
 	extendShinyjs(text = "shinyjs.resetClick = function() { Shiny.onInputChange('plotly_click-graphic', 'null'); }", functions = c("resetClick")), # reset click on graph
-	extendShinyjs(text = "shinyjs.resetClick_leg = function() { Shiny.onInputChange('traces', 'null'); }", functions = c("resetClick_leg")),           # reset status of legend items
-	
-	# Reload name/status of legend items
-	extendShinyjs(text = "shinyjs.reloadClick_leg = function() {
-		var d3 = Plotly.d3; 
-		var out = {};
-		d3.select('g.legend').selectAll('.traces').each(function() {
-			var trace = d3.select(this)[0][0].__data__[0].trace;
-			out[trace.name] = trace.visible;
-		});	
-		Shiny.onInputChange('traces', out); 
-	}", functions = c("reloadClick_leg")),
-	
 	tags$style(s_css_1),
 	tags$head(tags$style(HTML(s_css_2))),
 	tags$head(tags$style(HTML(s_css_3))),
 	tags$head(tags$style(HTML(s_css_4))),
 	tags$head(tags$style(HTML(s_css_5))),
 	tags$head(tags$style(HTML(s_css_6))),
-	tags$head(tags$script(s_js_3)),
+	tags$head(tags$script(s_js_2)),
 	
 	# Add a loading spinner
 	add_busy_spinner(spin = "double-bounce", color = "#FFFFFF", position = "top-left", timeout = 100, margins = c(0, 70), height = "38px", width = "55px"),
@@ -180,7 +153,8 @@ o_ui <- fluidPage(theme = shinytheme("flatly"),
 	# Sidebars
 	# --------
 	
-	tags$style(HTML('table.dataTable tr.selected td, table.dataTable td.selected {color: white !important; background-color: #6e7f80 !important;}')), # change datatable selected row color
+	tags$head(tags$style(HTML('table.dataTable tbody tr.selected td {color: white !important; box-shadow: inset 0 0 0 9999px #B0BEC5 !important;}'))), # change datatable selected row color
+	tags$head(tags$style(HTML('table.dataTable tbody tr:hover {color: white !important; background-color: #EFF2F3 !important;}'))), # change datatable hover row color
 	
 	div(
 		style = "display:flex; align-items:flex-start",
@@ -430,15 +404,40 @@ o_ui <- fluidPage(theme = shinytheme("flatly"),
 		# Main panel
 		# ----------
 		
+		tags$head(tags$style(HTML(".select_leg {background-color: #01796F; border: none; color: #FFFFFF; width: 15px; padding: 3px; font-size: 60%;}
+			.select_leg.disabled:hover, .select_leg.disabled:focus {background-color: #01796F;}
+			.select_leg:hover, .select_leg:focus, .select_leg.focus, .select_leg:active:focus, .select_leg.active:focus, .select_leg:active.focus, .select_leg.active.focus {background-color: #004953;}"
+		))),
+		tags$head(tags$style(HTML(".deselect_leg {background-color: #F8412C; border: none; color: #FFFFFF; width: 15px; padding: 3px; font-size: 60%;}
+			.deselect_leg.disabled:hover, .deselect_leg.disabled:focus {background-color: #F8412C;}
+			.deselect_leg:hover, .deselect_leg:focus, .deselect_leg.focus, .deselect_leg:active:focus, .deselect_leg.active:focus, .deselect_leg:active.focus, .deselect_leg.active.focus {background-color: #FF0000;}"
+		))),
+		
+		tags$head(tags$style(HTML('#select_leg_button {margin-left: 10px;}'))),
+		tags$head(tags$style(HTML('#deselect_leg_button {margin-left: 10px;}'))),
+		tags$head(tags$style(HTML('#popup1_button {margin-left: 10px;}'))),
+		tags$head(tags$style(HTML('#reset2_button {margin-left: 10px;}'))),
+		tags$style(HTML(".tooltip > .tooltip-inner {color: white; background-color: #5F6D7A;}")),
+		
 		wellPanel(id = "mainpanel",
 			class = "mainpanel_class1",
 			div(style = "position: absolute; top: 0em; left: 0em; right: 0em; bottom: 0em;", plotlyOutput("graphic")),
-			hidden(div(id = "sh_popup1", style = "position: absolute; top: 0em; left: 0.5em;", actionButton('popup1_button', NULL, icon = icon("plus"), style='padding:0px; font-size:60%'))),
-			bsTooltip("popup1_button", "Change picture details", placement = "bottom"),
-			hidden(div(id = "sh_reset", style = "position: absolute; top: 0em; left: 1.5em;", actionButton('reset2_button', NULL, icon = icon("home"), style='padding:0px; font-size:60%'))),
-			bsTooltip("reset2_button", "Reset axes", placement = "bottom"),
-			hidden(div(id = "sh_popup2", style = "position: absolute; top: 0em; left: 2.7em;", actionButton('popup2_button', NULL, icon = icon("edit"), style='padding:0px; font-size:60%'))),
-			bsTooltip("popup2_button", "Add linear regression information on graph", placement = "bottom")
+			div(style = "position: absolute; top: 2em; left: 0em;", 
+				hidden(div(id = "sh_select_leg", actionButton('select_leg_button', NULL, icon = icon("list-ul"), class = "select_leg"))),
+				bsTooltip("select_leg_button", "Select all legend items", placement = "right", options = list(container = "body"))
+			),
+			div(style = "position: absolute; top: 3.5em; left: 0em;", 
+				hidden(div(id = "sh_deselect_leg", actionButton('deselect_leg_button', NULL, icon = icon("list-ul"), class = "deselect_leg"))),
+				bsTooltip("deselect_leg_button", "Deselect all legend items", placement = "right", options = list(container = "body"))
+			),
+			div(style = "position: absolute; top: 0em; left: 0em;",
+				hidden(div(id = "sh_popup1", style = "display: inline;", actionButton('popup1_button', NULL, icon = icon("plus"), style='padding:0px; font-size:60%'))),
+				bsTooltip("popup1_button", "Change picture details", placement = "bottom", options = list(container = "body")),
+				hidden(div(id = "sh_reset", style = "display: inline;", actionButton('reset2_button', NULL, icon = icon("home"), style='padding:0px; font-size:60%'))),
+				bsTooltip("reset2_button", "Reset axes", placement = "bottom", options = list(container = "body")),
+				hidden(div(id = "sh_popup2", style = "display: inline;", style = "display: inline;", actionButton('popup2_button', NULL, icon = icon("edit"), style='padding:0px; font-size:60%'))),
+				bsTooltip("popup2_button", "Add linear regression information in the graph", placement = "bottom", options = list(container = "body"))
+			)
 		)
 	)
 )

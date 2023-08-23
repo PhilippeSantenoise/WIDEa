@@ -107,12 +107,6 @@ f_create_match_id_data <- function(b_concat1 = F, b_concat2 = F) {
 	return(df_out)
 }
 
-# Create a data frame with (statistical method) UI's input IDs and name added in legend items (input$traces)
-f_create_id_traces_data <- function() {
-	df_out <- data.frame("id" = c("lreg", "conf_ellipsoid", "centroid", "dens_curve", "norm_dens_curve", "mean_spect"), "traces" = c("lreg", "ellipsoid", "centroid", "curve", "normal curve", "mean"))
-	return(df_out)
-}
-
 # Create a list with (selectize, radio button, check box group) input default values
 f_create_input_value_list <- function(s_type = "selectize", df_all = NULL, v_concat = rep(0, 2), i_sub_data = 0, i_only_value = 0, s_sub_var_name = NULL, s_sub_var_type = "qualit") {
 	if (s_type == "selectize") {
