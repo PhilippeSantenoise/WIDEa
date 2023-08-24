@@ -60,7 +60,7 @@ f_create_rv_inventory <- function() {
 			"\"Picture_name\"", "\"png\"", "800", "1000",
 			"0", "1", "NA",
 			rep("c()", 4),
-			"df_stat_method_inv_ini", "l_stat_method_level_ini", "l_stat_method_message_ini"
+			"l_stat_method_ini$inv", "l_stat_method_ini$level", "l_stat_method_ini$message"
 		)
 	)
 	
