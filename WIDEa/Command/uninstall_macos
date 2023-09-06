@@ -1,7 +1,0 @@
-#!/bin/bash
-
-set +v
-
-path="$(find /Users/"$(whoami)"/Library/R/*/library/shiny -name NEWS.md)"
-path="${path::${#path}-7}""www/WIDEa_header_img.png"
-rm "$path"

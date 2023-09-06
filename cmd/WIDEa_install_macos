@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "Installing the WIDEa package (few minutes)..."
+
+set +v
+
+WIDEa_path="$( dirname "$0" )/"
+
+Temp_file_Rscript="Temporary_file.r"
+Temp_file_path=$WIDEa_path$Temp_file_Rscript
+
+Command="rm(list = ls(all = TRUE)); if(!require(devtools)){install.packages(\"devtools\")}; devtools::install_github(\"PhilippeSantenoise/WIDEa\");"
+echo $Command > "$Temp_file_path" 
+
+chflags hidden "$Temp_file_path"
+
+Rscript "$Temp_file_path"
+
+rm -f "$Temp_file_path"
+
+echo "Done"
