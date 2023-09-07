@@ -2,6 +2,7 @@
 
 set "WIDEa_files_path=C:\Users\%USERNAME%\Documents\WIDEa files"
 set "R_software_txt_file_path=%WIDEa_files_path%\Rexe_path.txt"
+set "Command=rm(list = ls(all = TRUE)); require(WIDEa); f_widea();"
 
 setlocal enableDelayedExpansion
 
@@ -10,7 +11,7 @@ set /p R_software_path=<"%R_software_txt_file_path%"
 set "Temp_file_path=%WIDEa_files_path%\Temporary_file.r"
 set "Temp_file_rout_path=%WIDEa_files_path%\Log_file.r.rout"
 
-echo rm(list = ls(all = TRUE)); require(WIDEa); f_widea(); > "%Temp_file_path%" 
+echo !Command! > "%Temp_file_path%" 
 attrib +s +h "%Temp_file_path%"
 
 echo Launching WIDEa...
@@ -19,3 +20,5 @@ echo Launching WIDEa...
 
 del /A:S /A:H "%Temp_file_path%"
 del "%Temp_file_rout_path%"
+
+endlocal
