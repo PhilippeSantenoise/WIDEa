@@ -707,7 +707,7 @@ f_server <- function(input, output, session) {
 			l_results <- f_load_data("load1_button", input$data_type, input$data_path1, input$flag)
 			
 			if (!is.na(l_results[[5]])) { # error message
-				showNotification(l_results[[5]], duration = 15, type = "error")
+				showNotification(HTML(l_results[[5]]), duration = 15, type = "error")
 				js$backgroundCol("data_path1", "salmon")
 				o_path$color1 <- "salmon"
 				o_load_error$code[1] <- 1
@@ -715,7 +715,7 @@ f_server <- function(input, output, session) {
 				if (input$data_type == "ir") {o_data_info$code <- NA}
 			}
 			else {
-				if (!is.na(l_results[[6]])) {showNotification(l_results[[6]], duration = 15, type = "warning")} # warning message
+				if (!is.na(l_results[[6]])) {showNotification(HTML(l_results[[6]]), duration = 15, type = "warning")} # warning message
 				e_data$all <- l_results[[1]]
 				if (input$data_type != "ir") {o_selectize_input$max_item <- f_create_input_maxitem_list(input$data_type)}
 				v_id <- c(ifelse(input$data_type == "normal", "subdata_option", NA), f_create_input_id_vector(s_data = input$data_type, b_load2 = ifelse("code_freq" %in% ls(e_data), T, F)))
@@ -769,7 +769,7 @@ f_server <- function(input, output, session) {
 			l_results <- f_load_data("load2_button", "ir", input$data_path2)
 			
 			if (!is.na(l_results[[2]])) { # error message
-				showNotification(l_results[[2]], duration = 15, type = "error")
+				showNotification(HTML(l_results[[2]]), duration = 15, type = "error")
 				js$backgroundCol("data_path2", "salmon")
 				o_path$color2 <- "salmon"
 				o_load_error$code[2] <- 1
@@ -1031,14 +1031,14 @@ f_server <- function(input, output, session) {
 				s_e_message <- ifelse(input$vtype == "quant", ifelse(try(suppressWarnings(is.na(as.numeric(input$vvalue2)))), "The variable value must be numeric (sub-data creation)", NA), NA)
 				
 				if (!is.na(s_e_message)) {
-					showNotification(s_e_message, duration = 15, type = "error")
+					showNotification(HTML(s_e_message), duration = 15, type = "error")
 				}
 				else {
 					s_e_message <- character(0)
 					if (length(isolate(o_sdata_cond$var_name)) > 0) {eval(parse(text = paste0("s_e_message <- f_check_cond_data(o_sdata_cond, list(input$vname, input$vtype, input$rel_symbol, input$vvalue", ifelse(input$vtype == "qualit", 1, 2), "))")))}
 					
 					if (length(s_e_message) > 0) {
-						showNotification(s_e_message, duration = 15, type = "error")
+						showNotification(HTML(s_e_message), duration = 15, type = "error")
 					}
 					else {
 						eval(parse(text = paste(paste0("o_sdata_cond$", c("var_name", "var_type", "var_rel"), " <- c(isolate(o_sdata_cond$", c("var_name", "var_type", "var_rel"), "), input$", c("vname", "vtype", "rel_symbol"), ")"), collapse = "; ")))
@@ -1103,7 +1103,7 @@ f_server <- function(input, output, session) {
 				
 				if (length(l_results[[3]]) > 0) {
 					updateButton(session, "create_button", style = "danger") 
-					showNotification(l_results[[3]], duration = 15, type = "error")
+					showNotification(HTML(l_results[[3]]), duration = 15, type = "error")
 				}
 				else {
 					updateButton(session, "create_button", style = "success") 
@@ -1387,7 +1387,7 @@ f_server <- function(input, output, session) {
 				l_results <- f_load_data(s_id = "load3_button", s_path = input$data_path3, s_model = input$model)
 				
 				if (is.na(l_results[[2]])) { # no error message
-					if (!is.na(l_results[[3]])) {showNotification(l_results[[3]], duration = 15, type = "warning")} # warning message
+					if (!is.na(l_results[[3]])) {showNotification(HTML(l_results[[3]]), duration = 15, type = "warning")} # warning message
 					e_data$m_param <- l_results[[1]]
 					js$backgroundCol("data_path3", "lightgreen")
 					o_path$color3 <- "lightgreen"
@@ -1404,7 +1404,7 @@ f_server <- function(input, output, session) {
 					o_path$color3 <- "salmon"
 					o_load_error$code[3] <- 1
 					o_data_info$mtime[3] <- NA
-					showNotification(l_results[[2]], duration = 15, type = "error")
+					showNotification(HTML(l_results[[2]]), duration = 15, type = "error")
 				}
 			}
 		}
@@ -2016,7 +2016,7 @@ f_server <- function(input, output, session) {
 					if (isolate(o_cond$save2) == 1) {s_e_message <- character(0)}
 					
 					if (length(s_e_message) > 0) { # error message returned by checking processes
-						showNotification(s_e_message, duration = 15, type = "error")
+						showNotification(HTML(s_e_message), duration = 15, type = "error")
 					}
 					else { # no error
 						# Data preparation: (process 1)
@@ -2025,7 +2025,7 @@ f_server <- function(input, output, session) {
 						l_results <- eval(parse(text = paste0("f_prepare_data(\"normal\", 1, e_data[[isolate(o_parameter$data_name)]], ", ifelse("sub" %in% ls(e_data), "isolate(o_sdata_cond$row_num)", "NULL"), ", NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", isolate(o_flag$name), NULL, NULL, NULL, NULL, o_parameter, NULL)")))
 						
 						if (length(l_results[[4]]) > 0) { # error (all values with a qc = 2)
-							showNotification(l_results[[4]], duration = 15, type = "error")
+							showNotification(HTML(l_results[[4]]), duration = 15, type = "error")
 						}
 						else { # no error
 							df_all <- l_results[[1]]
@@ -2067,7 +2067,7 @@ f_server <- function(input, output, session) {
 								}
 								
 								if (length(s_e_message) > 0) { # error with model/transformed variables
-									showNotification(s_e_message, duration = 15, type = "error")
+									showNotification(HTML(s_e_message), duration = 15, type = "error")
 								}
 								else { # no error
 									if (isolate(o_parameter$model) %in% c("calib", "valid")) { # calibration/validation model
@@ -2105,7 +2105,7 @@ f_server <- function(input, output, session) {
 									}
 									
 									if (length(v_e_message) > 0) { # error with graphic options
-										showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
+										showNotification(HTML(paste(v_e_message, collapse = "<br/>")), duration = 15, type = "error")
 										o_plot$data <- data.frame()
 									}
 									else { # no error
@@ -2114,7 +2114,7 @@ f_server <- function(input, output, session) {
 										
 										l_results <- f_build_legend_items("normal", 1, o_parameter, o_cond, o_plot, o_stat_method)
 										eval(parse(text = paste(paste0("o_stat_method$", c("inv", "level", "message"), " <- l_results[[", 1:3, "]]"), collapse = "; ")))
-										if (nrow(l_results[[4]]) > 0) {eval(parse(text = paste(paste0("showNotification(\"", l_results[[4]]$message, "\", duration = 15, type = \"", l_results[[4]]$type, "\")"), collapse = "; ")))}
+										if (nrow(l_results[[4]]) > 0) {eval(parse(text = paste(paste0("showNotification(HTML(\"", l_results[[4]]$message, "\"), duration = 15, type = \"", l_results[[4]]$type, "\")"), collapse = "; ")))}
 										if (length(l_results[[5]]) > 0) {eval(parse(text = paste(paste0("updateCheckboxInput(session, \"", l_results[[5]], "\", value = F)"), collapse = "; ")))}
 										o_click_legend$item <- l_results[[6]]
 										rm(list = "l_results")
@@ -2141,7 +2141,7 @@ f_server <- function(input, output, session) {
 				if (dim(isolate(o_plot$data))[1] > 0) {
 					if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
 						if (length(s_w_message) > 0) {
-							showNotification(s_w_message, duration = 15, type = "warning")
+							showNotification(HTML(s_w_message), duration = 15, type = "warning")
 							rm(list = "s_w_message")
 						}
 					}
@@ -2159,7 +2159,7 @@ f_server <- function(input, output, session) {
 						
 						l_results <- f_build_legend_items("normal", 2, o_parameter, o_cond, o_plot, o_stat_method, o_click_legend$item)
 						eval(parse(text = paste(paste0("o_stat_method$", c("inv", "level", "message"), " <- l_results[[", 1:3, "]]"), collapse = "; ")))
-						if (nrow(l_results[[4]]) > 0) {showNotification(l_results[[4]]$message, duration = 15, type = l_results[[4]]$type)}
+						if (nrow(l_results[[4]]) > 0) {showNotification(HTML(l_results[[4]]$message), duration = 15, type = l_results[[4]]$type)}
 						if (length(l_results[[5]]) > 0) {updateCheckboxInput(session, l_results[[5]], value = F)}
 						o_click_legend$item <- l_results[[6]]
 						rm(list = "l_results")
@@ -2365,8 +2365,8 @@ f_server <- function(input, output, session) {
 					if (isolate(o_cond$save2) == 1) {s_e_message <- NULL}
 					
 					if (length(s_e_message) > 0) { # error message returned by the checking process
-						showNotification(s_e_message, duration = 15, type = "error")
-						if (length(s_w_message) > 0) {showNotification(s_w_message, duration = 15, type = "warning")}
+						showNotification(HTML(s_e_message), duration = 15, type = "error")
+						if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 					}
 					else { # no error
 						# # Graph default option assignment: (color, opacity, point type/size)
@@ -2398,8 +2398,8 @@ f_server <- function(input, output, session) {
 						}
 						
 						if (length(v_e_message) > 0) { # error with graphic options
-							showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
-							if (length(s_w_message) > 0) {showNotification(s_w_message, duration = 15, type = "warning")}
+							showNotification(HTML(paste(v_e_message, collapse = "<br/>")), duration = 15, type = "error")
+							if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 						}
 						else { # no error
 							s_e_message <- character(0)
@@ -2412,8 +2412,8 @@ f_server <- function(input, output, session) {
 							}
 							
 							if (length(s_e_message) > 0) { # error with g function text field
-								showNotification(s_e_message, duration = 15, type = "error")
-								if (length(s_w_message) > 0) {showNotification(s_w_message, duration = 15, type = "warning")}
+								showNotification(HTML(s_e_message), duration = 15, type = "error")
+								if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 							}
 							else { # no error
 								v_w_message <- c()
@@ -2433,8 +2433,8 @@ f_server <- function(input, output, session) {
 								l_results <- eval(parse(text = paste0("f_prepare_data(\"temporal\", 1, df_all, NULL, NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", NULL, ", ifelse("data" %in% ls(e_previous_flag), "e_previous_flag$data", "NULL"), ", NULL, NULL, NULL, o_parameter)")))
 								
 								if (length(l_results[[9]]) > 0) { # error (all values with a qc = 2)
-									showNotification(l_results[[9]], duration = 15, type = "error")
-									if (length(s_w_message) > 0) {showNotification(s_w_message, duration = 15, type = "warning")}
+									showNotification(HTML(l_results[[9]]), duration = 15, type = "error")
+									if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 								}
 								else { # no error
 									df_all <- l_results[[1]]
@@ -2460,11 +2460,11 @@ f_server <- function(input, output, session) {
 									}
 									
 									if (length(s_e_message) > 0) { # error with g function calculation
-										showNotification(s_e_message, duration = 15, type = "error")
-										if (length(s_w_message) > 0) {showNotification(s_w_message, duration = 15, type = "warning")}
+										showNotification(HTML(s_e_message), duration = 15, type = "error")
+										if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 									}
 									else { # no error
-										if (length(v_w_message) > 0) {showNotification(paste(v_w_message, collapse = "<br/>"), duration = 15, type = "warning")}
+										if (length(v_w_message) > 0) {showNotification(HTML(paste(v_w_message, collapse = "<br/>")), duration = 15, type = "warning")}
 										o_plot$data <- df_all
 										rm(list = c("l_results", "df_all"))
 										
@@ -2541,7 +2541,7 @@ f_server <- function(input, output, session) {
 							if (input$ymax != l_results[[1]][2]) {updateTextInput(session, "ymax", value = as.character(l_results[[1]][2]))}
 						}
 						
-						if (length(l_results[[length(l_results)]]) > 0) {showNotification(l_results[[length(l_results)]], duration = 15, type = "warning")}
+						if (length(l_results[[length(l_results)]]) > 0) {showNotification(HTML(l_results[[length(l_results)]]), duration = 15, type = "warning")}
 						rm(list = "l_results")
 					}
 					
@@ -2628,7 +2628,7 @@ f_server <- function(input, output, session) {
 					if (isolate(o_cond$save2) == 1) {s_e_message <- NULL}
 					
 					if (length(s_e_message) > 0) {
-						showNotification(s_e_message, duration = 15, type = "error")
+						showNotification(HTML(s_e_message), duration = 15, type = "error")
 					}
 					else {
 						v_e_message <- c()
@@ -2654,7 +2654,7 @@ f_server <- function(input, output, session) {
 						}
 						
 						if (length(v_e_message) > 0) { # error with graphic options
-							showNotification(paste(v_e_message, collapse = "<br/>"), duration = 15, type = "error")
+							showNotification(HTML(paste(v_e_message, collapse = "<br/>")), duration = 15, type = "error")
 						} 
 						else { # no error
 							# Data preparation: (process 1)
@@ -2663,7 +2663,7 @@ f_server <- function(input, output, session) {
 							l_results <- eval(parse(text = paste0("f_prepare_data(\"ir\", 1, e_data[[isolate(o_parameter$data_name)]], ", ifelse("sub" %in% ls(e_data), "isolate(o_sdata_cond$row_num)", "NULL"), ", e_data$code_freq, isolate(o_data_info$code), ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", NULL, NULL, NULL, NULL, NULL, o_parameter)")))
 							
 							if (length(l_results[[8]]) > 0) { # error with data preparation
-								showNotification(l_results[[8]], duration = 15, type = "error")
+								showNotification(HTML(l_results[[8]]), duration = 15, type = "error")
 							} 
 							else { # no error
 								df_all <- l_results[[1]]
@@ -2775,7 +2775,7 @@ f_server <- function(input, output, session) {
 							if (input$ymax != l_results[[1]][2]) {updateTextInput(session, "ymax", value = as.character(l_results[[1]][2]))}
 						}
 						
-						if (length(l_results[[length(l_results)]]) > 0) {showNotification(l_results[[length(l_results)]], duration = 15, type = "warning")}
+						if (length(l_results[[length(l_results)]]) > 0) {showNotification(HTML(l_results[[length(l_results)]]), duration = 15, type = "warning")}
 						rm(list = "l_results")
 					}
 					
@@ -2973,7 +2973,7 @@ f_server <- function(input, output, session) {
 			s_e_message <- f_check_tp1_inputs(l_opt_name, o_plot, o_parameter)
 			
 			if (length(s_e_message) > 0) {
-				showNotification(s_e_message, duration = 15, type = "error")
+				showNotification(HTML(s_e_message), duration = 15, type = "error")
 			}
 			else {
 				o_parameter$bw <- l_opt_name$bw
@@ -3038,7 +3038,7 @@ f_server <- function(input, output, session) {
 				s_w_message <- f_check_tp1_inputs(list("fraction" = input$fraction))
 				
 				if (length(s_w_message) > 0) {
-					showNotification(s_w_message, duration = 15, type = "error")
+					showNotification(HTML(s_w_message), duration = 15, type = "error")
 					updateNumericInput(session, "fraction", value = ifelse(length(grep("0.05", s_w_message)) == 1, 0.05, ifelse(length(grep("0.1", s_w_message)) == 1, 0.1, 0)))
 				}
 				
@@ -3049,7 +3049,7 @@ f_server <- function(input, output, session) {
 						s_ylab <- ifelse(length(o_label_text$text) > 0, ifelse(o_label_text$text[which(o_label_text$label == "y")] != "", o_label_text$text[which(o_label_text$label == "y")], o_parameter$ylab), o_parameter$ylab)
 						ply_1 <- plotlyProxyInvoke(p = plotlyProxy("graphic", session), "relayout", list(yaxis = list(title = s_ylab, range = l_results[[1]])))
 						o_cond$update <- 1
-						if (length(l_results[[3]]) > 0) {showNotification(l_results[[3]], duration = 15, type = "warning")}
+						if (length(l_results[[3]]) > 0) {showNotification(HTML(l_results[[3]]), duration = 15, type = "warning")}
 						rm(list = "l_results")
 					}
 				}
@@ -3102,7 +3102,7 @@ f_server <- function(input, output, session) {
 			s_e_message <- f_check_tp1_inputs(l_opt_name)
 			
 			if (length(s_e_message) > 0) {
-				showNotification(s_e_message, duration = 15, type = "error")
+				showNotification(HTML(s_e_message), duration = 15, type = "error")
 			}
 			else {
 				o_parameter$dec_num <- l_opt_name$dec_num
@@ -3251,7 +3251,7 @@ f_server <- function(input, output, session) {
 				l_results <- f_update_option_data(input$edit_option, input$point_type_size, "clear", o_name_option, input$option_inventory_rows_selected, NULL, input$data_type, input$plot_type, ifelse(input$group == "yes", T, F), o_click_button$display)
 			}
 			
-			if (length(l_results[[1]]) > 0) {showNotification(l_results[[1]], duration = 15, type = "warning")} # warning message
+			if (length(l_results[[1]]) > 0) {showNotification(HTML(l_results[[1]]), duration = 15, type = "warning")} # warning message
 			
 			if (!is.null(l_results[[3]])) {
 				eval(parse(text = paste0("o_", ifelse(input$edit_option == "label", "label_text$text", ifelse(input$edit_option == "color/opacity", ifelse(input$color_opacity == "color", "name_option$color", "name_option$opacity"), ifelse(input$point_type_size == "type", "name_option$point_type", "name_option$point_size"))), "_temp <- l_results[[2]]")))
@@ -3299,7 +3299,7 @@ f_server <- function(input, output, session) {
 			}
 			
 			if (!b_cond) {
-				if (length(l_results[[1]]) > 0) {showNotification(l_results[[1]], duration = 15, type = "warning")} # warning message
+				if (length(l_results[[1]]) > 0) {showNotification(HTML(l_results[[1]]), duration = 15, type = "warning")} # warning message
 				
 				if (!is.null(l_results[[3]])) {
 					eval(parse(text = paste0("o_", ifelse(input$edit_option == "label", "label_text$text", ifelse(input$edit_option == "color/opacity", ifelse(input$color_opacity == "color", "name_option$color", "name_option$opacity"), ifelse(input$point_type_size == "type", "name_option$point_type", "name_option$point_size"))), "_temp <- l_results[[2]]")))
@@ -3769,7 +3769,7 @@ f_server <- function(input, output, session) {
 					if (input$lreg) {
 						if (o_stat_method$message[["lreg"]] == 0) { # display error message
 							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "lreg", o_parameter, o_plot$data)
-							showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+							showNotification(HTML(as.vector(df_message[, 1])), duration = 15, type = as.vector(df_message[, 2]))
 						}
 						
 						updateCheckboxInput(session, "lreg", value = F)
@@ -3823,7 +3823,7 @@ f_server <- function(input, output, session) {
 					if (input$conf_ellipsoid) {
 						if (o_stat_method$message[["conf_ellipsoid"]] == 0) { # display error message
 							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "conf_ellipsoid", o_parameter, o_plot$data)
-							showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+							showNotification(HTML(as.vector(df_message[, 1])), duration = 15, type = as.vector(df_message[, 2]))
 						}
 						
 						updateCheckboxInput(session, "conf_ellipsoid", value = F)
@@ -3882,7 +3882,7 @@ f_server <- function(input, output, session) {
 					if (input$dens_curve) {
 						if (o_stat_method$message[["dens_curve"]] == 0) { # display error message
 							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "dens_curve", o_parameter, o_plot$data)
-							showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+							showNotification(HTML(as.vector(df_message[, 1])), duration = 15, type = as.vector(df_message[, 2]))
 						}
 						
 						updateCheckboxInput(session, "dens_curve", value = F)
@@ -3914,7 +3914,7 @@ f_server <- function(input, output, session) {
 					if (input$norm_dens_curve) {
 						if (o_stat_method$message[["norm_dens_curve"]] == 0) { # display error message
 							df_message <- f_create_stat_method_message(df_stat_method_inv, o_stat_method$level, "norm_dens_curve", o_parameter, o_plot$data)
-							showNotification(as.vector(df_message[, 1]), duration = 15, type = as.vector(df_message[, 2]))
+							showNotification(HTML(as.vector(df_message[, 1])), duration = 15, type = as.vector(df_message[, 2]))
 						}
 						
 						updateCheckboxInput(session, "norm_dens_curve", value = F)
@@ -4151,7 +4151,7 @@ f_server <- function(input, output, session) {
 									}
 								}
 								else {
-									showNotification(l_results$message, duration = 15, type = "warning")
+									showNotification(HTML(l_results$message), duration = 15, type = "warning")
 									js$resetClick()
 								}
 								
@@ -4234,7 +4234,7 @@ f_server <- function(input, output, session) {
 										v_id <- c(v_id, l_results$button_name)
 									}
 									else {
-										showNotification(l_results$message, duration = 15, type = "warning")
+										showNotification(HTML(l_results$message), duration = 15, type = "warning")
 									}
 									
 									rm(list = "l_results")
@@ -4267,7 +4267,7 @@ f_server <- function(input, output, session) {
 						}
 						else {
 							if (length(l_results[[4]]) > 0) {
-								showNotification(l_results[[4]], duration = 15, type = "warning")
+								showNotification(HTML(l_results[[4]]), duration = 15, type = "warning")
 								js$resetClick()
 							}
 						}
@@ -4309,7 +4309,7 @@ f_server <- function(input, output, session) {
 				o_plot$y_coord <- l_results[[2]]
 				s_ylab <- ifelse(length(o_label_text$text) > 0, ifelse(o_label_text$text[which(o_label_text$label == "y")] != "", o_label_text$text[which(o_label_text$label == "y")], o_parameter$ylab), o_parameter$ylab)
 				ply_1 <- plotlyProxyInvoke(p = plotlyProxy("graphic", session), "relayout", list(yaxis = list(title = s_ylab, range = l_results[[1]])))
-				if (length(l_results[[3]]) > 0) {showNotification(l_results[[3]], duration = 15, type = "warning")}
+				if (length(l_results[[3]]) > 0) {showNotification(HTML(l_results[[3]]), duration = 15, type = "warning")}
 				rm(list = "l_results")
 			}
 		}
@@ -4428,7 +4428,7 @@ f_server <- function(input, output, session) {
 							o_plot$y_coord <- l_results[[2]]
 							s_ylab <- ifelse(length(o_label_text$text) > 0, ifelse(o_label_text$text[which(o_label_text$label == "y")] != "", o_label_text$text[which(o_label_text$label == "y")], o_parameter$ylab), o_parameter$ylab)
 							ply_1 <- plotlyProxyInvoke(p = plotlyProxy("graphic", session), "relayout", list(yaxis = list(title = s_ylab, range = l_results[[1]])))
-							if (length(l_results[[3]]) > 0) {showNotification(l_results[[3]], duration = 15, type = "warning")}
+							if (length(l_results[[3]]) > 0) {showNotification(HTML(l_results[[3]]), duration = 15, type = "warning")}
 							rm(list = "l_results")
 						}
 					}
