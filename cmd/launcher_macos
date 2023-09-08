@@ -1,19 +1,12 @@
 #!/bin/bash
 
-echo "Launching WIDEa..."
-
 set +v
 
-WIDEa_path="$( dirname "$0" )/"
+current_path="$( dirname "$0" )/"
 
-Temp_file_Rscript="Temporary_file.r"
-Temp_file_path=$WIDEa_path$Temp_file_Rscript
+Rcmd_name="launcher_rcmd.r"
+Rcmd_path=$current_path$Rcmd_name
 
-Command="rm(list = ls(all = TRUE)); require(WIDEa); f_widea();"
-echo $Command > "$Temp_file_path" 
+echo "**Launching WIDEa..."
 
-chflags hidden "$Temp_file_path"
-
-Rscript "$Temp_file_path"
-
-rm -f "$Temp_file_path"
+Rscript "$Rcmd_path"
