@@ -111,23 +111,6 @@ f_ui <- function() {
 			tags$head(tags$style("#picture_info .modal-footer{display:none}"))
 		),
 		
-		bsModal("lreg_info", "Linear regression information", "popup2_button", size = "small",
-			fluidRow(
-				column(6, radioButtons("lreg_info_xpos", "X position:", choices = c("Left" = "left", "Right" = "right"), selected = "left", inline = F)),
-				column(6, radioButtons("lreg_info_ypos", "Y position:", choices = c("Top" = "top", "Bottom" = "bottom"), selected = "top", inline = F))
-			),
-			fluidRow(
-				column(12, selectizeInput("lreg_info_elt", "Information:", choices = " ", options = list(maxOptions = 9999, maxItems = 9999)))
-			),
-			br(),
-			br(),
-			fluidRow(
-				column(3, actionButton('ok2_button', 'Ok', style = "position: absolute; top: -2.6em; right: -13.4em;")),
-				column(3, disabled(actionButton('reset3_button', 'Reset', style = "position: absolute; top: -2.6em; right: -4em;")))
-			),
-			tags$head(tags$style("#lreg_info .modal-footer{display:none}"))
-		),
-		
 		# Sidebars
 		# --------
 		
@@ -412,9 +395,7 @@ f_ui <- function() {
 					hidden(div(id = "sh_popup1", style = "display: inline;", actionButton('popup1_button', NULL, icon = icon("plus"), style='padding:0px; font-size:60%'))),
 					bsTooltip("popup1_button", "Change picture details", placement = "bottom", options = list(container = "body")),
 					hidden(div(id = "sh_reset", style = "display: inline;", actionButton('reset2_button', NULL, icon = icon("home"), style='padding:0px; font-size:60%'))),
-					bsTooltip("reset2_button", "Reset axes", placement = "bottom", options = list(container = "body")),
-					hidden(div(id = "sh_popup2", style = "display: inline;", style = "display: inline;", actionButton('popup2_button', NULL, icon = icon("edit"), style='padding:0px; font-size:60%'))),
-					bsTooltip("popup2_button", "Add linear regression information in the graph", placement = "bottom", options = list(container = "body"))
+					bsTooltip("reset2_button", "Reset axes", placement = "bottom", options = list(container = "body"))
 				)
 			)
 		)

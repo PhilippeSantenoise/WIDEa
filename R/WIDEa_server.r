@@ -69,7 +69,7 @@ f_server <- function(input, output, session) {
 	
 	o_cond <- reactiveValues(
 		top_panel = 0, update = 0, sdata = rep(0, 2), create = 0, concat1 = 0, concat2 = 0,
-		display = 0, flag = 0, qc1 = 0, qc2 = 0, flag_msg = 0, save1 = 0, save2 = 0, 
+		display = 0, display_on_off = 0, flag = 0, qc1 = 0, qc2 = 0, flag_msg = 0, save1 = 0, save2 = 0, 
 		select_graph = 0, reset2 = 0, selec_leg = 0, deselec_leg = 0,
 		webgl = 0, mode = 0, ok_color_opacity = 0, ok_point_type_size = 0
 	)
@@ -82,7 +82,6 @@ f_server <- function(input, output, session) {
 	) # parameters associated to the display button
 	
 	o_picture_info <- reactiveValues(filename = "Picture_name", format = "png", height = 800, width = 1000) # parameters associated to the graph picture
-	o_lreg_info <- reactiveValues(xpos = 0, ypos = 1, elt = NA) # parameters associated to the linear regression legend
 	
 	# reactive value used to update a plotly object in a modal dialog created by clicking on a correlation matrix cell (normal data type: corplot)
 	o_click_corplot <- reactiveValues(num = NULL, data = NULL, plotly = NULL) 
@@ -435,12 +434,6 @@ f_server <- function(input, output, session) {
 			if (input$picture_width != 1000) {updateNumericInput(session, "picture_width", value = 1000)}
 			if (input$picture_format != "png") {updateSelectizeInput(session, "picture_format", selected = "png")}
 			
-			# reset linear regression information inputs
-			if (input$lreg_info_xpos != 0) {updateRadioButtons(session, "lreg_info_xpos", selected = "left")}
-			if (input$lreg_info_ypos != 1) {updateRadioButtons(session, "lreg_info_ypos", selected = "top")}
-			updateSelectizeInput(session, "lreg_info_elt", choices = " ")
-			shinyjs::disable("reset3_button")
-			
 			if (input$select_graph != " ") {
 				eval(parse(text = f_update_rv(list("rv" = c("o_parameter", "o_cond"), "id" = rep("select_graph", 2), "value" = c("NA", "0")))))
 				updateSelectizeInput(session, "select_graph", choices = " ")
@@ -458,7 +451,7 @@ f_server <- function(input, output, session) {
 			}
 			
 			output$graphic <<- NULL
-			eval(parse(text = paste(paste0("shinyjs::delay(100, hide(id = \"", c("graphic", "sh_popup1", "sh_popup2", "sh_reset", "sh_select_leg", "sh_deselect_leg"),"\"))"), collapse = "; ")))
+			eval(parse(text = paste(paste0("shinyjs::delay(100, hide(id = \"", c("graphic", "sh_popup1", "sh_reset", "sh_select_leg", "sh_deselect_leg"),"\"))"), collapse = "; ")))
 			eval(parse(text = paste(paste0("shinyjs::delay(100, enable(id = \"", c("sh_select_leg", "sh_deselect_leg"),"\"))"), collapse = "; ")))
 		}
 		
@@ -2115,7 +2108,12 @@ f_server <- function(input, output, session) {
 										l_results <- f_build_legend_items("normal", 1, o_parameter, o_cond, o_plot, o_stat_method)
 										eval(parse(text = paste(paste0("o_stat_method$", c("inv", "level", "message"), " <- l_results[[", 1:3, "]]"), collapse = "; ")))
 										if (nrow(l_results[[4]]) > 0) {eval(parse(text = paste(paste0("showNotification(HTML(\"", l_results[[4]]$message, "\"), duration = 15, type = \"", l_results[[4]]$type, "\")"), collapse = "; ")))}
-										if (length(l_results[[5]]) > 0) {eval(parse(text = paste(paste0("updateCheckboxInput(session, \"", l_results[[5]], "\", value = F)"), collapse = "; ")))}
+										
+										if (length(l_results[[5]]) > 0) {
+											eval(parse(text = paste(paste0("updateCheckboxInput(session, \"", l_results[[5]], "\", value = F)"), collapse = "; ")))
+											eval(parse(text = paste(paste0("o_parameter$", l_results[[5]], " <- F"), collapse = "; ")))
+										}
+										
 										o_click_legend$item <- l_results[[6]]
 										rm(list = "l_results")
 										
@@ -2160,7 +2158,12 @@ f_server <- function(input, output, session) {
 						l_results <- f_build_legend_items("normal", 2, o_parameter, o_cond, o_plot, o_stat_method, o_click_legend$item)
 						eval(parse(text = paste(paste0("o_stat_method$", c("inv", "level", "message"), " <- l_results[[", 1:3, "]]"), collapse = "; ")))
 						if (nrow(l_results[[4]]) > 0) {showNotification(HTML(l_results[[4]]$message), duration = 15, type = l_results[[4]]$type)}
-						if (length(l_results[[5]]) > 0) {updateCheckboxInput(session, l_results[[5]], value = F)}
+						
+						if (length(l_results[[5]]) > 0) {
+							updateCheckboxInput(session, l_results[[5]], value = F)
+							eval(parse(text = paste(paste0("o_parameter$", l_results[[5]], " <- F"), collapse = "; ")))
+						}
+						
 						o_click_legend$item <- l_results[[6]]
 						rm(list = "l_results")
 					}
@@ -2193,24 +2196,6 @@ f_server <- function(input, output, session) {
 								shinyjs::show(id = "tmainpanel")
 								shinyjs::removeClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 1, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 3, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 2, 4)))))
 								shinyjs::addClass("mainpanel", class = paste0("mainpanel_class", ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 0, 5, ifelse(o_click_button$left_panel == 0 & o_click_button$top_panel == 1, 7, ifelse(o_click_button$left_panel == 1 & o_click_button$top_panel == 0, 6, 8)))))
-							}
-							else { # valid (initialize values of "sh_popup2" button)
-								if (o_parameter$lreg & o_stat_method$inv[o_stat_method$inv$name == "lreg", "check_process"] != (-1)) {
-									o_lreg_info$xpos <- 0
-									o_lreg_info$ypos <- 1
-									o_lreg_info$elt <- NA
-									shinyjs::disable(id = "reset3_button")
-									
-									if (isolate(o_parameter$model) == "valid") {
-										v_choice <- c("lreg parameters", "R2", "t-test on lreg parameters") 
-									}
-									else {
-										v_choice <- c("lreg parameters", "R2", "RMSE")
-									}
-									
-									updateSelectizeInput(session, "lreg_info_elt", choices = v_choice, selected = input$lreg_info_elt)
-									shinyjs::show(id = "sh_popup2")
-								}
 							}
 						}
 						else { # no model added
@@ -2296,7 +2281,7 @@ f_server <- function(input, output, session) {
 								else { # statistical methods with preliminary checks
 									l_stat_method_level <- isolate(o_stat_method$level)
 									v_group <- l_stat_method_level[[v_code[which(v_name == i)]]]
-									eval(parse(text = paste0("ply_1 <- f_add_", i, "(ply_1, v_group, df_click_legend, o_plot, o_parameter, ", ifelse(i == "lreg", "o_lreg_info, ", ""), "l_graph_opt$color)")))
+									eval(parse(text = paste0("ply_1 <- f_add_", i, "(ply_1, v_group, df_click_legend, o_plot, o_parameter, l_graph_opt$color)")))
 								}
 							}
 							
@@ -2313,6 +2298,8 @@ f_server <- function(input, output, session) {
 					eval(parse(text = paste(paste0("shinyjs::", ifelse(length(which(nrow(o_click_legend$item) > 1)) > 0, "show", "hide"), "(id = \"", c("sh_select_leg", "sh_deselect_leg"), "\")"), collapse = "; ")))
 					if ((!is.na(isolate(o_parameter$dim_num)) & isolate(o_parameter$dim_num) == "2d") | isolate(o_parameter$plot_type) == "histplot") {shinyjs::show(id = "sh_reset")}
 				}
+
+				o_cond$display_on_off <- 1
 			}
 			else if (input$data_type == "temporal") {
 				# B. Type : Temporal
@@ -2569,7 +2556,9 @@ f_server <- function(input, output, session) {
 					
 					eval(parse(text = paste(paste0("shinyjs::show(id = \"", c("graphic", "sh_popup1"), "\")"), collapse = "; ")))
 					eval(parse(text = paste(paste0("shinyjs::", ifelse(length(which(nrow(o_click_legend$item) > 1)) > 0, "show", "hide"), "(id = \"", c("sh_select_leg", "sh_deselect_leg"), "\")"), collapse = "; ")))
-				}		
+				}
+
+				o_cond$display_on_off <- 1
 			}
 			else {
 				# C. Type : IR
@@ -2812,8 +2801,20 @@ f_server <- function(input, output, session) {
 					eval(parse(text = paste(paste0("shinyjs::show(id = \"", c("graphic", "sh_popup1", "sh_reset"), "\")"), collapse = "; ")))
 					eval(parse(text = paste(paste0("shinyjs::", ifelse(length(which(nrow(o_click_legend$item) > 1)) > 0, "show", "hide"), "(id = \"", c("sh_select_leg", "sh_deselect_leg"), "\")"), collapse = "; ")))
 				}
+				
+				o_cond$display_on_off <- 1
 			}
-			
+		}
+	})
+	
+	observeEvent(o_cond$display, {
+		if (o_cond$display == 1) {click("display_button")}
+	})
+	
+	# enable/disable inputs and reactive values when the display button is clicked
+
+	observeEvent(o_cond$display_on_off, {
+		if (o_cond$display_on_off == 1) {
 			v_graphic_opt <- c("y_scale", "bw", "dec_num")
 			v_id_all <- as.vector(o_input_status$val[which(o_input_status$val$panel == "tp_t2" | o_input_status$val$id %in% paste0(v_graphic_opt, "_button")), "id"])
 			v_id_on <- c()
@@ -2821,10 +2822,10 @@ f_server <- function(input, output, session) {
 			if (dim(isolate(o_plot$data))[1] > 0) {
 				if (length(e_current_flag) > 0) {v_id_all <- v_id_all[!v_id_all %in% paste0(c("clear1", "clear2", "save"), "_button")]}
 				
-				if (input$plot_type == "plot" & input$model == "none") {
+				if (input$plot_type == "plot" & input$model == "none") { # enable/disable Flag tab
 					i_cond <- 0
 					v_id_stat <- f_create_t3_input_id_vector(input$data_type, paste(input$plot_type, input$dim_num, sep = "_"))
-					if (length(v_id_stat) > 0) {i_cond <- eval(parse(text = paste0("length(which(c(", paste(paste0("input$", v_id_stat), collapse = ", "), ")))")))}
+					if (length(v_id_stat) > 0) {i_cond <- eval(parse(text = paste0("length(which(c(", paste(paste0("o_parameter$", v_id_stat), collapse = ", "), ")))")))}
 					
 					if (i_cond == 0 & is.na(o_parameter$f) & is.na(o_parameter$g) & is.na(o_parameter$h)) {
 						v_id_on <- f_create_input_id_vector(s_data = input$data_type, s_graph = paste(input$plot_type, input$dim_num, sep = "_"), b_display = T)
@@ -2858,13 +2859,10 @@ f_server <- function(input, output, session) {
 			}
 			
 			o_on_off$val <- f_update_input_status_list(f_create_input_status_list(v_id_all, ifelse(v_id_all %in% v_id_on, 1, 0)), o_input_status$val)
+			o_cond$display_on_off <- 0
 		}
 	})
-	
-	observeEvent(o_cond$display, {
-		if (o_cond$display == 1) {click("display_button")}
-	})
-	
+
 	# 2.25. Add events of graph clear button 
 	# ======================================
 	
@@ -3780,28 +3778,6 @@ f_server <- function(input, output, session) {
 					df_stat_method_inv[which(df_stat_method_inv$name == "lreg"), "click"] <- 1
 					o_stat_method$inv <- df_stat_method_inv
 					js$resetClick()
-					
-					if (input$lreg) {
-						updateSelectizeInput(session, "lreg_info_elt", choices = c("lreg parameters", "R2", ifelse(input$model == "valid", "t-test on lreg parameters", "RMSE")))
-						shinyjs::show(id = "sh_popup2")
-					}
-					else {
-						if (input$lreg_info_xpos != "left") {
-							updateRadioButtons(session, "lreg_info_xpos", selected = "left")
-							o_lreg_info$xpos <- 0
-						}
-						
-						if (input$lreg_info_ypos != "top") {
-							updateRadioButtons(session, "lreg_info_ypos", selected = "top")
-							o_lreg_info$ypos <- 1
-						}
-						
-						updateSelectizeInput(session, "lreg_info_elt", choices = " ")
-						o_lreg_info$elt <- NA
-						shinyjs::hide(id = "sh_popup2")
-						shinyjs::disable("reset3_button")
-					}
-					
 					eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep("1", 2)))))
 				}
 			}
@@ -4065,38 +4041,7 @@ f_server <- function(input, output, session) {
 		}
 	})
 	
-	# 4.4. Add events on linear regression informations "ok" button
-	# =============================================================
-	
-	observeEvent(input$ok2_button, {
-		if (isolate(o_click_button$display) == 1) {
-			if (is.null(input$lreg_info_elt)) {
-				showNotification("Information field is empty", duration = 15, type = "error")
-			}
-			else {
-				o_lreg_info$xpos <- ifelse(input$lreg_info_xpos == "left", 0, 1)
-				o_lreg_info$ypos <- ifelse(input$lreg_info_ypos == "top", 1, 0)
-				o_lreg_info$elt <- input$lreg_info_elt
-				shinyjs::enable("reset3_button")
-				eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep(1, 2)))))
-				toggleModal(session, "lreg_info", toggle = "close")
-			}
-		}
-	})
-	
-	# 4.5. Add events on linear regression informations "reset" button
-	# ================================================================
-	
-	observeEvent(input$reset3_button, {
-		if (isolate(o_click_button$display) == 1) {
-			eval(parse(text = f_update_rv(list("rv" = rep("o_lreg_info", 3), "id" = c("xpos", "ypos", "elt"), "value" = c("0", "1", "NA")))))
-			shinyjs::disable("reset3_button")
-			eval(parse(text = f_update_rv(list("rv" = rep("o_cond", 2), "id" = c("update", "display"), "value" = rep(1, 2)))))
-			toggleModal(session, "lreg_info", toggle = "close")
-		}
-	})
-	
-	# 4.6. Add events on graph selection input
+	# 4.4. Add events on graph selection input
 	# ========================================
 	
 	observeEvent(input$select_graph, {
@@ -4112,7 +4057,7 @@ f_server <- function(input, output, session) {
 		}
 	})
 	
-	# 4.7. Add events on mouse click  
+	# 4.5. Add events on mouse click  
 	# ==============================
 	
 	output$click_corplot <- renderPlotly(o_click_corplot$plotly)
@@ -4291,7 +4236,7 @@ f_server <- function(input, output, session) {
 		}
 	})
 	
-	# 4.8. Add events on legend click
+	# 4.6. Add events on legend click
 	# ===============================
 	
 	observeEvent(event_data("plotly_legendclick", source = "graphic"), {	
@@ -4315,7 +4260,7 @@ f_server <- function(input, output, session) {
 		}
 	})
 	
-	# 4.9. Add events on zoom 
+	# 4.7. Add events on zoom 
 	# =======================
 	
 	o_graphic_relayout <- observeEvent(event_data("plotly_relayout", source = "graphic"), suspended = T, {
@@ -4437,7 +4382,7 @@ f_server <- function(input, output, session) {
 		}
 	})
 	
-	# 4.10. Add events on previous/next buttons (modal dialog: plotly_click)
+	# 4.8. Add events on previous/next buttons (modal dialog: plotly_click)
 	# =========================================
 	
 	observeEvent(input$prev_button, {

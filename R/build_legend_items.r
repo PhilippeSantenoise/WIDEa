@@ -82,6 +82,9 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 									df_stat_method[which(df_stat_method$code == "cp1"), "check_process"] <- (-1)
 								}
 							}
+							else {
+								df_stat_method[which(df_stat_method$code == "cp1"), "check_process"] <- (-1)
+							}
 						}
 						else {
 							if (dim(df_all)[1] > 2) {
@@ -93,6 +96,9 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 								else {
 									df_stat_method[which(df_stat_method$code == "cp1"), "check_process"] <- (-1)
 								}
+							}
+							else {
+								df_stat_method[which(df_stat_method$code == "cp1"), "check_process"] <- (-1)
 							}
 						}
 					}
@@ -112,6 +118,9 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 									df_stat_method[which(df_stat_method$code == "cp2"), "check_process"] <- (-1)
 								}
 							}
+							else {
+								df_stat_method[which(df_stat_method$code == "cp2"), "check_process"] <- (-1)
+							}
 						}
 						else {
 							if (dim(df_all)[1] > 1) {
@@ -124,38 +133,48 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 									df_stat_method[which(df_stat_method$code == "cp2"), "check_process"] <- (-1)
 								}
 							}
-						}
-					}
-				}
-				
-				v_pos <- which(as.vector(unlist(l_stat_method_message)) == 0)
-				
-				if (length(v_pos) > 0) { # update l_stat_method_message
-					v_pos <- which(v_name %in% names(l_stat_method_message)[v_pos])
-					
-					if (length(v_pos) > 0) {
-						v_name <- v_name[v_pos]
-						v_pos <- which(as.vector(lengths(l_stat_method_level)) == length(as.vector(unique(df_all[, isolate(o_parameter$group)]))))
-						
-						if (length(v_pos) > 0) {
-							v_pos <- which(df_stat_method$name %in% v_name & df_stat_method$code %in% names(l_stat_method_level))
-							
-							if (length(v_pos) > 0) {	
-								v_del <- as.vector(df_stat_method[v_pos, "name"])
-								l_stat_method_message[v_del] <- (-1)
-								
-								if (length(v_del) < length(v_name)) {
-									v_name <- v_name[!v_name %in% v_del]
-									df_message <- f_create_stat_method_message(df_stat_method, l_stat_method_level, v_name, o_parameter)
-									l_stat_method_message[v_name] <- 1
-								}
+							else {
+								df_stat_method[which(df_stat_method$code == "cp2"), "check_process"] <- (-1)
 							}
 						}
 					}
 				}
 				
 				v_pos <- which(df_stat_method$click == 1 & df_stat_method$check_process == (-1))
-				v_stat_method_uncheck <- df_stat_method$name[v_pos]
+				if (length(v_pos) > 0) {v_stat_method_uncheck <- df_stat_method$name[v_pos]}
+				
+				# update l_stat_method_message
+				
+				if (!is.na(isolate(o_parameter$group))) {
+					v_pos <- which(as.vector(unlist(l_stat_method_message)) == 0)
+					
+					if (length(v_pos) > 0) {
+						v_pos <- which(v_name %in% names(l_stat_method_message)[v_pos])
+						
+						if (length(v_pos) > 0) {
+							v_name <- v_name[v_pos]
+							v_code <- unique(as.vector(df_stat_method[df_stat_method$name %in% v_name, "code"]))
+							v_pos <- which(as.vector(lengths(l_stat_method_level[v_code])) == length(as.vector(unique(df_all[, isolate(o_parameter$group)]))))
+							
+							if (length(v_pos) > 0) {
+								v_name_ok <- as.vector(df_stat_method[df_stat_method$name %in% v_name & df_stat_method$code %in% v_code[v_pos], "name"])
+								l_stat_method_message[v_name_ok] <- (-1)
+							}
+							
+							if (length(v_code) > length(v_pos)) {
+								if (length(v_pos) > 0) {v_code <- v_code[-v_pos]}
+								v_name <- as.vector(df_stat_method[df_stat_method$name %in% v_name & df_stat_method$code %in% v_code, "name"])
+								df_message <- f_create_stat_method_message(df_stat_method, l_stat_method_level, v_name, o_parameter, df_all)
+								l_stat_method_message[v_name] <- 1
+							}
+						}
+					}
+				}
+				else {
+					if (length(v_stat_method_uncheck) > 0) {
+						df_message <- f_create_stat_method_message(df_stat_method, l_stat_method_level, v_stat_method_uncheck, o_parameter, df_all)
+					}
+				}
 			}
 		}
 		

@@ -11,7 +11,6 @@ f_add_lreg(
   df_click_legend,
   o_plot,
   o_parameter,
-  o_lreg_info,
   v_color
 )
 }
@@ -27,9 +26,6 @@ method. If no Group variable is selected, then \code{v_group} = "all".}
 
 \item{o_parameter}{is a reactive value including parameters associated to the
 left panel (sections after data loading) and top panels.}
-
-\item{o_lreg_info}{is a reactive value including data for the linear regression
-legend.}
 
 \item{v_color}{is the graph color vector.}
 }

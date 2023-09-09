@@ -18,13 +18,11 @@ NULL
 #' @param o_plot is a reactive value including `ply_1` data information.
 #' @param o_parameter is a reactive value including parameters associated to the
 #' left panel (sections after data loading) and top panels.
-#' @param o_lreg_info is a reactive value including data for the linear regression
-#' legend.
 #' @param v_color is the graph color vector.
 
 #' @encoding UTF-8
 
-f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, o_lreg_info, v_color) {
+f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, v_color) {
 	df_all <- isolate(o_plot$data)
 	
 	if (isolate(o_parameter$model) == "valid") { # validation model
@@ -69,61 +67,13 @@ f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_param
 			}
 			
 			s_text <- paste0(s_text, "<br>R2 = ", n_r2, "<br>", ifelse(isolate(o_parameter$model) == "none", paste0("RMSE = ", s_rmse), paste0("a = 0 test: p-value ", s_test1, "<br>b = 1 test: p-value ", s_test2)))
-			
-			if (length(which(!is.na(isolate(o_lreg_info$elt)))) > 0) {
-				v_info <- as.vector(unlist(lapply(isolate(o_lreg_info$elt), function(x) {
-					if (x == "lreg parameters") {
-						s_out <- paste0("intercept = ", s_intercept, "<br>slope = ", s_slope)  
-					}
-					else if (x == "R2") {
-						s_out <- paste0("R2 = ", n_r2) 
-					}
-					else {
-						if (isolate(o_parameter$model) == "none") {
-							s_out <- paste0("RMSE = ", s_rmse)
-						}
-						else {
-							s_out <- paste0("intercept = 0 test: p-value ", s_test1, "<br>slope = 1 test: p-value ", s_test2)
-						}
-					}
-					
-					return(s_out)
-				})))
-			
-				return(list(v_y, s_text, paste(v_info, collapse = "<br>")))
-			}
-			else {
-				return(list(v_y, s_text))
-			}
+			return(list(v_y, s_text))
 		})
 		
 		v_pos_1 <- which(v_group_all %in% v_group) 
 		v_pos_2 <- which(!v_group_all %in% v_group) 
 		v_visible <- df_click_legend[which(df_click_legend$name %in% paste0(v_group, " (lreg)")), "statut"]
 		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = v_x, y = l_val[[", 1:length(l_val), "]][[1]], name = \"", v_group, " (lreg)\", type = \"", ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), "\", mode = \"lines\", line = list(color = grDevices::adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 1), width = 3, dash = \"dash\"), hoverinfo = \"text+name\", text = l_val[[", 1:length(l_val), "]][[2]], showlegend = T, visible = ", v_visible, ")"), collapse = "; ")))
-		
-		if (length(which(!is.na(isolate(o_lreg_info$elt)))) > 0) {
-			i_num <- length(isolate(o_lreg_info$elt)) + ifelse("lreg parameters" %in% isolate(o_lreg_info$elt), 1, 0) + ifelse("t-test on lreg parameters" %in% isolate(o_lreg_info$elt), 1, 0)
-			
-			if (length(v_pos_1) > 1) { 
-				if (isolate(o_lreg_info$ypos) == 1) {
-					eval(parse(text = paste0("v_br <- c(\"\", ", paste(paste0("paste(rep(\" <br>\", ", i_num * (1:(length(v_pos_1) - 1)), "), collapse = \"\")"), collapse = ", "), ")")))
-				}
-				else {
-					eval(parse(text = paste0("v_br <- c(", paste(paste0("paste(rep(\"<br> \", ", i_num * ((length(v_pos_1) - 1):1), "), collapse = \"\")"), collapse = ", "), ", \"\")")))
-				}
-			}
-			else {
-				v_br <- ""
-			}
-			
-			if (isolate(o_lreg_info$ypos) == 1) {
-				eval(parse(text = paste(paste0("ply_1 <- add_annotations(p = ply_1, x = isolate(o_lreg_info$xpos), y = isolate(o_lreg_info$ypos), xref = \"paper\", yref = \"paper\", align = \"", ifelse(isolate(o_lreg_info$xpos) == 0, "left", "right"), "\", text = paste0(\"", v_br, "\", l_val[[", 1:length(l_val), "]][[3]]), showarrow = F, font = list(color = v_color[", v_pos_1, "]))"), collapse = "; ")))
-			}
-			else {
-				eval(parse(text = paste(paste0("ply_1 <- add_annotations(p = ply_1, x = isolate(o_lreg_info$xpos), y = isolate(o_lreg_info$ypos), xref = \"paper\", yref = \"paper\", align = \"", ifelse(isolate(o_lreg_info$xpos) == 0, "left", "right"), "\", text = paste0(l_val[[", 1:length(l_val), "]][[3]], \"", v_br, "\"), showarrow = F, font = list(color = v_color[", v_pos_1, "]))"), collapse = "; ")))
-			}
-		}
 	}
 	else {
 		l_lreg <- stats::lm(y ~ x, data = df_all)
@@ -149,29 +99,6 @@ f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_param
 		s_text <- paste0(s_text, "<br>R2 = ", n_r2, "<br>", ifelse(isolate(o_parameter$model) == "none", paste0("RMSE = ", s_rmse), paste0("a = 0 test: p-value ", s_test1, "<br>b = 1 test: p-value ", s_test2)))
 		eval(parse(text = paste0("v_visible <- ", df_click_legend[which(df_click_legend$name == "all (lreg)"), "statut"])))
 		ply_1 <- add_trace(p = ply_1, x = v_x, y = v_y, name = "all (lreg)", type = ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), mode = "lines", line = list(color = grDevices::adjustcolor(v_color, alpha.f = 1), width = 3, dash = "dash"), hoverinfo = 'text+name', text = s_text, showlegend = T, visible = v_visible)
-		
-		if (length(which(!is.na(isolate(o_lreg_info$elt)))) > 0) {
-			v_info <- as.vector(unlist(lapply(isolate(o_lreg_info$elt), function(x) {
-				if (x == "lreg parameters") {
-					s_out <- paste0("intercept = ", s_intercept, "<br>slope = ", s_slope)  
-				}
-				else if (x == "R2") {
-					s_out <- paste0("R2 = ", n_r2) 
-				}
-				else {
-					if (isolate(o_parameter$model) == "none") {
-						s_out <- paste0("RMSE = ", s_rmse)
-					}
-					else {
-						s_out <- paste0("intercept = 0 test: p-value ", s_test1, "<br>slope = 1 test: p-value ", s_test2)
-					}
-				}
-				
-				return(s_out)
-			})))
-			
-			ply_1 <- add_annotations(p = ply_1, x = isolate(o_lreg_info$xpos), y = isolate(o_lreg_info$ypos), xref = "paper", yref = "paper", align = ifelse(isolate(o_lreg_info$xpos) == 0, "left", "right"), text = paste(v_info, collapse = "<br>"), showarrow = F, font = list(color = "#1C86EE"))
-		}
 	}
 	
 	return (ply_1)
