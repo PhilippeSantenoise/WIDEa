@@ -8,6 +8,6 @@
 #' @encoding UTF-8
 
 f_widea <- function () {
-	o_app <- shiny::shinyApp(f_ui, f_server)
+	o_app <- shiny::shinyApp(f_ui(), f_server)
 	return(shiny::runApp(o_app, launch.browser = T))
 }
