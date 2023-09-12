@@ -166,6 +166,8 @@ f_create_input_status_list <- function(v_id, v_status) {
 
 #' @rdname f_on_off_selectize_input    
 f_update_input_status_list <- function(l_id_status, df_id_status, b_plot_select = F) {
+	v_id <- as.vector(df_id_status[df_id_status$id %in% names(l_id_status), "id"])
+	l_id_status <- l_id_status[v_id]
 	v_pos <- which((as.vector(unlist(l_id_status)) - as.vector(df_id_status[df_id_status$id %in% names(l_id_status), "status"])) != 0)
 	
 	if (length(v_pos) > 0) {
