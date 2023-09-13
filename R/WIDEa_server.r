@@ -1893,7 +1893,8 @@ f_server <- function(input, output, session) {
 				# ---------------
 				
 				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) { # executed with the display button or the Flag tab save button
-					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 3), rep("o_plot", 4), rep("o_stat_method", 3), "o_click_legend"), "id" = c("qc2", "selec_leg", "deselec_leg", "data", "model", "data_qc2", "elt", "inv", "level", "message", "item"), "value" = c(rep("0", 3), "data.frame()", "NULL", rep("NA", 2), "l_stat_method_ini$inv", "l_stat_method_ini$level", "l_stat_method_ini$message", "NULL")))))
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 3), rep("o_plot", 4), rep("o_stat_method", 3)), "id" = c("qc2", "selec_leg", "deselec_leg", "data", "model", "data_qc2", "elt", "inv", "level", "message"), "value" = c(rep("0", 3), "data.frame()", "NULL", rep("NA", 2), "l_stat_method_ini$inv", "l_stat_method_ini$level", "l_stat_method_ini$message")))))
+					if (o_cond$save2 != 1) {o_click_legend$item <- NULL} # keep information on the legend item status if the save button in the Flag tab is clicked
 					v_stat_click <- eval(parse(text = paste0("c(", paste(paste0("o_parameter$", l_stat_method_ini$inv$name), collapse = ", "), ")")))
 					v_stat_click <- ifelse(v_stat_click, 1, 0)
 					v_diff <- v_stat_click - o_stat_method$inv$click
@@ -2105,7 +2106,7 @@ f_server <- function(input, output, session) {
 										# Build legend items (process 1) 
 										# ------------------
 										
-										l_results <- f_build_legend_items("normal", 1, o_parameter, o_cond, o_plot, o_stat_method)
+										eval(parse(text = paste0("l_results <- f_build_legend_items(\"normal\", 1, o_parameter, o_cond, o_plot, o_stat_method, ", ifelse(o_cond$save2 == 1, "o_click_legend$item", "data.frame()"), ")")))
 										eval(parse(text = paste(paste0("o_stat_method$", c("inv", "level", "message"), " <- l_results[[", 1:3, "]]"), collapse = "; ")))
 										if (nrow(l_results[[4]]) > 0) {eval(parse(text = paste(paste0("showNotification(HTML(\"", l_results[[4]]$message, "\"), duration = 15, type = \"", l_results[[4]]$type, "\")"), collapse = "; ")))}
 										
@@ -2306,7 +2307,8 @@ f_server <- function(input, output, session) {
 				# ------------------
 				
 				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
-					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 12), "o_click_legend"), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "y_coord", "add_pt", "pt_pos", "var_pt", paste0("data_qc", 1:2), paste0("var_qc", 1:2), "leg_name_qc", "elt", "elt_pt_pos", "item"), "value" = c(rep("0", 5), "data.frame()", "NULL", "T", rep("NA", 9), "NULL")))))
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 12)), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "y_coord", "add_pt", "pt_pos", "var_pt", paste0("data_qc", 1:2), paste0("var_qc", 1:2), "leg_name_qc", "elt", "elt_pt_pos"), "value" = c(rep("0", 5), "data.frame()", "NULL", "T", rep("NA", 9))))))
+					if (o_cond$save2 != 1) {o_click_legend$item <- NULL} # keep information on the legend item status if the save button in the Flag tab is clicked
 					if ("data" %in% ls(e_previous_flag)) {rm("data", envir = e_previous_flag)}
 					s_w_message <- character(0)
 					
@@ -2477,7 +2479,8 @@ f_server <- function(input, output, session) {
 										# Build legend items (process 1) 
 										# ------------------
 										
-										o_click_legend$item <- f_build_legend_items("temporal", 1, o_parameter, o_cond, o_plot)
+										df_click_legend <- eval(parse(text = ifelse(o_cond$save2 == 1, "o_click_legend$item", "data.frame()")))
+										o_click_legend$item <- f_build_legend_items("temporal", 1, o_parameter, o_cond, o_plot, NULL, df_click_legend)
 										
 										# Create element data (process 1)
 										# -------------------
@@ -2565,7 +2568,8 @@ f_server <- function(input, output, session) {
 				# ------------
 				
 				if (isolate(o_cond$display) == 0 | isolate(o_cond$save2) == 1) {
-					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 8), "o_stat_method", "o_click_legend"), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "id_group", "y_coord", "add_pt", "pt_pos", paste0("data_qc", 1:2), "elt", "inv", "item"), "value" = c(rep("0", 5), "data.frame()", "NA", "NULL", "F", rep("NA", 4), "l_stat_method_ini$inv", "NULL")))))
+					eval(parse(text = f_update_rv(list("rv" = c(rep("o_cond", 5), rep("o_plot", 8), "o_stat_method"), "id" = c("flag", paste0("qc", 1:2), "selec_leg", "deselec_leg", "data", "id_group", "y_coord", "add_pt", "pt_pos", paste0("data_qc", 1:2), "elt", "inv"), "value" = c(rep("0", 5), "data.frame()", "NA", "NULL", "F", rep("NA", 4), "l_stat_method_ini$inv")))))
+					if (o_cond$save2 != 1) {o_click_legend$item <- NULL} # keep information on the legend item status if the save button in the Flag tab is clicked
 					
 					if (isolate(o_cond$display) == 0) {
 						if (length(e_current_flag) > 0) {
@@ -2687,7 +2691,8 @@ f_server <- function(input, output, session) {
 								# Build legend items (process 1)
 								# ------------------
 								
-								o_click_legend$item <- f_build_legend_items("ir", 1, o_parameter, NULL, o_plot)
+								df_click_legend <- eval(parse(text = ifelse(o_cond$save2 == 1, "o_click_legend$item", "data.frame()")))
+								o_click_legend$item <- f_build_legend_items("ir", 1, o_parameter, NULL, o_plot, NULL, df_click_legend)
 							}
 						}
 					}
@@ -2811,10 +2816,11 @@ f_server <- function(input, output, session) {
 		if (o_cond$display == 1) {click("display_button")}
 	})
 	
-	# enable/disable inputs and reactive values when the display button is clicked
-
+	# enable/disable/update inputs and reactive values when the display button is clicked
+	
 	observeEvent(o_cond$display_on_off, {
 		if (o_cond$display_on_off == 1) {
+			if (o_cond$save2 == 1) {o_cond$save2 <- 0}
 			v_graphic_opt <- c("y_scale", "bw", "dec_num")
 			v_id_all <- as.vector(o_input_status$val[which(o_input_status$val$panel == "tp_t2" | o_input_status$val$id %in% paste0(v_graphic_opt, "_button")), "id"])
 			v_id_on <- c()
@@ -4128,7 +4134,7 @@ f_server <- function(input, output, session) {
 				}
 				else if (input$data_type == "temporal") {	
 					if (input$g_radio == "no") {
-						v_date_ms <- as.vector(o_plot$data[, paste0(isolate(o_parameter$x), "_trf")]) 
+						v_date_ms <- as.vector(o_plot$data[, paste0(isolate(o_parameter$x), "_trf")])
 						s_x_click <- unique(o_plot$data[which(v_date_ms == as.numeric(as.POSIXct(o_click_ev[["x"]], tz = "GMT"))), isolate(o_parameter$x)]) 
 						
 						if ((o_click_ev[["curveNumber"]] + 1) <= length(isolate(o_plot$elt))) {

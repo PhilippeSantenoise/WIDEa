@@ -212,10 +212,17 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 						v_group <- as.vector(unique(df_all[, isolate(o_parameter$x)]))
 					}
 				}
-			
+				
 				v_group <- v_group[order(v_group)]
-				df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
-				if (isolate(o_parameter$plot_type) == "plot" & isolate(o_parameter$model) == "none" & isolate(o_cond$qc2) == 1) {df_click_legend <- rbind(df_click_legend, data.frame("name" = "qc = 2", "statut" = "T"))}
+				
+				if (nrow(df_click_legend) == 0) {
+					df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
+					if (isolate(o_parameter$plot_type) == "plot" & isolate(o_parameter$model) == "none" & isolate(o_cond$qc2) == 1) {df_click_legend <- rbind(df_click_legend, data.frame("name" = "qc = 2", "statut" = "T"))}
+				}
+				else {
+					v_status <- c(df_click_legend[df_click_legend$name %in% v_group, "statut"], ifelse("qc = 2" %in% df_click_legend$name, df_click_legend[df_click_legend$name == "qc = 2", "statut"], "T"))
+					df_click_legend <- data.frame("name" = c(v_group, "qc = 2"), "statut" = v_status)
+				}
 			}
 			
 			v_pos <- which(df_stat_method$click == 1 & df_stat_method$check_process != (-1))
@@ -314,7 +321,18 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 	else if (s_data_type == "temporal") {
 		if (i_proc_num == 1) {
 			if (isolate(o_cond$flag) == 1) {
-				df_click_legend <- data.frame("name" = c(isolate(o_parameter$y), isolate(o_plot$leg_name_qc)), "statut" = rep("T", length(c(isolate(o_parameter$y), isolate(o_plot$leg_name_qc)))))
+				v_name <- c(isolate(o_parameter$y), isolate(o_plot$leg_name_qc))
+				v_status <- rep("T", length(v_name))
+				
+				if (nrow(df_click_legend) == 0) {
+					df_click_legend <- data.frame("name" = v_name, "statut" = v_status)
+				}
+				else {
+					names(v_status) <- v_name
+					v_pos <- which(df_click_legend$name %in% v_name)
+					v_status[df_click_legend$name[v_pos]] <- df_click_legend[v_pos, "statut"]
+					df_click_legend <- data.frame("name" = v_name, "statut" = as.vector(v_status))
+				}
 			}
 			else {
 				df_click_legend <- data.frame("name" = isolate(o_parameter$y), "statut" = rep("T", length(isolate(o_parameter$y))))
@@ -342,7 +360,18 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 				}
 			}
 			
-			df_click_legend <- data.frame("name" = v_elt, "statut" = rep("T", length(v_elt)))
+			v_status <- rep("T", length(v_elt))
+			
+			if (nrow(df_click_legend) == 0) {
+				df_click_legend <- data.frame("name" = v_elt, "statut" = v_status)
+			}
+			else {
+				names(v_status) <- v_elt
+				v_pos <- which(df_click_legend$name %in% v_elt)
+				v_status[df_click_legend$name[v_pos]] <- df_click_legend[v_pos, "statut"]
+				df_click_legend <- data.frame("name" = v_elt, "statut" = as.vector(v_status))
+			}
+			
 			df_click_legend$name <- as.vector(df_click_legend$name)
 			df_click_legend$statut <- as.vector(df_click_legend$statut)
 		}

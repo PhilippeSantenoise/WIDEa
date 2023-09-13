@@ -22,7 +22,7 @@ f_create_date_variable <- function (df_all, s_x_var, s_date_format) {
 		df_all[, s_x_var] <- gsub("/| |:|-|[.]|h", "", df_all[, s_x_var])
 	}
 	
-	v_date <- as.character(strptime(df_all[, s_x_var], format = s_date_format))
+	v_date <- as.character(format(strptime(df_all[, s_x_var], format = s_date_format)))
 	i_num <- length(which(is.na(v_date)))
 	
 	if (length(v_range) > 0) {

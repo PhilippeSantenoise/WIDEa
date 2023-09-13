@@ -87,9 +87,9 @@ f_save_current_flag_data <- function (s_data_type = "normal", s_action = "add_fl
 		df_flag_add <- cbind(df_current_flag, rep(i_qc, dim(df_current_flag)[1]), rep(ifelse(s_comment == "", NA, s_comment), dim(df_current_flag)[1]))
 		df_flag_add <- df_flag_add[, c(1:3, 6, 7)]
 		names(df_flag_add) <- c("date_start", "date_end", "var_name", "qc", "comment")
-		df_flag_add$date_start <- as.vector(df_flag_add$date_start)
-		df_flag_add$date_end <- as.vector(df_flag_add$date_end)
 		df_flag_add$date_end <- ifelse(is.na(df_flag_add$date_end), df_flag_add$date_start, df_flag_add$date_end)
+		df_flag_add$date_start <- as.POSIXct(df_flag_add$date_start, tz = "GMT")
+		df_flag_add$date_end <- as.POSIXct(df_flag_add$date_end, tz = "GMT")
 		v_pos <- which(as.numeric(as.POSIXct(df_flag_add$date_start, tz = "GMT")) > as.numeric(as.POSIXct(df_flag_add$date_end, tz = "GMT")))
 		
 		if (length(v_pos) > 0) {
@@ -106,8 +106,8 @@ f_save_current_flag_data <- function (s_data_type = "normal", s_action = "add_fl
 			else {
 				df_previous_flag <- df_flag_add
 			}
-		} # replace_qc
-		else {
+		}
+		else { # replace_qc
 			df_flag_save <- df_previous_flag
 			df_flag_save$date_start <- as.vector(df_flag_save$date_start)
 			df_flag_save$date_end <- as.vector(df_flag_save$date_end)

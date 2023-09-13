@@ -282,7 +282,6 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 			v_leg_name_qc <- NA
 			s_e_message <- character(0)
 			s_w_message <- character(0)
-			
 			eval(parse(text = paste0("df_all$", isolate(o_parameter$x), "_trf <- as.numeric(as.POSIXct(df_all$", isolate(o_parameter$x), ", tz = \"GMT\"))")))
 			df_all <- df_all[, c(1, dim(df_all)[2], 2:(dim(df_all)[2] - 1))]
 			i_qc_num <- -1
