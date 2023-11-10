@@ -469,7 +469,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 						df_all[, isolate(o_parameter$x)] <- gsub("/| |:|-|[.]|h", "", df_all[, isolate(o_parameter$x)])
 					}
 					
-					v_date <- as.character(strptime(df_all[, isolate(o_parameter$x)], format = isolate(o_parameter$date_format)))
+					v_date <- as.character(format(strptime(df_all[, isolate(o_parameter$x)], format = isolate(o_parameter$date_format))))
 					i_num <- length(which(is.na(v_date)))
 					
 					if (length(v_range) > 0) {
