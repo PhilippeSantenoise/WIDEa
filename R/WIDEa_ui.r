@@ -270,10 +270,10 @@ f_ui <- function() {
 			
 			tags$head(tags$style(HTML(paste0("#mode .radio{margin-left: 0px; margin-right: 0px; margin-top: ", as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_multi_rb_top_margin_1"), s_OS_name]), "px !important; -webkit-margin-after: ", as.vector(df_UI_param[which(df_UI_param$Parameters == "multi_rb_margin_after"), s_OS_name]), "px !important;} #mode>*{margin-bottom: 15px;}")))),
 			tags$head(tags$style(HTML(paste0("#bw_radio .radio{margin-left: 0px; margin-right: ", as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_multi_rb_right_margin_1"), s_OS_name]), "px; margin-top: 0px !important; -webkit-margin-after: 0px !important;} #bw_radio>*{margin-bottom: 15px;}")))),
-			tags$head(tags$style(HTML(paste0("#y_scale .radio{margin-left: 0px; margin-top: ", as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_multi_rb_top_margin_2"), s_OS_name]), "px; margin-bottom: 25px;} #y_scale>*{margin-bottom: 6px;}")))),
+			tags$head(tags$style(HTML(paste0("#y_scale .radio{margin-left: 0px; margin-top: ", as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_multi_rb_top_margin_2"), s_OS_name]), "px; margin-bottom: 10px;} #y_scale>*{margin-bottom: 6px;}")))),
 			tags$head(tags$style(HTML(paste0("#dec_num_radio .radio{margin-left: 0px; margin-right: ", as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_multi_rb_right_margin_1"), s_OS_name]), "px; margin-top: 0px !important; -webkit-margin-after: 0px !important;} #dec_num_radio>*{margin-bottom: 15px;}")))),
 			tags$head(tags$style(HTML('#fraction {height: 42px;}'))),
-			tags$head(tags$style(HTML('#ymin {height: 35px}'))),
+			tags$head(tags$style(HTML('#ymin {height: 35px;}'))),
 			tags$head(tags$style(HTML('#ymax {height: 35px;}'))),
 			tags$head(tags$style(HTML('#edit_option_button {margin-right: 10px;}'))),
 			
@@ -297,25 +297,26 @@ f_ui <- function() {
 					tabPanel(title = "Graphic",
 						div(style = "position: absolute; top: 3.5em; left: 2em;", disabled(radioButtons("webgl", "WebGL:", choices = c(Yes = "yes", No = "no"), selected = "yes", inline = T))),
 						div(style = "position: absolute; top: 7.4em; left: 2em;", align = 'left', class = 'multicol2', disabled(radioButtons("mode", "Mode:", choices = c("Line+point" = "line_marker", "Line" = "line", "Point" = "marker"), selected = "marker", inline = F))),
-						div(style = "position: absolute; top: 13.4em; left: 2em;", align = 'left', class = 'multicol2', disabled(radioButtons("dec_num_radio", "Decimal number:", choices = c("Auto" = "auto", "Manual:" = "manual"), selected = "auto", inline = F))),
-						div(style = paste0("position: absolute; top: 13em; left: ", 12 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(numericInput("dec_num", "", numeric(0), min = 0, step = 1, width = "100px"))),
-						div(style = paste0("position: absolute; top: 14.65em; left: ", 19.4 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("dec_num_button", NULL, icon = icon("angle-double-right"), style='padding:5px; font-size:100%'))),
-						div(style = "position: absolute; top: 17.9em; left: 2em;", align = 'left', class = 'multicol2', disabled(radioButtons("bw_radio", "Bin width:", choices = c("Auto" = "auto", "Manual:" = "manual"), selected = "auto", inline = F))),
-						div(style = paste0("position: absolute; top: 17.5em; left: ", 12 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(textInput("bw", "", character(0), width = "100px"))),
-						div(style = paste0("position: absolute; top: 19.15em; left: ", 19.4 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("bw_button", NULL, icon = icon("angle-double-right"), style='padding:5px; font-size:100%'))),
 						
-						div(style = paste0("position: absolute; top: 3.5em; left: ", 25 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), align = 'left', class = 'multicol1', disabled(radioButtons("y_scale", "Y", choices = c("None" = "none", "Auto:" = "auto", "Manual:" = "manual"), selected = "none", inline = F))),
-						div(style = paste0("position: absolute; top: 3.5em; left: ", 26 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), strong("scale:")),
-						div(style = paste0("position: absolute; top: 7.91em; left: ", 29.5 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), h5("fraction")),
-						div(style = paste0("position: absolute; top: 7.8em; left: ", 33.5 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(numericInput('fraction', NULL, value = numeric(0), min = 0, max = 0.1, step = 0.01, width = "100px"))),
-						div(style = paste0("position: absolute; top: 11.02em; left: ", 30.7 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), h5("min")),
-						div(style = paste0("position: absolute; top: 11.12em; left: ", 32.9 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(textInput('ymin', NULL, character(0), width = "110px"))),
-						div(style = paste0("position: absolute; top: 13.92em; left: ", 30.7 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), h5("max")),
-						div(style = paste0("position: absolute; top: 14.02em; left: ", 32.9 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(textInput('ymax', NULL, character(0), width = "110px"))),
-						div(style = paste0("position: absolute; top: 12.4em; left: ", 41 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("y_scale_button", NULL, icon = icon("angle-double-right"), style='padding:5px; font-size:100%'))),
+						div(style = paste0("position: absolute; top: 3.5em; left: ", 16 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), align = 'left', class = 'multicol1', disabled(radioButtons("y_scale", "Y", choices = c("None" = "none", "Auto:" = "auto", "Manual:" = "manual"), selected = "none", inline = F))),
+						div(style = paste0("position: absolute; top: 3.5em; left: ", 17 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), strong("scale:")),
+						div(style = paste0("position: absolute; top: 6.9em; left: ", 20.5 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), h5("fraction")),
+						div(style = paste0("position: absolute; top: 6.79em; left: ", 24.5 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(numericInput('fraction', NULL, value = numeric(0), min = 0, max = 0.1, step = 0.01, width = "100px"))),
+						div(style = paste0("position: absolute; top: 11.12em; left: ", 17.3 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), h5("min")),
+						div(style = paste0("position: absolute; top: 11.12em; left: ", 19.5 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(textInput('ymin', NULL, character(0), width = "80px"))),
+						div(style = paste0("position: absolute; top: 11.12em; left: ", 25.2 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), h5("max")),
+						div(style = paste0("position: absolute; top: 11.12em; left: ", 27.4 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(textInput('ymax', NULL, character(0), width = "80px"))),
+						div(style = paste0("position: absolute; top: 11.1em; left: ", 33.5 + as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("y_scale_button", NULL, icon = icon("angle-double-right"), style='padding:5px; font-size:100%'))),
 						
-						div(style = paste0("position: absolute; top: 3.5em; left: ", 46.5 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(selectizeInput("edit_option", label = "Option:", choices = " ", width = '180px'))),
-						div(style = paste0("position: absolute; top: 4.85em; left: ", 59.5 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("edit_option_button", "Edit")))
+						div(style = paste0("position: absolute; top: 3.5em; left: ", 38.5 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), align = 'left', class = 'multicol2', disabled(radioButtons("dec_num_radio", "Decimal number:", choices = c("Auto" = "auto", "Manual:" = "manual"), selected = "auto", inline = F))),
+						div(style = paste0("position: absolute; top: 3.1em; left: ", 48.5 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(numericInput("dec_num", "", numeric(0), min = 0, step = 1, width = "100px"))),
+						div(style = paste0("position: absolute; top: 4.75em; left: ", 55.9 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("dec_num_button", NULL, icon = icon("angle-double-right"), style='padding:5px; font-size:100%'))),
+						div(style = paste0("position: absolute; top: 8em; left: ", 38.5 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), align = 'left', class = 'multicol2', disabled(radioButtons("bw_radio", "Bin width:", choices = c("Auto" = "auto", "Manual:" = "manual"), selected = "auto", inline = F))),
+						div(style = paste0("position: absolute; top: 7.6em; left: ", 48.5 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(textInput("bw", "", character(0), width = "100px"))),
+						div(style = paste0("position: absolute; top: 9.25em; left: ", 55.9 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("bw_button", NULL, icon = icon("angle-double-right"), style='padding:5px; font-size:100%'))),
+						
+						div(style = paste0("position: absolute; top: 3.5em; left: ", 61.5 + 3 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(selectizeInput("edit_option", label = "Option:", choices = " ", width = '180px'))),
+						div(style = paste0("position: absolute; top: 4.85em; left: ", 74.5 + 3 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("edit_option_button", "Edit")))
 					),
 					
 					# Flag parameters
@@ -341,14 +342,14 @@ f_ui <- function() {
 						div(style = "position: absolute; top: 6.6em; left: 2em;", align = 'left', class = 'multicol1', disabled(checkboxInput("lreg", "Add linear regression", F))),
 						div(style = "position: absolute; top: 8.3em; left: 2em;", align = 'left', class = 'multicol1', disabled(checkboxInput("conf_ellipsoid", "Add confidence ellipsoid", F))),
 						div(style = "position: absolute; top: 10em; left: 2em;", align = 'left', class = 'multicol1', disabled(checkboxInput("centroid", "Add centroid", F))),
-						div(style = "position: absolute; top: 12.9em; left: 2em;", strong("Boxplot:")),
-						div(style = "position: absolute; top: 14em; left: 2em;", align = 'left', class = 'multicol1', disabled(checkboxInput("box_mean_sd", "Add mean/sd", F))),
+						div(style = "position: absolute; top: 5.5em; left: 29.1em;", strong("Boxplot:")),
+						div(style = "position: absolute; top: 6.6em; left: 29.1em;", align = 'left', class = 'multicol1', disabled(checkboxInput("box_mean_sd", "Add mean/sd", F))),
 						div(style = "position: absolute; top: 5.5em; left: 15.3em;", strong("Histplot:")),
 						div(style = "position: absolute; top: 6.6em; left: 15.3em;", disabled(checkboxInput("dens_curve", "Add density curve", F))),
 						div(style = "position: absolute; top: 8.3em; left: 15.3em;", disabled(checkboxInput("norm_dens_curve", "Add normal density curve", F))),
 						
-						div(style = "position: absolute; top: 2.6em; left: 33em; color: #367BB4FF;", h4("IR:")),
-						div(style = "position: absolute; top: 5.5em; left: 33em;", disabled(checkboxInput("mean_spect", "Add mean spectrum", F)))
+						div(style = "position: absolute; top: 2.6em; left: 39em; color: #367BB4FF;", h4("IR:")),
+						div(style = "position: absolute; top: 4.9em; left: 39em;", disabled(checkboxInput("mean_spect", "Add mean spectrum", F)))
 					)
 				)
 			),
