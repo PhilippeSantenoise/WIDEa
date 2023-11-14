@@ -348,7 +348,7 @@ f_server <- function(input, output, session) {
 				if (length(v_pos) > 0) {eval(parse(text = paste(paste0("l_id_value$", v_id_new[v_pos], " <- ", v_value[v_pos]), collapse = "; ")))}
 			}
 			
-			if (o_cond$save1 == 1 & input$data_type %in% c("normal", "ir")) {l_id_value <- c(l_id_value, list("flag" = T))} # update flag input (= T) when a new flag data is created
+			if (o_cond$save1 == 1) {l_id_value <- c(l_id_value, list("flag" = T))} # update flag input (= T) when a new flag data is created
 			o_on_off$val <- l_id_status # execute enable/disable commands
 			
 			if (length(l_id_value) > 0) {
