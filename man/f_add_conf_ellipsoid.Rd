@@ -11,7 +11,7 @@ f_add_conf_ellipsoid(
   df_click_legend,
   o_plot,
   o_parameter,
-  v_color
+  l_graph_opt
 )
 }
 \arguments{
@@ -27,7 +27,8 @@ method. If no Group variable is selected, then \code{v_group} = "all".}
 \item{o_parameter}{is a reactive value including parameters associated to the
 left panel (sections after data loading) and top panels.}
 
-\item{v_color}{is the graph color vector.}
+\item{l_graph_opt}{is the list of graph option (color, opacity, point type/size,
+sorting) created by the \code{f_create_graph_opt_vector} function.}
 }
 \description{
 \code{f_add_conf_ellipsoid} returns a plotly object including 95\% confidence

@@ -13,7 +13,7 @@ f_create_default_graph_opt_list(
   o_parameter
 )
 
-f_create_graph_opt_list(o_name_option)
+f_create_graph_opt_list(o_name_option, b_quant = F)
 }
 \arguments{
 \item{s_data_type}{is the data type (3 values: "normal", "temporal", "ir").}
@@ -25,7 +25,11 @@ This input only concern the normal/ir data type.}
 left panel (sections after data loading) and top panels.}
 
 \item{o_name_option}{is a reactive value with graph option (color, opacity, point
-type/size) inventory (default, custom).}
+type/size, sorting) inventory (default, custom).}
+
+\item{b_quant}{is a boolean value associated to the Group variable (only for
+normal/ir data type: plot). The value is True if the Group variable is
+quantitative, False else.}
 }
 \description{
 \code{f_create_default_graph_opt_list} is used to create the list of graph default

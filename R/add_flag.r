@@ -195,18 +195,21 @@ f_add_flag <- function(s_data_type = "normal", ply_1, v_cond = rep(0, 3), df_cli
 		}
 	}
 	else { # ir
-		l_id_group <- isolate(o_plot$id_group)
-		
 		# (1) add "previous" flags:
 		
 		if (v_cond[1] == 1) {
-			if (v_cond[2] == 1) {
-				eval(parse(text = paste0("v_visible <- c(", paste(paste0("df_click_legend[which(df_click_legend$name == \"", as.vector(l_id_group$qc1_flag$group), "\"), \"statut\"]"), collapse = ", "), ")")))
+			if (v_cond[2] == 1) { # qc = 1 flags
 				df_qc1 <- isolate(o_plot$data_qc1)
-				v_name <- names(df_qc1)[-c(1, 2)]
-				v_id <- as.vector(l_id_group$qc1_flag$id)
-				v_group <- as.vector(l_id_group$qc1_flag$group)
-				v_show <- as.vector(l_id_group$qc1_flag$show)
+				df_id_group <- isolate(o_plot$id_group)$qc1_flag
+				row.names(df_id_group) <- 1:nrow(df_id_group)
+				df_id_group <- df_id_group[order(df_id_group$sorting),]
+				v_row <- as.integer(row.names(df_id_group))
+				
+				v_name <- names(df_qc1)[-c(1, 2)][v_row]
+				v_id <- as.vector(df_id_group$id)
+				v_group <- as.vector(df_id_group$group)
+				eval(parse(text = paste0("v_visible <- c(", paste(paste0("df_click_legend[which(df_click_legend$name == \"", v_group, "\"), \"statut\"]"), collapse = ", "), ")")))
+				v_show <- as.vector(df_id_group$show)
 				
 				l_text <- lapply(1:length(v_name), function(i) {
 					s_comment <- df_previous_flag[which(df_previous_flag[, 1] == v_id[i]), "comment"]
@@ -242,13 +245,18 @@ f_add_flag <- function(s_data_type = "normal", ply_1, v_cond = rep(0, 3), df_cli
 				}
 			}
 			
-			if (v_cond[3] == 1) {
-				eval(parse(text = paste0("v_visible <- c(", paste(paste0("df_click_legend[which(df_click_legend$name == \"", as.vector(l_id_group$qc2_flag$group), "\"), \"statut\"]"), collapse = ", "), ")")))
+			if (v_cond[3] == 1) { # qc = 2 flags
 				df_qc2 <- isolate(o_plot$data_qc2)
-				v_name <- names(df_qc2)[-c(1, 2)]
-				v_id <- as.vector(l_id_group$qc2_flag$id)
-				v_group <- as.vector(l_id_group$qc2_flag$group)
-				v_show <- as.vector(l_id_group$qc2_flag$show)
+				df_id_group <- isolate(o_plot$id_group)$qc2_flag
+				row.names(df_id_group) <- 1:nrow(df_id_group)
+				df_id_group <- df_id_group[order(df_id_group$sorting),]
+				v_row <- as.integer(row.names(df_id_group))
+				
+				v_name <- names(df_qc2)[-c(1, 2)][v_row]
+				v_id <- as.vector(df_id_group$id)
+				v_group <- as.vector(df_id_group$group)
+				eval(parse(text = paste0("v_visible <- c(", paste(paste0("df_click_legend[which(df_click_legend$name == \"", v_group, "\"), \"statut\"]"), collapse = ", "), ")")))
+				v_show <- as.vector(df_id_group$show)
 				
 				l_text <- lapply(1:length(v_name), function(i) {
 					s_comment <- df_previous_flag[which(df_previous_flag[, 1] == v_id[i]), "comment"]
@@ -273,12 +281,12 @@ f_add_flag <- function(s_data_type = "normal", ply_1, v_cond = rep(0, 3), df_cli
 				}
 				
 				if (isolate(o_plot$add_pt) == T) {
-					v_group <- unique(as.vector(l_id_group$qc2_flag$group))
+					v_group <- unique(as.vector(df_id_group$group))
 					v_visible <- as.vector(df_click_legend[which(df_click_legend$name %in% v_group), "statut"])
 					
 					l_var <- lapply(v_group, function(i) {
-						v_pos <- which(l_id_group$qc2_flag$group == i)
-						v_id <- as.vector(l_id_group$qc2_flag$id)[v_pos]
+						v_pos <- which(df_id_group$group == i)
+						v_id <- as.vector(df_id_group$id)[v_pos]
 						df_out <- data.frame("x" = rep(NA, length(isolate(o_plot$pt_pos)) * length(v_pos)), "y" = rep(NA, length(isolate(o_plot$pt_pos)) * length(v_pos)), "info" = rep(NA, length(isolate(o_plot$pt_pos)) * length(v_pos))) 
 						df_out$x <- rep(as.vector(df_qc2$Frequency[isolate(o_plot$pt_pos)]), length(v_pos))
 						df_out$y <- as.vector(unlist(df_qc2[isolate(o_plot$pt_pos), v_pos + 2]))
@@ -294,6 +302,7 @@ f_add_flag <- function(s_data_type = "normal", ply_1, v_cond = rep(0, 3), df_cli
 		# (2) add "current" flags:
 		
 		if ("coord" %in% ls(e_current_flag)) {
+			l_id_group <- isolate(o_plot$id_group)
 			df_all <- isolate(o_plot$data)
 			df_flag <- e_current_flag$coord
 			

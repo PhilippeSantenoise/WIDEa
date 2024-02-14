@@ -52,7 +52,7 @@
 #' The third option is a list of inputs with ID and maximum number of items. The
 #' fourth option is a binary value associated to sub-data (= 1 if created). The
 #" fifth option is the variable name selected from the "vname" input (sub data
-#' creation section). 
+#' creation section).
 #' @param i_sp_num is an integer (3 values: 0, 1 and 2) used to execute or not a
 #' special enabling/desabling of UI's inputs. 0 is the default and corresponds to no
 #' special enabling/desabling. 2 is only used for radio buttons.
@@ -96,7 +96,7 @@ f_on_off_field_input <- function (s_id, s_type, i_status, n_value, b_hide = F) {
 f_on_off_action_button_input <- function (s_id, i_status, s_style = NULL) {
 	if (i_status == 0) {
 		if (!is.null(s_style)) {
-			s_cmd <- paste0("shiny::updateButton(session, \"", s_id, "\", style = \"", s_style, "\"); shinyjs::delay(100, shinyjs::disable(\"", s_id, "\"))")
+			s_cmd <- paste0("shinyBS::updateButton(session, \"", s_id, "\", style = \"", s_style, "\"); shinyjs::delay(100, shinyjs::disable(\"", s_id, "\"))")
 		}
 		else {
 			s_cmd <- paste0("shinyjs::disable(\"", s_id, "\")")
@@ -328,7 +328,7 @@ f_on_off_inputs <- function(l_id_status, df_all = NULL, l_selectize_option = lis
 		else if (x == "CheckBox") {
 			eval(parse(text = paste(paste0("v_cmd_x[", 1:length(v_sub_name), "] <- f_on_off_check_box_input(\"", v_sub_name, "\", l_id_status[[\"", v_sub_name, "\"]])"), collapse = "; ")))
 		}
-		else { # check box group
+		else { # check box group input
 			l_id_value <- f_create_input_value_list("check_box_group")
 			eval(parse(text = paste(paste0("v_cmd_x[", 1:length(v_sub_name), "] <- f_on_off_check_box_group_input(\"", v_sub_name, "\", l_id_value[[\"", v_sub_name, "\"]], l_id_status[[\"", v_sub_name, "\"]])"), collapse = "; ")))
 		}

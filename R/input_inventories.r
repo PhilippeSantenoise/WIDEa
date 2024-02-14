@@ -45,7 +45,7 @@
 #' @param s_sub_var_name is a string value returned by the "vname" selectize input
 #' (NULL as default value).
 #' @param s_sub_var_type is a string value returned by the "vtype" radio button
-#' input (2 values: "qualit", "quanti").
+#' input (2 values: "qualit", "quanti"). 
 #' @param s_data is the data type (three values: "normal", "temporal", "ir").
 #' @param s_graph is the graph type (six values: "plot_2d", "plot_3d", "histplot",
 #' "corplot", "boxplot", "barplot").
@@ -76,15 +76,15 @@ f_create_all_input_id_list <- function(s_by = "section") {
 	
 	if (s_by == "section") {
 		# data loading input
-		v_lp_s1_input_id <- c(paste0(c(paste0("load", 1:2), "browse2"), "_button"), "data_path2")
+		v_lp_s1_input_id <- c(paste0(c(paste0("load", 1:2), "browse2", "edit_dopt2"), "_button"), "data_path2")
 		# sub-data creation input
 		v_lp_s2_input_id <- c("subdata_option", "vname", "vtype", "rel_symbol", paste0("vvalue", 1:2), paste0(c("c_info_clear", "c_add", "expand1", "create"), "_button"), "c_formula")
 		# normal plot selection input
 		v_lp_s3_input_id <- c("plot_type", "dim_num", "model")
 		# model parameter loading input
-		v_lp_s4_input_id <- c("data_path3", paste0(c("browse3", "load3"), "_button"))
+		v_lp_s4_input_id <- c("data_path3", paste0(c("browse3", "load3", "edit_dopt3"), "_button"))
 		# variable selection input
-		v_lp_s5_input_id <- c("id", "group", paste0("var_", c("id", "x", "y", "z", "group")), paste0(c(v_fun_name, "ref", "wres"), "_radio"), paste0(v_fun_name, "_text"), paste0("concat", 1:2), paste0("expand", 2:5, "_button"), "date_format", "ref", "wres_cbox", "wres_group", "wres_vfun", "display_button")
+		v_lp_s5_input_id <- c("id", "group", paste0("var_", c("id", "x", "y", "z", "group")), paste0(c(v_fun_name, "ref", "wres"), "_radio"), paste0(v_fun_name, "_text"), paste0("concat", 1:2), "date_format", "ref", "wres_cbox", "wres_group", "wres_vfun", "display_button")
 		# top panel input (tab 1: Graphic)
 		v_tp_t1_input_id <- c("webgl", "mode", paste0(v_graphic_opt, "_radio"), v_graphic_opt, paste0(v_graphic_opt, "_button"), "y_scale", "fraction", "ymin", "ymax", "y_scale_button", "edit_option", "edit_option_button")
 		# top panel input (tab 2: Flag)
@@ -102,7 +102,7 @@ f_create_all_input_id_list <- function(s_by = "section") {
 		# text input
 		v_t3_input_id <- c(paste0("data_path", 2:3), "vvalue2", "c_formula", paste0(v_fun_name, "_text"), "wres_vfun", "bw", "ymin", "ymax", "comment")
 		# action button input
-		v_t4_input_id <- paste0(c("hs_bpanel", paste0("load", 1:3), paste0("browse", 2:3), paste0("del", 1:7), "c_info_clear", "c_add", paste0("expand", 1:5), "create", "display", v_graphic_opt, "y_scale", paste0("clear", 1:2), "save", "edit_option"), "_button")
+		v_t4_input_id <- paste0(c("hs_bpanel", paste0("load", 1:3), paste0("browse", 2:3), paste0("edit_dopt", 2:3), "c_info_clear", "c_add", "expand1", "create", "display", v_graphic_opt, "y_scale", paste0("clear", 1:2), "save", "edit_option"), "_button")
 		# radio button input
 		v_t5_input_id <- c("vtype", "plot_type", "dim_num", "model", "id", paste0(c(v_fun_name, "ref", "wres", v_graphic_opt), "_radio"), "group", "webgl", "mode", "y_scale", "action", "draw", "qc")
 		# check box input
@@ -137,6 +137,7 @@ f_create_input_value_list <- function(s_type = "selectize", df_all = NULL, v_con
 		if (!is.null(v_var_name) & i_only_value != 1) {
 			i_pos <- ifelse(length(which(v_var_name %in% s_sub_var_name)) > 0, which(v_var_name %in% s_sub_var_name), 1)
 			v_value <- unique(as.vector(df_all[, i_pos]))
+			v_value <- v_value[!is.na(v_value)]
 			v_value <- v_value[order(v_value)]
 		}
 		
@@ -156,7 +157,7 @@ f_create_input_value_list <- function(s_type = "selectize", df_all = NULL, v_con
 		v_fun_name <- c("f", "g", "h")
 		v_graphic_opt <- c("bw", "dec_num")
 		l_id_value <- list()
-		eval(parse(text = paste(paste0("l_id_value$", c(paste0(c(v_fun_name, "ref", "wres"), "_radio"), "id", "group", v_graphic_opt, "vtype", "plot_type", "dim_num", "model", "y_scale", "webgl", "mode", "action", "draw", "qc"), " <- \"", c(rep("no", length(v_fun_name) + 4), rep("auto", length(v_graphic_opt)), "qualit", "plot", "2d", rep("none", 2), "yes", "marker", "add_flag", "pt", "2"), "\""), collapse = "; ")))
+		eval(parse(text = paste(paste0("l_id_value$", c(paste0(c(v_fun_name, "ref", "wres"), "_radio"), "id", "group", paste0(v_graphic_opt, "_radio"), "vtype", "plot_type", "dim_num", "model", "y_scale", "webgl", "mode", "action", "draw", "qc"), " <- \"", c(rep("no", length(v_fun_name) + 4), rep("auto", length(v_graphic_opt)), "qualit", "plot", "2d", rep("none", 2), "yes", "marker", "add_flag", "pt", "2"), "\""), collapse = "; ")))
 		return(l_id_value)
 	}
 	else if (s_type == "check_box_group") {
@@ -371,7 +372,7 @@ f_create_input_id_vector <- function(s_data = "normal", s_graph = "plot_2d", s_m
 			return(v_out[!is.na(v_out)])
 		}
 		else {
-			return("b_display with True value is only used for the followings conditions: (1) s_data is temporal or ir, (2) s_data is normal, s_graph is plot_2d or plot_3d and s_model is none")  
+			return("b_display = T is only used for the followings conditions: (1) s_data is temporal or ir, (2) s_data is normal, s_graph is plot_2d or plot_3d and s_model is none")  
 		}
 	}
 	else {

@@ -114,8 +114,8 @@ f_ui <- function() {
 		# Sidebars
 		# --------
 		
-		tags$head(tags$style(HTML('table.dataTable tbody tr.selected td {color: white !important; box-shadow: inset 0 0 0 9999px #B0BEC5 !important;}'))), # change datatable selected row color
-		tags$head(tags$style(HTML('table.dataTable tbody tr:hover {color: white !important; background-color: #EFF2F3 !important;}'))), # change datatable hover row color
+		tags$head(tags$style(HTML('table.dataTable tbody tr.selected td {box-shadow: inset 0 0 0 9999px #B0BEC5 !important;}'))), # change datatable selected row color
+		tags$head(tags$style(HTML('table.dataTable tbody tr:hover {background-color: #EFF2F3 !important;}'))), # change datatable hover row color
 		
 		div(
 			style = "display:flex; align-items:flex-start",
@@ -163,10 +163,14 @@ f_ui <- function() {
 				div(style = "position: absolute; top: 5.7em; left: 1.25em; color: #367BB4FF;", h4("Data loading")),
 				
 				div(style = "position: absolute; top: 8em; left: 1.25em;", checkboxInput('flag', 'With flags', F)),
-				div(style = "position: absolute; top: 11em; left: 1.25em;", textInput('data_path1', 'Select data:', '', width = paste0(as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_text_input"), s_OS_name]), "px"))),
-				div(style = paste0("position: absolute; top: 15.74em; left: ", 6.9 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), shinyFilesButton("browse1_button", "Browse", "Please select a file", F)),
-				div(style = paste0("position: absolute; top: 15.74em; left: ", 13.1 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), disabled(actionButton('load1_button', 'Load'))),
-				div(style = "position: absolute; top: 19.5em; left: 1.25em;", disabled(textInput('data_path2', 'Select code/frequency:', '', width = paste0(as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_text_input"), s_OS_name]), "px")))),
+				div(style = "position: absolute; top: 10.9em; left: 1.25em;", strong("Select data:")),
+				div(style = paste0("position: absolute; top: 11.15em; left: ", 14.85 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), actionButton('edit_dopt1_button', NULL, icon = icon("pen"), class = "expand")),
+				div(style = "position: absolute; top: 12.75em; left: 1.25em;", textInput('data_path1', NULL, '', width = paste0(as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_text_input"), s_OS_name]), "px"))),
+				div(style = paste0("position: absolute; top: 15.75em; left: ", 6.9 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), shinyFilesButton("browse1_button", "Browse", "Please select a file", F)),
+				div(style = paste0("position: absolute; top: 15.75em; left: ", 13.1 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), disabled(actionButton('load1_button', 'Load'))),
+				div(style = "position: absolute; top: 19.39em; left: 1.25em;", strong("Select code/frequency:")),
+				div(style = paste0("position: absolute; top: 19.64em; left: ", 14.85 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), disabled(actionButton('edit_dopt2_button', NULL, icon = icon("pen"), class = "expand"))),
+				div(style = "position: absolute; top: 21.24em; left: 1.25em;", disabled(textInput('data_path2', NULL, '', width = paste0(as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_text_input"), s_OS_name]), "px")))),
 				div(style = paste0("position: absolute; top: 24.24em; left: ", 6.9 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]),"em;"), disabled(shinyFilesButton("browse2_button", "Browse", "Please select a file", F))),
 				div(style = paste0("position: absolute; top: 24.24em; left: ", 13.1 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), disabled(actionButton('load2_button', 'Load'))),
 				
@@ -205,6 +209,7 @@ f_ui <- function() {
 				div(style = "position: absolute; top: 86.46em; left: 1.25em; color: #367BB4FF;", h4("Model parameter loading")),
 				
 				div(style = "position: absolute; top: 89.46em; left: 1.25em;", strong("Select model parameter:")),
+				div(style = paste0("position: absolute; top: 90.36em; left: ", 14.85 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), disabled(actionButton('edit_dopt3_button', NULL, icon = icon("pen"), class = "expand"))),
 				div(style = "position: absolute; top: 91.96em; left: 1.25em;", disabled(textInput('data_path3', NULL, '', width = paste0(as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_text_input"), s_OS_name]), "px")))),
 				div(style = paste0("position: absolute; top: 94.96em; left: ", 6.9 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), disabled(shinyFilesButton("browse3_button", "Browse", "Please select a file", F))),
 				div(style = paste0("position: absolute; top: 94.96em; left: ", 13.1 + as.vector(df_UI_param[which(df_UI_param$Parameters == "lp_button_gap"), s_OS_name]), "em;"), disabled(actionButton('load3_button', 'Load'))),
@@ -316,7 +321,9 @@ f_ui <- function() {
 						div(style = paste0("position: absolute; top: 9.25em; left: ", 55.9 + 2 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("bw_button", NULL, icon = icon("angle-double-right"), style='padding:5px; font-size:100%'))),
 						
 						div(style = paste0("position: absolute; top: 3.5em; left: ", 61.5 + 3 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(selectizeInput("edit_option", label = "Option:", choices = " ", width = '180px'))),
-						div(style = paste0("position: absolute; top: 4.85em; left: ", 74.5 + 3 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("edit_option_button", "Edit")))
+						div(style = paste0("position: absolute; top: 4.85em; left: ", 74.5 + 3 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), disabled(actionButton("edit_option_button", "Edit"))),
+						div(style = paste0("position: absolute; top: 9.6em; left: ", 61.5 + 3 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), strong("Background/grid color:")),
+						div(style = paste0("position: absolute; top: 8.85em; left: ", 74.5 + 3 * as.vector(df_UI_param[which(df_UI_param$Parameters == "tp_gap_1"), s_OS_name]), "em;"), actionButton("edit_bg_grid_button", "Edit"))
 					),
 					
 					# Flag parameters

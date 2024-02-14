@@ -3,12 +3,14 @@
 \encoding{UTF-8}
 \name{f_build_modal_dialog_expand}
 \alias{f_build_modal_dialog_expand}
+\alias{f_build_modal_dialog_data_option}
 \alias{f_create_cond_data}
 \alias{f_check_cond_data}
 \alias{f_create_modal_code_var_list}
 \alias{f_create_option_data}
 \alias{f_update_option_data}
 \alias{f_create_point_type_plotly}
+\alias{f_create_bg_grid_data}
 \alias{f_create_xy_cell_data}
 \alias{f_create_xy_cell_plotly}
 \title{Functions associated to a modal dialog box/popup window}
@@ -23,6 +25,8 @@ f_build_modal_dialog_expand(
   b_info_cond = F
 )
 
+f_build_modal_dialog_data_option(i_window_num = 1)
+
 f_create_cond_data(o_sdata_cond, s_selection = "multiple")
 
 f_check_cond_data(o_sdata_cond, l_new_value)
@@ -36,7 +40,8 @@ f_create_option_data(
   s_data_type = NULL,
   s_plot_type = NULL,
   b_group = F,
-  i_display = 0
+  i_display = 0,
+  b_pal_auto = F
 )
 
 f_update_option_data(
@@ -44,7 +49,7 @@ f_update_option_data(
   s_sub_option = NULL,
   s_exec = "clear",
   o_option_value,
-  v_row,
+  v_row = NULL,
   s_custom_text = NULL,
   s_data_type = NULL,
   s_plot_type = NULL,
@@ -53,6 +58,8 @@ f_update_option_data(
 )
 
 f_create_point_type_plotly(s_dim_num = "2d")
+
+f_create_bg_grid_data(o_bg_grid)
 
 f_create_xy_cell_data(df_all, o_parameter, s_x_cell_var, s_y_cell_var)
 
@@ -98,18 +105,21 @@ Values are given by the following inputs respectively: "vname", "vtype",
 \item{l_var}{is the list of variables filled in the X, Y, Z and weigthed
 residual group selectize inputs.}
 
-\item{s_option}{is a string value (3 values: "label", "color/opacity",
-"point type/size"). The value is associated to the "edit_option" selectize input.}
+\item{s_option}{is a string value (4 values: "label", "color/opacity",
+"point type/size", "sorting"). The value is associated to the "edit_option"
+selectize input.}
 
-\item{s_sub_option}{is a string value available from "color/opacity" and
-"point type/size" options (NULL when the "label" option is selected). The
-sub-option has 2 values ("color", "opacity") for the "color/opacity" option and
-is associated to the "color_opacity" radio button input. The sub-option has 2
-values ("type", "size") for the "point type/size" option and is associated to the
-"point_type_size" radio button input.}
+\item{s_sub_option}{is a string value available from the following options
+(X/Group qualitative variable): "color/opacity", "point type/size", "sorting".
+Group variable is quantitative. \code{s_sub_option} has 2 values ("color", "opacity")
+when \code{s_option} = "color/opacity" (related to the "color_opacity" radio button
+input). \code{s_sub_option} has 2 values ("type", "size") when \code{s_option} =
+"point type/size" (related to the "point_type_size" radio button input).
+\code{s_sub_option} has 2 values ("X", "Group") when \code{s_option} = "sorting" (related
+to the "x_group_var" radio button input).}
 
-\item{o_option_value}{is a reactive value used to graph label/color/pch edition
-(o_label_text, o_name_option).}
+\item{o_option_value}{is a reactive value used to graph label/color/pch/sorting
+edition (o_label_text, o_name_option).}
 
 \item{s_plot_type}{is the plot type (4 values: "plot", "boxplot", "histplot",
 "barplot").}
@@ -120,17 +130,23 @@ if a group variable is added, F else).}
 \item{i_display}{is a binary value related to the display button status (1:
 clicked; 0: not clicked).}
 
+\item{b_pal_auto}{is a boolean value associated to the palette color (T if auto,
+F else).}
+
 \item{s_exec}{is a string value used to update label data (2 values: "clear",
 "add"). This command is used to clear/add value in label data.}
 
 \item{v_row}{is the vector of row number of label data used to apply the
 clear/add command (s_exec).}
 
-\item{s_custom_text}{is a string value added in label/color/pch data when the add
+\item{s_custom_text}{is a string value added \code{o_option$data} data when the add
 command is selected.}
 
 \item{s_dim_num}{is a string value associated to the "dim_num" radio button (2
 values: "2d", "3d").}
+
+\item{o_bg_grid}{is a reactive value used to graph background/grid (color)
+edition.}
 
 \item{df_all}{is data saved in o_plot reactive value (o_plot$data).}
 
@@ -154,6 +170,9 @@ Y histplot).}
 dialog. The modal dialog allows to expand a text area. The text area. The text
 area is used to express the (sub-data) condition formula, f(x), g(y), h(z) or the
 weighted residuals function.
+\cr\code{f_build_modal_dialog_data_option} returns a command line used to build a
+modal dialog. The modal dialog allows to specify new options for loaded data
+(decimal separator, encoding).
 \cr\code{f_create_cond_data} returns a dataset (in datatable format) including all
 (sub-data) conditions.
 \cr\code{f_check_cond_data} is used to check if a new (sub-data) condition already

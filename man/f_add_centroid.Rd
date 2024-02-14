@@ -17,8 +17,8 @@ f_add_centroid(ply_1, df_click_legend, o_plot, o_parameter, l_graph_opt)
 \item{o_parameter}{is a reactive value including parameters associated to the
 left panel (sections after data loading) and top panels.}
 
-\item{l_graph_opt}{is the list of graph option (color, opacity, point type/size)
-created by the \code{f_create_graph_opt_vector} function.}
+\item{l_graph_opt}{is the list of graph option (color, opacity, point type/size,
+sorting) created by the \code{f_create_graph_opt_vector} function.}
 }
 \description{
 \code{f_add_centroid} returns a plotly object including centroids. This function only

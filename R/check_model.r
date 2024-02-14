@@ -431,11 +431,12 @@ f_check_model <- function (df_all, df_mod_param, o_parameter) {
 				v_param_2 <- as.vector(df_order_param$col2)
 				
 				if (!is.na(isolate(o_parameter$wres_vfun))) {
-					s_vfun_text <- eval(parse(text = paste(paste0("gsub(\"", v_param_1, "\", \"", v_param_2, "\", isolate(o_parameter$wres_vfun))"), collapse = "; ")))
+					s_vfun_text <- isolate(o_parameter$wres_vfun)
+					eval(parse(text = paste(paste0("s_vfun_text <- gsub(\"", v_param_1, "\", \"", v_param_2, "\", s_vfun_text)"), collapse = "; ")))
 				}
 				
 				s_f_text <- isolate(o_parameter$f)
-				s_f_text <- eval(parse(text = paste(paste0("gsub(\"", v_param_1, "\", \"", v_param_2, "\", s_f_text)"), collapse = "; ")))
+				eval(parse(text = paste(paste0("s_f_text <- gsub(\"", v_param_1, "\", \"", v_param_2, "\", s_f_text)"), collapse = "; ")))
 			}
 			else {
 				s_f_text <- isolate(o_parameter$f)

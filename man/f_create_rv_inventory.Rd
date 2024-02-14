@@ -21,9 +21,12 @@ f_update_graph_option_rv(
   s_data_type,
   s_plot_type,
   v_var_name,
+  b_sorting2 = F,
+  v_var_name2 = NULL,
   df_all = NULL,
   b_display_clear = F,
-  b_sub_data = F
+  b_sub_data = F,
+  v_concat = rep(F, 2)
 )
 }
 \arguments{
@@ -39,10 +42,11 @@ f_update_graph_option_rv(
 elements "rv", "id", "value").}
 
 \item{o_name_option}{is the reactive value associated to graph option (color,
-opacity, point type/size) edition.}
+opacity, point type/size, sorting) edition.}
 
-\item{s_option}{is the option value (2 values: "color/opacity",
-"point type/size"). \code{s_option} is associated to the "edit_option" selectize input.}
+\item{s_option}{is the option value (3 values: "color/opacity",
+"point type/size", "sorting"). \code{s_option} is associated to the "edit_option"
+selectize input.}
 
 \item{i_display}{is a binary value associated to the display button (1 if
 clicked, 0 else).}
@@ -52,7 +56,15 @@ clicked, 0 else).}
 \item{s_plot_type}{is the plot type (5 values: "plot", "boxplot", "histplot",
 "barplot", "corplot").}
 
-\item{v_var_name}{is the vector of variable name.}
+\item{v_var_name}{is the vector of variable name filled in X/Group field (left
+panel: variable selection).}
+
+\item{b_sorting2}{is a boolean value. This parameter is associated to the
+sorting of the Group variable for boxplot/barplot (normal data type). Its value
+is true if a Group variable is selected, false else.}
+
+\item{v_var_name2}{is the vector of variable name filled in Group field and is
+associated to \code{b_sorting2}.}
 
 \item{df_all}{are data saved in e_data environment (e_data$all).}
 
@@ -62,6 +74,9 @@ already created, else false.}
 
 \item{b_sub_data}{is a boolean value such that \code{b_sub_data} is true if a sub-data
 exists and the "subdata_option" check box input is unchecked, false else.}
+
+\item{v_concat}{is a vector with two boolean values associated to the
+concatenation box of X and Group variables}
 }
 \description{
 \code{f_create_rv_inventory} is used to create inventory of reactive values with id
@@ -70,5 +85,5 @@ and initial value. This inventory is used to reset reactive values.
 specific reactive values.
 \cr\code{f_update_rv} is used to create command lines to update reactive values.
 \cr\code{f_update_graph_option_rv} is used to update reactive values associated to
-graph option edition (color/opacity, point type/size).
+graph option edition (color/opacity, point type/size, sorting).
 }

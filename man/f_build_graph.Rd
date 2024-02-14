@@ -45,8 +45,9 @@ picture.}
 \item{o_label_text}{is a reactive value including data information on the graph
 label edition.}
 
-\item{l_graph_opt}{is the list of graph option (color, opacity, point type/size)
-created by the \code{f_create_graph_opt_vector} function.}
+\item{l_graph_opt}{is the list of graph option (color, opacity, point type/size,
+sorting) created by the \code{f_create_graph_opt_vector} function. The background/grid
+color is also added to the list (\code{l_graph_opt$bg_grid_color}).}
 }
 \description{
 \code{f_build_graph} returns the main plotly graph for all data types.

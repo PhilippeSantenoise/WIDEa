@@ -672,10 +672,10 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 			v_name <- paste0("col", 1:dim(df_all)[1])
 			df_all_tr <- cbind(df_code_freq, df_all_tr)
 			names(df_all_tr)[3:(length(v_name) + 2)] <- v_name
-			df_id_group <- data.frame("id" = rep(NA, length(v_name)), "group" = rep(NA, length(v_name)), "show" = rep(F, length(v_name)), "color" = rep(NA, length(v_name)), "opacity" = rep(NA, length(v_name))) 
+			df_id_group <- data.frame("id" = rep(NA, length(v_name)), "group" = rep(NA, length(v_name)), "show" = rep(F, length(v_name)), "color" = rep(NA, length(v_name)), "opacity" = rep(NA, length(v_name)), "sorting" = rep(NA, length(v_name))) 
 			eval(parse(text = paste(paste0("df_id_group[, ", 1:dim(df_id_group)[2], "] <- as.vector(df_id_group[, ", 1:dim(df_id_group)[2], "])"), collapse = "; "))) 
 			
-			if (is.na(isolate(o_parameter$group))) {
+			if (is.na(isolate(o_parameter$group)) | isolate(o_parameter$quant_group)) {
 				df_id_group$id <- l_id[[1]]
 				df_id_group$group <- rep("all", length(v_name))
 				
@@ -686,12 +686,26 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 					df_id_group$show <- c(T, rep(F, length(v_name) - 1))
 				}
 				
-				df_id_group$color <- l_graph_opt$color
-				df_id_group$opacity <- l_graph_opt$opacity
-				df_id_group$point_type <- l_graph_opt$point_type
-				df_id_group$point_size <- l_graph_opt$point_size
+				if (isolate(o_parameter$quant_group)) { # quantitative Group variable
+					v_group <- df_all[, isolate(o_parameter$group)]
+					df_id_group$group_val <- v_group
+					m_rgb <- grDevices::colorRamp(l_graph_opt$pal_col_op$color)(scales::rescale(v_group))
+					v_color <- grDevices::rgb(m_rgb[, 1], m_rgb[, 2], m_rgb[, 3], maxColorValue = 255)
+					df_id_group$color <- v_color
+					df_id_group$opacity <- l_graph_opt$pal_col_op$opacity
+					df_id_group$point_type <- l_graph_opt$pal_point$type
+					df_id_group$point_size <- l_graph_opt$pal_point$size
+				}
+				else { # no Group variable
+					df_id_group$color <- l_graph_opt$color
+					df_id_group$opacity <- l_graph_opt$opacity
+					df_id_group$point_type <- l_graph_opt$point_type
+					df_id_group$point_size <- l_graph_opt$point_size
+				}
+				
+				df_id_group$sorting <- 1
 			}
-			else {
+			else { # qualitative Group variable
 				v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
 				v_group <- v_group[order(v_group)]
 				
@@ -706,6 +720,7 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 				eval(parse(text = paste0("df_id_group$opacity <- c(", paste(paste0("rep(", l_graph_opt$opacity, ", ", lengths(l_name), ")"), collapse = ", "), ")")))
 				eval(parse(text = paste0("df_id_group$point_type <- c(", paste(paste0("rep(", l_graph_opt$point_type, ", ", lengths(l_name), ")"), collapse = ", "), ")")))
 				eval(parse(text = paste0("df_id_group$point_size <- c(", paste(paste0("rep(", l_graph_opt$point_size, ", ", lengths(l_name), ")"), collapse = ", "), ")")))
+				eval(parse(text = paste0("df_id_group$sorting <- c(", paste(paste0("rep(", l_graph_opt$sorting, ", ", lengths(l_name), ")"), collapse = ", "), ")")))
 				
 				if (length(v_name) == 1) {
 					df_id_group$show <- T
@@ -730,10 +745,10 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 				v_name <- paste0("col", 1:dim(df_qc1)[1])
 				df_qc1_tr <- cbind(df_code_freq, df_qc1_tr)
 				names(df_qc1_tr)[3:(length(v_name) + 2)] <- v_name
-				df_id_group <- data.frame("id" = rep(NA, length(v_name)), "group" = rep(NA, length(v_name)), "show" = rep(F, length(v_name))) 
+				df_id_group <- data.frame("id" = rep(NA, length(v_name)), "group" = rep(NA, length(v_name)), "show" = rep(F, length(v_name)), "sorting" = rep(NA, length(v_name))) 
 				eval(parse(text = paste(paste0("df_id_group[, ", 1:dim(df_id_group)[2], "] <- as.vector(df_id_group[, ", 1:dim(df_id_group)[2], "])"), collapse = "; "))) 
 				
-				if (is.na(isolate(o_parameter$group))) {
+				if (is.na(isolate(o_parameter$group)) | isolate(o_parameter$quant_group)) {
 					df_id_group$id <- l_id[[2]]
 					df_id_group$group <- rep("all qc = 1", length(v_name))
 					
@@ -743,6 +758,8 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 					else {
 						df_id_group$show <- c(T, rep(F, length(v_name) - 1))
 					}
+					
+					df_id_group$sorting <- 1
 				}
 				else {
 					v_group <- as.vector(unique(df_qc1[, isolate(o_parameter$group)]))
@@ -755,6 +772,7 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 					df_id_group$id <- l_id[[2]][as.vector(unlist(l_name))]
 					df_qc1_tr <- df_qc1_tr[, c("Code", "Frequency", v_name[as.vector(unlist(l_name))])]
 					eval(parse(text = paste0("df_id_group$group <- c(", paste(paste0("rep(\"", v_group, " qc = 1\", ", lengths(l_name), ")"), collapse = ", "), ")")))
+					eval(parse(text = paste0("df_id_group$sorting <- c(", paste(paste0("rep(", l_graph_opt$sorting[v_group], ", ", lengths(l_name), ")"), collapse = ", "), ")")))
 					
 					if (length(v_name) == 1) {
 						df_id_group$show <- T
@@ -783,10 +801,10 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 				v_name <- paste0("col", 1:dim(df_qc2)[1])
 				df_qc2_tr <- cbind(df_code_freq, df_qc2_tr)
 				names(df_qc2_tr)[3:(length(v_name) + 2)] <- v_name
-				df_id_group <- data.frame("id" = rep(NA, length(v_name)), "group" = rep(NA, length(v_name)), "show" = rep(F, length(v_name))) 
+				df_id_group <- data.frame("id" = rep(NA, length(v_name)), "group" = rep(NA, length(v_name)), "show" = rep(F, length(v_name)), "sorting" = rep(NA, length(v_name))) 
 				eval(parse(text = paste(paste0("df_id_group[, ", 1:dim(df_id_group)[2], "] <- as.vector(df_id_group[, ", 1:dim(df_id_group)[2], "])"), collapse = "; "))) 
 				
-				if (is.na(isolate(o_parameter$group))) {
+				if (is.na(isolate(o_parameter$group)) | isolate(o_parameter$quant_group)) {
 					df_id_group$id <- l_id[[3]]
 					df_id_group$group <- rep("all qc = 2", length(v_name))
 					
@@ -796,6 +814,8 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 					else {
 						df_id_group$show <- c(T, rep(F, length(v_name) - 1))
 					}
+					
+					df_id_group$sorting <- 1
 				}
 				else {
 					v_group <- as.vector(unique(df_qc2[, isolate(o_parameter$group)]))
@@ -808,6 +828,7 @@ f_prepare_data <- function (s_data_type = "normal", i_proc_num = 1, df_all, v_su
 					df_id_group$id <- l_id[[3]][as.vector(unlist(l_name))]
 					df_qc2_tr <- df_qc2_tr[, c("Code", "Frequency", v_name[as.vector(unlist(l_name))])]
 					eval(parse(text = paste0("df_id_group$group <- c(", paste(paste0("rep(\"", v_group, " qc = 2\", ", lengths(l_name), ")"), collapse = ", "), ")")))
+					eval(parse(text = paste0("df_id_group$sorting <- c(", paste(paste0("rep(", l_graph_opt$sorting[v_group], ", ", lengths(l_name), ")"), collapse = ", "), ")")))
 					
 					if (length(v_name) == 1) {
 						df_id_group$show <- T

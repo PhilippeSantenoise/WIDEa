@@ -42,6 +42,8 @@
 #' @param l_selectize_option is a list including binary values related to the
 #' concatenation check boxes (1: checked; 0 else) and the sub-data create button (1:
 #' clicked; 0 else).
+#' @param b_group is a boolean value associated to the value of the Group radio 
+#' button (left panel, variable selection).
 
 #' @encoding UTF-8
  
@@ -78,8 +80,8 @@ f_update_check_box_input <- function (s_id, b_value) {
 }
 
 #' @rdname f_update_maxitem_selectize_input
-f_update_option_selectize_input <- function (s_data_type, s_plot_type, s_mode = "marker", l_current_option) {
-	v_choices <- c("label", ifelse(s_plot_type != "corplot", "color/opacity", NA), ifelse((s_data_type == "normal" & s_plot_type %in% c("plot", "boxplot")) | (s_data_type != "normal" & s_mode != "line"), "point type/size", NA))
+f_update_option_selectize_input <- function (s_data_type, s_plot_type, s_mode = "marker", l_current_option, b_group = F) {
+	v_choices <- c("label", ifelse(s_plot_type != "corplot", "color/opacity", NA), ifelse((s_data_type == "normal" & s_plot_type %in% c("plot", "boxplot")) | (s_data_type != "normal" & s_mode != "line"), "point type/size", NA), ifelse(s_plot_type %in% c("boxplot", "barplot") | (s_plot_type %in% c("plot", "histplot") & b_group), "sorting", NA))
 	v_choices <- v_choices[!is.na(v_choices)]
 	
 	if (length(which(l_current_option$choices %in% v_choices)) == length(l_current_option$choices) & length(which(v_choices %in% l_current_option$choices)) == length(v_choices)) {

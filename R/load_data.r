@@ -11,6 +11,8 @@
 #' "load1_button", "load2_button", "load3_button").
 #' @param s_data_type is the data type (3 values: "normal", "temporal", "ir").
 #' @param s_path is the data path.
+#' @param o_data_opt is a reactive value includig data option: decimal separator,
+#' encoding.
 #' @param b_flag is a boolean value used to load flag data when the "load1_button"
 #' action button is clicked.
 #' @param s_model is the model type (3 values: "none", "calib", "valid"). This input
@@ -18,12 +20,12 @@
 
 #' @encoding UTF-8
 
-f_load_data <- function(s_id, s_data_type, s_path, b_flag = F, s_model = "none") {
+f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_model = "none") {
 	s_e_message <- NA
 	
 	if (s_id == "load1_button") {
 		s_w_message <- NA
-		df_1 <- tryCatch({suppressWarnings(data.table::fread(file = s_path, data.table = F))}, error = function(e) F) 
+		df_1 <- tryCatch({suppressWarnings(data.table::fread(file = s_path, data.table = F, dec = o_data_opt$dec[1], encoding = o_data_opt$encoding[1]))}, error = function(e) F) 
 		df_flag <- data.frame()
 		v_code_range <- c()
 		b_special <- F
@@ -89,7 +91,7 @@ f_load_data <- function(s_id, s_data_type, s_path, b_flag = F, s_model = "none")
 								else {
 									if (b_cond_2) {
 										s_flag_name <- v_split_path_2[length(v_split_path_2)]
-										df_flag <- data.table::fread(file = s_flag_path_2, data.table = F)
+										df_flag <- data.table::fread(file = s_flag_path_2, data.table = F, encoding = o_data_opt$encoding[1])
 										
 										if (dim(df_flag)[1] == 0) {
 											s_e_message <- "Flag data is empty"
@@ -105,13 +107,13 @@ f_load_data <- function(s_id, s_data_type, s_path, b_flag = F, s_model = "none")
 									}
 									else {
 										s_flag_name <- v_split_path_1[length(v_split_path_1)]
-										df_flag <- data.table::fread(file = s_flag_path_1, data.table = F)
+										df_flag <- data.table::fread(file = s_flag_path_1, data.table = F, encoding = o_data_opt$encoding[1])
 										if (dim(df_flag)[1] == 0) {s_e_message <- "Flag data is empty"}
 									}
 								}
 							}
 							else if (s_data_type == "temporal") {
-								df_flag <- data.table::fread(file = s_flag_path, data.table = F)
+								df_flag <- data.table::fread(file = s_flag_path, data.table = F, encoding = o_data_opt$encoding[1])
 								if (dim(df_flag)[1] == 0) {s_e_message <- "Flag data is empty"}
 							}
 							else {
@@ -121,11 +123,11 @@ f_load_data <- function(s_id, s_data_type, s_path, b_flag = F, s_model = "none")
 								else {
 									if (b_cond_2) {
 										s_flag_name <- v_split_path_2[length(v_split_path_2)]
-										df_flag <- data.table::fread(file = s_flag_path_2, data.table = F)
+										df_flag <- data.table::fread(file = s_flag_path_2, data.table = F, encoding = o_data_opt$encoding[1])
 									}
 									else {
 										s_flag_name <- v_split_path_1[length(v_split_path_1)]
-										df_flag <- data.table::fread(file = s_flag_path_1, data.table = F)
+										df_flag <- data.table::fread(file = s_flag_path_1, data.table = F, encoding = o_data_opt$encoding[1])
 									}
 									
 									if (dim(df_flag)[1] == 0) {
@@ -247,7 +249,7 @@ f_load_data <- function(s_id, s_data_type, s_path, b_flag = F, s_model = "none")
 		return(list(df_1, df_flag, s_flag_name, v_code_range, s_e_message, s_w_message, b_special))
 	}
 	else if (s_id == "load2_button") {
-		df_1 <- tryCatch({suppressWarnings(data.table::fread(file = s_path, data.table = F))}, error = function(e) F) 
+		df_1 <- tryCatch({suppressWarnings(data.table::fread(file = s_path, data.table = F, dec = o_data_opt$dec[2], encoding = o_data_opt$encoding[2]))}, error = function(e) F) 
 		
 		if (!is.data.frame(df_1)) {
 			s_e_message <- "Path/file doesn't exist"
@@ -270,9 +272,9 @@ f_load_data <- function(s_id, s_data_type, s_path, b_flag = F, s_model = "none")
 		
 		return(list(df_1, s_e_message))
 	}
-	else {
+	else { # load3_button
 		s_w_message <- NA
-		df_1 <- tryCatch({suppressWarnings(data.table::fread(file = s_path, data.table = F))}, error = function(e) F) 
+		df_1 <- tryCatch({suppressWarnings(data.table::fread(file = s_path, data.table = F, dec = o_data_opt$dec[3], encoding = o_data_opt$encoding[3]))}, error = function(e) F) 
 		
 		if (!is.data.frame(df_1)) {
 			s_e_message <- "Path/file doesn't exist"

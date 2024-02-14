@@ -28,7 +28,7 @@ NULL
 f_create_element_data <- function (s_data_type = "normal", i_proc_num = 1, o_parameter, o_cond, o_plot, s_mode = "line") {
 	if (s_data_type == "normal") {
 		df_all <- isolate(o_plot$data)
-		i_elt_num <- ifelse(!is.na(isolate(o_parameter$group)), length(as.vector(unique(df_all[, isolate(o_parameter$group)]))), 1)
+		i_elt_num <- ifelse(!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group), length(as.vector(unique(df_all[, isolate(o_parameter$group)]))), 1)
 		
 		if (isolate(o_cond$qc2) == 1) {
 			i_elt_num <- i_elt_num + 1

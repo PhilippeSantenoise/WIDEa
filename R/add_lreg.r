@@ -18,12 +18,14 @@ NULL
 #' @param o_plot is a reactive value including `ply_1` data information.
 #' @param o_parameter is a reactive value including parameters associated to the
 #' left panel (sections after data loading) and top panels.
-#' @param v_color is the graph color vector.
+#' @param l_graph_opt is the list of graph option (color, opacity, point type/size,
+#' sorting) created by the `f_create_graph_opt_vector` function.
 
 #' @encoding UTF-8
 
-f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, v_color) {
+f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, l_graph_opt) {
 	df_all <- isolate(o_plot$data)
+	v_min_max <- c()
 	
 	if (isolate(o_parameter$model) == "valid") { # validation model
 		df_model <- isolate(o_plot$model)
@@ -40,7 +42,7 @@ f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_param
 	
 	v_x <- seq(min(df_all$x), max(df_all$x), length.out = 1000) # sequence generation (size = 1000) from X variable
 	
-	if (!is.na(isolate(o_parameter$group))) {
+	if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
 		v_group_all <- as.vector(unique(df_all$group))
 		v_group_all <- v_group_all[order(v_group_all)]
 		
@@ -70,12 +72,13 @@ f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_param
 			return(list(v_y, s_text))
 		})
 		
-		v_pos_1 <- which(v_group_all %in% v_group) 
-		v_pos_2 <- which(!v_group_all %in% v_group) 
+		v_pos <- which(v_group_all %in% v_group) 
 		v_visible <- df_click_legend[which(df_click_legend$name %in% paste0(v_group, " (lreg)")), "statut"]
-		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = v_x, y = l_val[[", 1:length(l_val), "]][[1]], name = \"", v_group, " (lreg)\", type = \"", ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), "\", mode = \"lines\", line = list(color = grDevices::adjustcolor(\"", v_color[v_pos_1], "\", alpha.f = 1), width = 3, dash = \"dash\"), hoverinfo = \"text+name\", text = l_val[[", 1:length(l_val), "]][[2]], showlegend = T, visible = ", v_visible, ")"), collapse = "; ")))
+		v_order <- order(l_graph_opt$sorting[v_pos])
+		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = v_x, y = l_val[[", v_order, "]][[1]], name = \"", v_group[v_order], " (lreg)\", type = \"", ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), "\", mode = \"lines\", line = list(color = grDevices::adjustcolor(\"", l_graph_opt$color[v_pos][v_order], "\", alpha.f = 1), width = 3, dash = \"dash\"), hoverinfo = \"text+name\", text = l_val[[", v_order, "]][[2]], showlegend = T, visible = ", v_visible[v_order], ")"), collapse = "; ")))
 	}
 	else {
+		s_color <- ifelse(isolate(o_parameter$quant_group), "black", l_graph_opt$color)
 		l_lreg <- stats::lm(y ~ x, data = df_all)
 		n_intercept <- stats::coef(l_lreg)[[1]]
 		s_intercept <- f_numeric_trsf(n_intercept, b_pval = F)
@@ -98,8 +101,14 @@ f_add_lreg <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_param
 		
 		s_text <- paste0(s_text, "<br>R2 = ", n_r2, "<br>", ifelse(isolate(o_parameter$model) == "none", paste0("RMSE = ", s_rmse), paste0("a = 0 test: p-value ", s_test1, "<br>b = 1 test: p-value ", s_test2)))
 		eval(parse(text = paste0("v_visible <- ", df_click_legend[which(df_click_legend$name == "all (lreg)"), "statut"])))
-		ply_1 <- add_trace(p = ply_1, x = v_x, y = v_y, name = "all (lreg)", type = ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), mode = "lines", line = list(color = grDevices::adjustcolor(v_color, alpha.f = 1), width = 3, dash = "dash"), hoverinfo = 'text+name', text = s_text, showlegend = T, visible = v_visible)
+		ply_1 <- add_trace(p = ply_1, x = v_x, y = v_y, name = "all (lreg)", type = ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), mode = "lines", line = list(color = grDevices::adjustcolor(s_color, alpha.f = 1), width = 3, dash = "dash"), hoverinfo = 'text+name', text = s_text, showlegend = T, visible = v_visible)
+		if (nrow(isolate(o_parameter$min_max)) > 0) {v_min_max <- c(range(v_x), range(v_y))}
 	}
 	
-	return (ply_1)
+	if (length(v_min_max) > 0) {
+		return(list(ply_1, v_min_max))
+	}
+	else {
+		return (ply_1)
+	}
 }

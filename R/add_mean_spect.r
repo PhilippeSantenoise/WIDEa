@@ -20,11 +20,16 @@ NULL
 f_add_mean_spect <- function (ply_1, df_click_legend, o_plot, o_parameter) {
 	df_all <- isolate(o_plot$data)
 	i_dec_num <- ifelse(isolate(o_parameter$autodec_num) == F, isolate(o_parameter$dec_num), 2)
-	v_name <- names(df_all)[-c(1, 2)]
 	
-	l_id_group <- isolate(o_plot$id_group)
-	v_group <- as.vector(l_id_group$no_flag$group)
-	v_color <- unique(as.vector(l_id_group$no_flag$color))
+	df_id_group <- isolate(o_plot$id_group)$no_flag
+	row.names(df_id_group) <- 1:nrow(df_id_group)
+	df_id_group <- df_id_group[order(df_id_group$sorting),]
+	v_row <- as.integer(row.names(df_id_group))
+	
+	v_name <- names(df_all)[-c(1, 2)][v_row]
+	v_group <- as.vector(df_id_group$group)
+	v_color <- unique(as.vector(df_id_group$color))
+	if (isolate(o_parameter$quant_group)) {v_color <- "black"}
 	
 	v_visible <- as.vector(df_click_legend[which(df_click_legend$name %in% paste0(unique(v_group), " (mean)")), "statut"])
 	
@@ -48,5 +53,11 @@ f_add_mean_spect <- function (ply_1, df_click_legend, o_plot, o_parameter) {
 		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = as.vector(df_all[isolate(o_plot$pt_pos), \"Frequency\"]), y = l_var[[", 1:length(l_var), "]]$y, type = \"" , ifelse(isolate(o_parameter$webgl) == "yes", "scattergl", "scatter"), "\", mode = \"markers\", marker = list(line = list(color = adjustcolor(\"", v_color, "\", alpha.f = 1), width = 3), color = adjustcolor(\"", v_color, "\", alpha.f = 0.3), size = 6), name = \"" , unique(v_group), " (mean)\", hoverlabel = list(bgcolor = adjustcolor(\"", v_color, "\", alpha.f = 1)), hoverinfo = 'text+name', text = l_var[[", 1:length(l_var), "]]$info, legendgroup = \"" , unique(v_group), " (mean)\", showlegend = F, visible = ", v_visible, ")"), collapse = "; ")))
 	}
 	
-	return (ply_1)
+	if (nrow(isolate(o_parameter$min_max)) > 0) {
+		return (list(ply_1, range(l_var[[1]]$y, na.rm = T)))
+	}
+	else {
+		return (ply_1)
+	}
 }
+

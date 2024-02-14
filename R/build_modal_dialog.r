@@ -11,6 +11,9 @@ NULL
 #' dialog. The modal dialog allows to expand a text area. The text area. The text
 #' area is used to express the (sub-data) condition formula, f(x), g(y), h(z) or the
 #' weighted residuals function.
+#' \cr`f_build_modal_dialog_data_option` returns a command line used to build a 
+#' modal dialog. The modal dialog allows to specify new options for loaded data
+#' (decimal separator, encoding). 
 #' \cr`f_create_cond_data` returns a dataset (in datatable format) including all
 #' (sub-data) conditions.
 #' \cr`f_check_cond_data` is used to check if a new (sub-data) condition already
@@ -58,22 +61,28 @@ NULL
 #' "rel_symbol", "vvalue1"/"vvalue2".
 #' @param s_selection is a string value used as datatable option (row datatable 
 #' selection).   
-#' @param s_option is a string value (3 values: "label", "color/opacity", 
-#' "point type/size"). The value is associated to the "edit_option" selectize input.
-#' @param s_sub_option is a string value available from "color/opacity" and 
-#' "point type/size" options (NULL when the "label" option is selected). The
-#' sub-option has 2 values ("color", "opacity") for the "color/opacity" option and 
-#' is associated to the "color_opacity" radio button input. The sub-option has 2
-#' values ("type", "size") for the "point type/size" option and is associated to the 
-#' "point_type_size" radio button input. 
-#' @param o_option_value is a reactive value used to graph label/color/pch edition
-#' (o_label_text, o_name_option).
+#' @param s_option is a string value (4 values: "label", "color/opacity", 
+#' "point type/size", "sorting"). The value is associated to the "edit_option" 
+#' selectize input.
+#' @param s_sub_option is a string value available from the following options
+#' (X/Group qualitative variable): "color/opacity", "point type/size", "sorting".
+#  The `s_sub_option` value is NULL for the other `s_option` values or when the
+#' Group variable is quantitative. `s_sub_option` has 2 values ("color", "opacity") 
+#' when `s_option` = "color/opacity" (related to the "color_opacity" radio button 
+#' input). `s_sub_option` has 2 values ("type", "size") when `s_option` = 
+#' "point type/size" (related to the "point_type_size" radio button input). 
+#' `s_sub_option` has 2 values ("X", "Group") when `s_option` = "sorting" (related
+#' to the "x_group_var" radio button input).
+#' @param o_option_value is a reactive value used to graph label/color/pch/sorting 
+#' edition (o_label_text, o_name_option).
 #' @param s_exec is a string value used to update label data (2 values: "clear", 
 #' "add"). This command is used to clear/add value in label data. 
 #' @param v_row is the vector of row number of label data used to apply the 
 #' clear/add command (s_exec). 
-#' @param s_custom_text is a string value added in label/color/pch data when the add
-#' command is selected. 
+#' @param s_custom_text is a string value added `o_option$data` data when the add
+#' command is selected.
+#' @param o_bg_grid is a reactive value used to graph background/grid (color)
+#' edition.
 #' @param s_dim_num is a string value associated to the "dim_num" radio button (2 
 #' values: "2d", "3d").
 #' @param df_all is data saved in o_plot reactive value (o_plot$data).
@@ -89,6 +98,8 @@ NULL
 #' Y histplot).
 #' @param i_display is a binary value related to the display button status (1:
 #' clicked; 0: not clicked).
+#' @param b_pal_auto is a boolean value associated to the palette color (T if auto,
+#' F else).
 
 #' @encoding UTF-8
 
@@ -101,6 +112,25 @@ f_build_modal_dialog_expand <- function (s_title = NULL, s_size = "l", s_id, i_w
 		ifelse(b_code_var, "htmltools::HTML(\"<br>\"), DT::dataTableOutput(\"modal_code_var\"),", ""),
 		ifelse(b_info_cond, "htmltools::HTML(\"<br>\"), DT::dataTableOutput(\"condInfo_temp\"),", ""),
 		"footer = htmltools::tagList(shiny::actionButton(\"ok_button_exp", i_window_num, "\", \"Ok\"), shiny::actionButton(\"close_button_exp", i_window_num, "\", \"Close\"))
+	))")
+	
+	return(s_cmd)
+}
+
+#' @rdname f_build_modal_dialog_expand
+f_build_modal_dialog_data_option <- function (i_window_num = 1) {
+	s_cmd <- paste0("showModal(modalDialog(title = \"Data option\", 
+		easyClose = F,
+		size = \"s\",
+		fluidRow(
+			div(style = \"display: inline-block; width: 47%; vertical-align: middle; margin-left: 1em;\", strong(\"Decimal separator:\")),
+			div(style = \"display: inline-block; width: 19%; vertical-align: middle; margin-top: 1.2em;\", selectizeInput(\"decimal_dopt", i_window_num, "\", NULL, choices = c(\".\", \",\"), selected = o_data_opt$dec[", i_window_num, "], width = \"80px\"))
+		),
+		fluidRow(
+			div(style = \"display: inline-block; width: 25.5%; vertical-align: middle; margin-left: 1em;\", strong(\"Encoding:\")),
+			div(style = \"display: inline-block; width: 45%; vertical-align: middle; margin-top: 1.2em;\", selectizeInput(\"encoding_dopt", i_window_num, "\", NULL, choices = c(\"unknown\", \"UTF-8\", \"Latin-1\"), selected = o_data_opt$encoding[", i_window_num, "], width = \"110px\"))
+		),
+		footer = tagList(actionButton(\"ok_dopt", i_window_num, "_button\", \"Ok\"), actionButton(\"close_dopt", i_window_num, "_button\", \"Close\"))
 	))")
 	
 	return(s_cmd)
@@ -142,6 +172,7 @@ f_create_cond_data <- function(o_sdata_cond, s_selection = "multiple") {
 				pageLength = nrow(df_info),
 				scroller = T,
 				bFilter = 0,
+				ordering = F,
 				initComplete = htmlwidgets::JS(
 					"function(settings, json) {",
 					"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -281,6 +312,7 @@ f_create_modal_code_var_list <- function(s_data_type, s_model, i_window_num, l_v
 				dom = "ft", 
 				pageLength = 1,
 				bFilter = 0,
+				ordering = F,
 				initComplete = htmlwidgets::JS(
 					"function(settings, json) {",
 					"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -314,6 +346,7 @@ f_create_modal_code_var_list <- function(s_data_type, s_model, i_window_num, l_v
 				pageLength = nrow(df_code_var),
 				scroller = T,
 				bFilter = 0,
+				ordering = F,
 				initComplete = htmlwidgets::JS(
 					"function(settings, json) {",
 					"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -329,7 +362,7 @@ f_create_modal_code_var_list <- function(s_data_type, s_model, i_window_num, l_v
 }
 
 #' @rdname f_build_modal_dialog_expand
-f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_option_value, s_data_type = NULL, s_plot_type = NULL, b_group = F, i_display = 0) {
+f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_option_value, s_data_type = NULL, s_plot_type = NULL, b_group = F, i_display = 0, b_pal_auto = F) {
 	if (s_option == "label") {
 		df_out <- data.frame("Label" = o_option_value$label_temp, "Text" = o_option_value$text_temp)
 		
@@ -353,6 +386,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 				pageLength = nrow(df_out),
 				scroller = T,
 				bFilter = 0,
+				ordering = F,
 				initComplete = htmlwidgets::JS(
 					"function(settings, json) {",
 					"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -364,34 +398,225 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 		DT::formatStyle("Label", fontWeight = "bold", backgroundColor = "#90A4AE")
 	}
 	else if (s_option == "color/opacity") {
-		if (s_sub_option == "color") {
-			df_out <- data.frame("Column" = o_option_value$name, "Hexadecimal_custom" = o_option_value$color_temp, "Color_custom" = rep("", length(o_option_value$name)))
+		if (length(o_option_value$pal_col_op_temp) > 0) { # Group variable: quantitative (normal/ir, plot)
+			df_out <- data.frame("Hexadecimal" = o_option_value$pal_col_op_temp$color, "Color" = rep("", length(o_option_value$pal_col_op_temp$color)))
 			
-			if (i_display == 1) {
-				df_out$Color_default <- rep("", length(o_option_value$name))
+			dt_out <- df_out %>%
+			DT::datatable(
+				rownames = F, 
+				container = htmltools::withTags(table(class = 'display',
+					tag("thead", 
+						list(
+							tag("tr",
+								list(
+									tag("th", "Hexadecimal"),
+									tag("th", "Color")
+								)
+							)
+						)
+					)
+				)),
+				options = list(
+					dom = "ft", 
+					pageLength = nrow(df_out),
+					scroller = T,
+					bFilter = 0,
+					ordering = F,
+					initComplete = htmlwidgets::JS(
+						"function(settings, json) {",
+						"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
+						"}"
+					)
+				),
+				selection = ifelse(b_pal_auto, "none", "single")
+			) %>%
+			DT::formatStyle("Color", "Hexadecimal", backgroundColor = DT::styleEqual(o_option_value$pal_col_op_temp$color, o_option_value$pal_col_op_temp$color))
+		}
+		else { # X/Group variable: qualitative
+			if (s_sub_option == "color") {
+				df_out <- data.frame("Column" = o_option_value$name, "Hexadecimal_custom" = o_option_value$color_temp, "Color_custom" = rep("", length(o_option_value$name)))
 				
-				if (s_data_type != "temporal") {
-					v_pos <- which(o_option_value$name %in% names(o_option_value$color_default))
-					if (nrow(df_out) > length(v_pos)) {df_out$Color_default[c(1:nrow(df_out))[-v_pos]] <- "missing"}
+				if (i_display == 1) {
+					df_out$Color_default <- rep("", length(o_option_value$name))
+					
+					if (s_data_type != "temporal") {
+						v_pos <- which(o_option_value$name %in% names(o_option_value$color_default))
+						if (nrow(df_out) > length(v_pos)) {df_out$Color_default[c(1:nrow(df_out))[-v_pos]] <- "missing"}
+					}
+				}
+				
+				v_pos <- which(o_option_value$color_temp != "")
+				
+				if (length(v_pos) > 0) {
+					if (i_display == 1) {
+						dt_out <- df_out %>%
+						DT::datatable(
+							rownames = F, 
+							container = htmltools::withTags(table(class = 'display',
+								tag("thead", 
+									list(
+										tag("tr",
+											list(
+												tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
+												tag("th", "Hexadecimal (custom)"),
+												tag("th", "Color (custom)"),
+												tag("th", "Color (default)")
+											)
+										)
+									)
+								)
+							)),
+							options = list(
+								dom = "ft", 
+								pageLength = nrow(df_out),
+								scroller = T,
+								bFilter = 0,
+								ordering = F,
+								initComplete = htmlwidgets::JS(
+									"function(settings, json) {",
+									"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
+									"}"
+								)
+							),
+							selection = "multiple"
+						) %>%
+						DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
+						DT::formatStyle("Color_default", "Column", color = DT::styleEqual(o_option_value$name, ifelse(df_out$Color_default == "missing", "red", "black")), backgroundColor = DT::styleEqual(names(o_option_value$color_default), o_option_value$color_default)) %>%
+						DT::formatStyle("Color_custom", "Column", backgroundColor = DT::styleEqual(o_option_value$name[which(o_option_value$color_temp != "")], o_option_value$color_temp[which(o_option_value$color_temp != "")]))
+					}
+					else {
+						dt_out <- df_out %>%
+						DT::datatable(
+							rownames = F, 
+							container = htmltools::withTags(table(class = 'display',
+								tag("thead",
+									list(
+										tag("tr",
+											list(
+												tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
+												tag("th", "Hexadecimal (custom)"),
+												tag("th", "Color (custom)")
+											)
+										)
+									)
+								)
+							)),
+							options = list(
+								dom = "ft", 
+								pageLength = nrow(df_out),
+								scroller = T,
+								bFilter = 0,
+								ordering = F,
+								initComplete = htmlwidgets::JS(
+									"function(settings, json) {",
+									"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
+									"}"
+								)
+							),
+							selection = "multiple"
+						) %>%
+						DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
+						DT::formatStyle("Color_custom", "Column", backgroundColor = DT::styleEqual(o_option_value$name[which(o_option_value$color_temp != "")], o_option_value$color_temp[which(o_option_value$color_temp != "")]))
+					}
+				}
+				else {
+					if (i_display == 1) {
+						dt_out <- df_out %>%
+						DT::datatable(
+							rownames = F, 
+							container = htmltools::withTags(table(class = 'display',
+								tag("thead",
+									list(
+										tag("tr",
+											list(
+												tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
+												tag("th", "Hexadecimal (custom)"),
+												tag("th", "Color (custom)"),
+												tag("th", "Color (default)")
+											)
+										)
+									)
+								)
+							)),
+							options = list(
+								dom = "ft", 
+								pageLength = nrow(df_out),
+								scroller = T,
+								bFilter = 0,
+								ordering = F,
+								initComplete = htmlwidgets::JS(
+									"function(settings, json) {",
+									"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
+									"}"
+								)
+							),
+							selection = "multiple"
+						) %>%
+						DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
+						DT::formatStyle("Color_default", "Column", color = DT::styleEqual(o_option_value$name, ifelse(df_out$Color_default == "missing", "red", "black")), backgroundColor = DT::styleEqual(names(o_option_value$color_default), o_option_value$color_default))
+					}
+					else {
+						dt_out <- df_out %>%
+						DT::datatable(
+							rownames = F, 
+							container = htmltools::withTags(table(class = 'display',
+								tag("thead",
+									list(
+										tag("tr",
+											list(
+												tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
+												tag("th", "Hexadecimal (custom)"),
+												tag("th", "Color (custom)")
+											)
+										)
+									)
+								)
+							)),
+							options = list(
+								dom = "ft", 
+								pageLength = nrow(df_out),
+								scroller = T,
+								bFilter = 0,
+								ordering = F,
+								initComplete = htmlwidgets::JS(
+									"function(settings, json) {",
+									"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
+									"}"
+								)
+							),
+							selection = "multiple"
+						) %>%
+						DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE")
+					}
 				}
 			}
-			
-			v_pos <- which(o_option_value$color_temp != "")
-			
-			if (length(v_pos) > 0) {
+			else { # opacity
+				df_out <- data.frame("Column" = o_option_value$name, "Opacity_custom" = o_option_value$opacity_temp)
+				
+				if (i_display == 1) {
+					if (s_data_type != "temporal") {
+						df_out$Opacity_default <- NA
+						v_pos <- which(o_option_value$name %in% names(o_option_value$opacity_default))
+						df_out$Opacity_default[v_pos] <- o_option_value$opacity_default
+						if (nrow(df_out) > length(v_pos)) {df_out$Opacity_default[c(1:nrow(df_out))[-v_pos]] <- "missing"}
+					}
+					else {
+						df_out$Opacity_default <- o_option_value$opacity_default
+					}
+				}
+				
 				if (i_display == 1) {
 					dt_out <- df_out %>%
 					DT::datatable(
 						rownames = F, 
 						container = htmltools::withTags(table(class = 'display',
-							tag("thead", 
+							tag("thead",
 								list(
 									tag("tr",
 										list(
 											tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
-											tag("th", "Hexadecimal (custom)"),
-											tag("th", "Color (custom)"),
-											tag("th", "Color (default)")
+											tag("th", "Opacity (custom)"),
+											tag("th", "Opacity (default)")
 										)
 									)
 								)
@@ -402,6 +627,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 							pageLength = nrow(df_out),
 							scroller = T,
 							bFilter = 0,
+							ordering = F,
 							initComplete = htmlwidgets::JS(
 								"function(settings, json) {",
 								"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -411,8 +637,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 						selection = "multiple"
 					) %>%
 					DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
-					DT::formatStyle("Color_default", "Column", color = DT::styleEqual(o_option_value$name, ifelse(df_out$Color_default == "missing", "red", "black")), backgroundColor = DT::styleEqual(names(o_option_value$color_default), o_option_value$color_default)) %>%
-					DT::formatStyle("Color_custom", "Column", backgroundColor = DT::styleEqual(o_option_value$name[which(o_option_value$color_temp != "")], o_option_value$color_temp[which(o_option_value$color_temp != "")]))
+					DT::formatStyle("Opacity_default", "Column", color = DT::styleEqual(o_option_value$name, ifelse(df_out$Opacity_default == "missing", "red", "black")))
 				}
 				else {
 					dt_out <- df_out %>%
@@ -424,8 +649,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 									tag("tr",
 										list(
 											tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
-											tag("th", "Hexadecimal (custom)"),
-											tag("th", "Color (custom)")
+											tag("th", "Opacity (custom)")
 										)
 									)
 								)
@@ -436,75 +660,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 							pageLength = nrow(df_out),
 							scroller = T,
 							bFilter = 0,
-							initComplete = htmlwidgets::JS(
-								"function(settings, json) {",
-								"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
-								"}"
-							)
-						),
-						selection = "multiple"
-					) %>%
-					DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
-					DT::formatStyle("Color_custom", "Column", backgroundColor = DT::styleEqual(o_option_value$name[which(o_option_value$color_temp != "")], o_option_value$color_temp[which(o_option_value$color_temp != "")]))
-				}
-			}
-			else {
-				if (i_display == 1) {
-					dt_out <- df_out %>%
-					DT::datatable(
-						rownames = F, 
-						container = htmltools::withTags(table(class = 'display',
-							tag("thead",
-								list(
-									tag("tr",
-										list(
-											tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
-											tag("th", "Hexadecimal (custom)"),
-											tag("th", "Color (custom)"),
-											tag("th", "Color (default)")
-										)
-									)
-								)
-							)
-						)),
-						options = list(
-							dom = "ft", 
-							pageLength = nrow(df_out),
-							scroller = T,
-							bFilter = 0,
-							initComplete = htmlwidgets::JS(
-								"function(settings, json) {",
-								"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
-								"}"
-							)
-						),
-						selection = "multiple"
-					) %>%
-					DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
-					DT::formatStyle("Color_default", "Column", color = DT::styleEqual(o_option_value$name, ifelse(df_out$Color_default == "missing", "red", "black")), backgroundColor = DT::styleEqual(names(o_option_value$color_default), o_option_value$color_default))
-				}
-				else {
-					dt_out <- df_out %>%
-					DT::datatable(
-						rownames = F, 
-						container = htmltools::withTags(table(class = 'display',
-							tag("thead",
-								list(
-									tag("tr",
-										list(
-											tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
-											tag("th", "Hexadecimal (custom)"),
-											tag("th", "Color (custom)")
-										)
-									)
-								)
-							)
-						)),
-						options = list(
-							dom = "ft", 
-							pageLength = nrow(df_out),
-							scroller = T,
-							bFilter = 0,
+							ordering = F,
 							initComplete = htmlwidgets::JS(
 								"function(settings, json) {",
 								"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -517,88 +673,8 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 				}
 			}
 		}
-		else { # opacity
-			df_out <- data.frame("Column" = o_option_value$name, "Opacity_custom" = o_option_value$opacity_temp)
-			
-			if (i_display == 1) {
-				if (s_data_type != "temporal") {
-					df_out$Opacity_default <- NA
-					v_pos <- which(o_option_value$name %in% names(o_option_value$opacity_default))
-					df_out$Opacity_default[v_pos] <- o_option_value$opacity_default
-					if (nrow(df_out) > length(v_pos)) {df_out$Opacity_default[c(1:nrow(df_out))[-v_pos]] <- "missing"}
-				}
-				else {
-					df_out$Opacity_default <- o_option_value$opacity_default
-				}
-			}
-			
-			if (i_display == 1) {
-				dt_out <- df_out %>%
-				DT::datatable(
-					rownames = F, 
-					container = htmltools::withTags(table(class = 'display',
-						tag("thead",
-							list(
-								tag("tr",
-									list(
-										tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
-										tag("th", "Opacity (custom)"),
-										tag("th", "Opacity (default)")
-									)
-								)
-							)
-						)
-					)),
-					options = list(
-						dom = "ft", 
-						pageLength = nrow(df_out),
-						scroller = T,
-						bFilter = 0,
-						initComplete = htmlwidgets::JS(
-							"function(settings, json) {",
-							"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
-							"}"
-						)
-					),
-					selection = "multiple"
-				) %>%
-				DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
-				DT::formatStyle("Opacity_default", "Column", color = DT::styleEqual(o_option_value$name, ifelse(df_out$Opacity_default == "missing", "red", "black")))
-			}
-			else {
-				dt_out <- df_out %>%
-				DT::datatable(
-					rownames = F, 
-					container = htmltools::withTags(table(class = 'display',
-						tag("thead",
-							list(
-								tag("tr",
-									list(
-										tag("th", ifelse(s_data_type == "temporal", "Variable (Y)", ifelse(s_plot_type %in% c("boxplot", "barplot"), "Level (X)", ifelse(b_group, "Level (Group)", "Level")))),
-										tag("th", "Opacity (custom)")
-									)
-								)
-							)
-						)
-					)),
-					options = list(
-						dom = "ft", 
-						pageLength = nrow(df_out),
-						scroller = T,
-						bFilter = 0,
-						initComplete = htmlwidgets::JS(
-							"function(settings, json) {",
-							"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
-							"}"
-						)
-					),
-					selection = "multiple"
-				) %>%
-				DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE")
-			}
-		}
 	}
-	else { # point type/size
+	else if (s_option == "point type/size") {
 		if (s_sub_option == "type") {
 			df_out <- data.frame("Column" = o_option_value$name, "Point_type_custom" = o_option_value$point_type_temp)
 			
@@ -636,6 +712,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 						pageLength = nrow(df_out),
 						scroller = T,
 						bFilter = 0,
+						ordering = F,
 						initComplete = htmlwidgets::JS(
 							"function(settings, json) {",
 							"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -668,6 +745,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 						pageLength = nrow(df_out),
 						scroller = T,
 						bFilter = 0,
+						ordering = F,
 						initComplete = htmlwidgets::JS(
 							"function(settings, json) {",
 							"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -716,6 +794,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 						pageLength = nrow(df_out),
 						scroller = T,
 						bFilter = 0,
+						ordering = F,
 						initComplete = htmlwidgets::JS(
 							"function(settings, json) {",
 							"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -748,6 +827,7 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 						pageLength = nrow(df_out),
 						scroller = T,
 						bFilter = 0,
+						ordering = F,
 						initComplete = htmlwidgets::JS(
 							"function(settings, json) {",
 							"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
@@ -760,12 +840,72 @@ f_create_option_data <- function(s_option = "label", s_sub_option = NULL, o_opti
 			}
 		}
 	}
+	else { # sorting (X/Group variable)
+		if (!is.null(s_sub_option)) {
+			if (s_sub_option == "X") {
+				df_out <- data.frame("Column" = o_option_value$name, "Sort_custom" = o_option_value$sorting_temp)
+				s_var <- "X"
+				v_pos <- 1:nrow(df_out)
+				if (i_display == 1) {v_pos <- which(o_option_value$name %in% names(o_option_value$sorting_default))}
+			}
+			else {
+				df_out <- data.frame("Column" = o_option_value$name2, "Sort_custom" = o_option_value$sorting2_temp)
+				s_var <- "Group"
+				v_pos <- 1:nrow(df_out)
+				if (i_display == 1) {v_pos <- which(o_option_value$name2 %in% names(o_option_value$sorting2_default))}
+			}
+		}
+		else {
+			df_out <- data.frame("Column" = o_option_value$name, "Sort_custom" = o_option_value$sorting_temp)
+			s_var <- ifelse(s_plot_type %in% c("boxplot", "barplot"), "X", "Group")
+			v_pos <- 1:nrow(df_out)
+			if (i_display == 1) {v_pos <- which(o_option_value$name %in% names(o_option_value$sorting_default))}
+		}
+		
+		v_color <- rep("black", nrow(df_out))
+		if (nrow(df_out) > length(v_pos)) {v_color[-v_pos] <- "red"}
+		
+		dt_out <- df_out %>%
+		DT::datatable(
+			rownames = F, 
+			container = htmltools::withTags(table(class = 'display',
+				tag("thead",
+					list(
+						tag("tr",
+							list(
+								tag("th", paste0("Level (", s_var, ")")),
+								tag("th", "Order")
+							)
+						)
+					)
+				)
+			)),
+			options = list(
+				dom = "ft", 
+				pageLength = nrow(df_out),
+				scroller = T,
+				bFilter = 0,
+				ordering = F,
+				initComplete = htmlwidgets::JS(
+					"function(settings, json) {",
+					"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
+					"}"
+				),
+				columnDefs = list(list(width = "80px", targets = 1))
+			),
+			selection = "none",
+			# editable = list(target = "column", disable = list(columns = 0))
+			editable = ifelse((is.null(s_sub_option) & length(o_option_value$name) > 1) | (!is.null(s_sub_option) & ((s_var == "X" & length(o_option_value$name) > 1) | (s_var == "Group" & length(o_option_value$name2) > 1))), T, F)
+		) %>%
+		DT::formatStyle("Column", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
+		DT::formatStyle("Sort_custom", "Column", color = DT::styleEqual(df_out$Column, v_color))
+	}
 	
 	return(dt_out)
 }
 
 #' @rdname f_build_modal_dialog_expand
-f_update_option_data <- function(s_option = "label", s_sub_option = NULL, s_exec = "clear", o_option_value, v_row, s_custom_text = NULL, s_data_type = NULL, s_plot_type = NULL, b_group = F, i_display = 0) {
+f_update_option_data <- function(s_option = "label", s_sub_option = NULL, s_exec = "clear", o_option_value, v_row = NULL, s_custom_text = NULL, s_data_type = NULL, s_plot_type = NULL, b_group = F, i_display = 0) {
 	if (s_exec %in% c("clear", "add")) {
 		s_w_message <- character(0)
 		dt_out <- NULL
@@ -871,6 +1011,46 @@ f_create_point_type_plotly <- function(s_dim_num = "2d") {
 	ply_type <- plotly::add_annotations(p = ply_type, x = df_info$x - 0.3, y = df_info$y, xref = "x", yref = "y", text = paste0(df_info$num, ":"), showarrow = F)
 	ply_type <- plotly::layout(p = ply_type, xaxis = list(title = NULL, showticklabels = F, showgrid = F, zerolinecolor = "#ffff", fixedrange = T), yaxis = list(title = NULL, showticklabels = F, showgrid = F, zerolinecolor = "#ffff", fixedrange = T), showlegend = F, margin = list(l = 0, r = 0, b = 0, t = 0))
 	return(ply_type)
+}
+
+#' @rdname f_build_modal_dialog_expand
+f_create_bg_grid_data <- function(o_bg_grid) {
+	df_out <- data.frame("Name" = c("background", "grid"), "Hexadecimal" = o_bg_grid$color_temp, "Color" = rep("", length(o_bg_grid$color_temp)))
+	
+	dt_out <- df_out %>%
+	DT::datatable(
+		rownames = F, 
+		container = htmltools::withTags(table(class = 'display',
+			tag("thead", 
+				list(
+					tag("tr",
+						list(
+							tag("th", "Name"),
+							tag("th", "Hexadecimal"),
+							tag("th", "Color")
+						)
+					)
+				)
+			)
+		)),
+		options = list(
+			dom = "ft", 
+			pageLength = nrow(df_out),
+			scroller = T,
+			bFilter = 0,
+			ordering = F,
+			initComplete = htmlwidgets::JS(
+				"function(settings, json) {",
+				"$(this.api().table().header()).css({'background-color': '#367BB4FF', 'color': '#fff'});",
+				"}"
+			)
+		),
+		selection = "multiple"
+	) %>%
+	DT::formatStyle("Name", fontWeight = "bold", backgroundColor = "#90A4AE") %>%
+	DT::formatStyle("Color", "Name", backgroundColor = DT::styleEqual(df_out$Name, o_bg_grid$color_temp))
+	
+	return(dt_out)
 }
 
 #' @rdname f_build_modal_dialog_expand

@@ -20,11 +20,12 @@ NULL
 #' @param o_plot is a reactive value including `ply_1` data information.
 #' @param o_parameter is a reactive value including parameters associated to the
 #' left panel (sections after data loading) and top panels.
-#' @param v_color is the graph color vector.
+#' @param l_graph_opt is the list of graph option (color, opacity, point type/size,
+#' sorting) created by the `f_create_graph_opt_vector` function.
 
 #' @encoding UTF-8
 
-f_add_dens_curve <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, v_color) {
+f_add_dens_curve <- function (ply_1, v_group = "all", df_click_legend, o_plot, o_parameter, l_graph_opt) {
 	df_all <- isolate(o_plot$data)
 	v_pos <- match(c(ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x)), isolate(o_parameter$group)), names(df_all))
 	names(df_all)[v_pos[!is.na(v_pos)]] <- c("x", "group")[which(!is.na(v_pos))]
@@ -33,7 +34,8 @@ f_add_dens_curve <- function (ply_1, v_group = "all", df_click_legend, o_plot, o
 	if (!is.na(isolate(o_parameter$group))) {
 		v_group_all <- as.vector(unique(df_all$group))
 		v_group_all <- v_group_all[order(v_group_all)]
-		v_subcolor <- v_color[which(v_group_all %in% v_group)]
+		v_subcolor <- l_graph_opt$color[which(v_group_all %in% v_group)]
+		v_order <- order(l_graph_opt$sorting[which(v_group_all %in% v_group)])
 		eval(parse(text = paste(paste0("l_density_", 1:length(v_group), " <- density(df_all[which(df_all$group == \"", v_group, "\"), \"x\"])"), collapse = "; ")))
 		
 		l_val <- lapply(v_group, function(x) {
@@ -65,12 +67,12 @@ f_add_dens_curve <- function (ply_1, v_group = "all", df_click_legend, o_plot, o
 		s_test <- paste0(s_test1, s_test2, s_test3)
 		v_text <- paste0(v_text, ifelse(s_test != "", paste0("<br><br>Homogeneity of variances test:", s_test), ""))
 		v_visible <- df_click_legend[which(df_click_legend$name %in% paste0(v_group, " (curve)")), "statut"]
-		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = l_density_", 1:length(v_group), "$x, y = l_density_", 1:length(v_group), "$y, name = \"", v_group, " (curve)\", type = \"scatter\", mode = \"lines\", line = list(color = adjustcolor(\"", v_subcolor, "\", alpha.f = 1)), fill = \"tozeroy\", fillcolor = adjustcolor(\"", v_subcolor, "\", alpha.f = 0.3), legendgroup = \"", v_group, " (curve)\", hoverinfo = 'text+name', hoverlabel = list(bgcolor = adjustcolor(\"", v_subcolor, "\", alpha.f = 1)), text = \"", v_text, "\", showlegend = T, visible = ", v_visible, ")"), collapse = "; ")))
+		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = l_density_", v_order, "$x, y = l_density_", v_order, "$y, name = \"", v_group[v_order], " (curve)\", type = \"scatter\", mode = \"lines\", line = list(color = adjustcolor(\"", v_subcolor[v_order], "\", alpha.f = 1)), fill = \"tozeroy\", fillcolor = adjustcolor(\"", v_subcolor[v_order], "\", alpha.f = 0.3), legendgroup = \"", v_group[v_order], " (curve)\", hoverinfo = 'text+name', hoverlabel = list(bgcolor = adjustcolor(\"", v_subcolor[v_order], "\", alpha.f = 1)), text = \"", v_text[v_order], "\", showlegend = T, visible = ", v_visible[v_order], ")"), collapse = "; ")))
 		
 		# add mean/median:
 		
-		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = rep(l_val[[", 1:length(v_group), "]][[1]][1], 2), y = c(0, approx(l_density_", 1:length(v_group), "$x, l_density_", 1:length(v_group), "$y, xout = l_val[[", 1:length(v_group), "]][[1]][1])$y), type = \"scatter\", mode = \"lines\", line = list(color = adjustcolor(\"", v_subcolor, "\", alpha.f = 1), dash = \"dash\"), legendgroup = \"", v_group, " (curve)\", showlegend = F, visible = ", v_visible, ")"), collapse = "; ")))
-		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = rep(l_val[[", 1:length(v_group), "]][[1]][2], 2), y = c(0, approx(l_density_", 1:length(v_group), "$x, l_density_", 1:length(v_group), "$y, xout = l_val[[", 1:length(v_group), "]][[1]][2])$y), type = \"scatter\", mode = \"lines\", line = list(color = adjustcolor(\"", v_subcolor, "\", alpha.f = 1), dash = \"dot\"), legendgroup = \"", v_group, " (curve)\", showlegend = F, visible = ", v_visible, ")"), collapse = "; ")))
+		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = rep(l_val[[", v_order, "]][[1]][1], 2), y = c(0, approx(l_density_", v_order, "$x, l_density_", v_order, "$y, xout = l_val[[", v_order, "]][[1]][1])$y), type = \"scatter\", mode = \"lines\", line = list(color = adjustcolor(\"", v_subcolor[v_order], "\", alpha.f = 1), dash = \"dash\"), legendgroup = \"", v_group[v_order], " (curve)\", showlegend = F, visible = ", v_visible[v_order], ")"), collapse = "; ")))
+		eval(parse(text = paste(paste0("ply_1 <- add_trace(p = ply_1, x = rep(l_val[[", v_order, "]][[1]][2], 2), y = c(0, approx(l_density_", v_order, "$x, l_density_", v_order, "$y, xout = l_val[[", v_order, "]][[1]][2])$y), type = \"scatter\", mode = \"lines\", line = list(color = adjustcolor(\"", v_subcolor[v_order], "\", alpha.f = 1), dash = \"dot\"), legendgroup = \"", v_group[v_order], " (curve)\", showlegend = F, visible = ", v_visible[v_order], ")"), collapse = "; ")))
 	}
 	else {
 		v_x <- as.vector(df_all$x)
@@ -90,12 +92,12 @@ f_add_dens_curve <- function (ply_1, v_group = "all", df_click_legend, o_plot, o
 		s_test <- paste0(s_test1, s_test2)
 		s_text <- paste0("size = ", i_size, "<br>mean = ", s_mean, "<br>median = ", s_median, "<br>sd = ", s_sd, ifelse(s_test != "", paste0("<br><br>Normality test:", s_test), ""))
 		v_visible <- df_click_legend[which(df_click_legend$name == "all (curve)"), "statut"]
-		ply_1 <- add_trace(p = ply_1, x = l_density$x, y = l_density$y, name = "all (curve)", type = "scatter", mode = "lines", line = list(color = adjustcolor(v_color, alpha.f = 1)), fill = "tozeroy", fillcolor = adjustcolor(v_color, alpha.f = 0.3), legendgroup = "all (curve)", hoverinfo = 'text+name', hoverlabel = list(bgcolor = adjustcolor(v_color, alpha.f = 1)), text = s_text, showlegend = T, visible = eval(parse(text = v_visible)))
+		ply_1 <- add_trace(p = ply_1, x = l_density$x, y = l_density$y, name = "all (curve)", type = "scatter", mode = "lines", line = list(color = adjustcolor(l_graph_opt$color, alpha.f = 1)), fill = "tozeroy", fillcolor = adjustcolor(l_graph_opt$color, alpha.f = 0.3), legendgroup = "all (curve)", hoverinfo = 'text+name', hoverlabel = list(bgcolor = adjustcolor(l_graph_opt$color, alpha.f = 1)), text = s_text, showlegend = T, visible = eval(parse(text = v_visible)))
 		
 		# add mean/median:
 		
-		ply_1 <- add_trace(p = ply_1, x = rep(n_mean, 2), y = c(0, approx(l_density$x, l_density$y, xout = n_mean)$y), type = "scatter", mode = "lines", line = list(color = adjustcolor(v_color, alpha.f = 1), dash = "dash"), legendgroup = "all (curve)", showlegend = F, visible = eval(parse(text = v_visible)))
-		ply_1 <- add_trace(p = ply_1, x = rep(n_median, 2), y = c(0, approx(l_density$x, l_density$y, xout = n_median)$y), type = "scatter", mode = "lines", line = list(color = adjustcolor(v_color, alpha.f = 1), dash = "dot"), legendgroup = "all (curve)", showlegend = F, visible = eval(parse(text = v_visible)))
+		ply_1 <- add_trace(p = ply_1, x = rep(n_mean, 2), y = c(0, approx(l_density$x, l_density$y, xout = n_mean)$y), type = "scatter", mode = "lines", line = list(color = adjustcolor(l_graph_opt$color, alpha.f = 1), dash = "dash"), legendgroup = "all (curve)", showlegend = F, visible = eval(parse(text = v_visible)))
+		ply_1 <- add_trace(p = ply_1, x = rep(n_median, 2), y = c(0, approx(l_density$x, l_density$y, xout = n_median)$y), type = "scatter", mode = "lines", line = list(color = adjustcolor(l_graph_opt$color, alpha.f = 1), dash = "dot"), legendgroup = "all (curve)", showlegend = F, visible = eval(parse(text = v_visible)))
 	}
 	
 	return (ply_1)

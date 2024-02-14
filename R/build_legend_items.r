@@ -56,7 +56,7 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 					s_data_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "df_model", "df_all")
 					s_var_x <- ifelse(length(which(isolate(o_parameter$model) == "valid")) == 1, "fit", ifelse(!is.na(isolate(o_parameter$f)), ".f.", isolate(o_parameter$x)))
 					
-					if (!is.na(isolate(o_parameter$group))) {
+					if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
 						v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
 						v_group <- v_group[order(v_group)]
 						df_num <- as.data.frame(stats::addmargins(table(df_all[, isolate(o_parameter$group)])))
@@ -67,7 +67,7 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 					if ("cp1" %in% v_stat_method_cp) { # check process cp1 for the following stat methods: lreg, ellipsoid
 						s_var_y <- ifelse(!is.na(isolate(o_parameter$g)), ".g.", isolate(o_parameter$y))
 						
-						if (!is.na(isolate(o_parameter$group))) {
+						if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
 							v_pos <- which(df_num[, 2] > 2)
 						
 							if (length(v_pos) > 0) {
@@ -104,7 +104,7 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 					}
 					
 					if ("cp2" %in% v_stat_method_cp) { # check process cp2 for the following stat methods: dens_curve, norm_dens_curve
-						if (!is.na(isolate(o_parameter$group))) {
+						if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
 							v_pos <- which(df_num[, 2] > 1)
 							
 							if (length(v_pos) > 0) {
@@ -145,7 +145,7 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 				
 				# update l_stat_method_message
 				
-				if (!is.na(isolate(o_parameter$group))) {
+				if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
 					v_pos <- which(as.vector(unlist(l_stat_method_message)) == 0)
 					
 					if (length(v_pos) > 0) {
@@ -184,7 +184,7 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 					df_click_legend <- data.frame("name" = "all", "statut" = "T")
 				}
 				else {
-					if (!is.na(isolate(o_parameter$group))) {
+					if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
 						v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
 					}
 					else {
@@ -196,7 +196,7 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 				}
 			}
 			else {
-				if (!is.na(isolate(o_parameter$group))) {
+				if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
 					if (isolate(o_parameter$plot_type) %in% c("boxplot", "barplot")) {
 						v_group <- as.vector(unique(df_all[, isolate(o_parameter$x)]))
 					}
@@ -251,13 +251,15 @@ f_build_legend_items <- function (s_data_type = "normal", i_proc_num = 1, o_para
 		}
 		else { # process = 2: update legend item data
 			if (length(which(isolate(o_parameter$model) == "calib")) > 0) { # legend items for the calibration model
-				if (isolate(o_parameter$select_graph) == "QQplot") {
-					df_click_legend <- data.frame("name" = "all", "statut" = "T")
-				}
-				else {
-					v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
-					v_group <- v_group[order(v_group)]
-					df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
+				if (!is.na(isolate(o_parameter$group)) & !isolate(o_parameter$quant_group)) {
+					if (isolate(o_parameter$select_graph) == "QQplot") {
+						df_click_legend <- data.frame("name" = "all", "statut" = "T")
+					}
+					else {
+						v_group <- as.vector(unique(df_all[, isolate(o_parameter$group)]))
+						v_group <- v_group[order(v_group)]
+						df_click_legend <- data.frame("name" = v_group, "statut" = rep("T", length(v_group)))
+					}
 				}
 			}
 			

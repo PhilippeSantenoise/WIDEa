@@ -16,7 +16,7 @@ NULL
 #' \cr(4) Check if the selected variables have no value (combination of all Y 
 #' variables for the correlation matrix);
 #' \cr(5) Checking the date variable for the temporal data type (missing values,
-#' date format recognized, unique values, date variable transformed as an integer
+#' date format recognized, unique values, date variable transformed into an integer
 #' variable when loading data ?);
 #' \cr(6) Check if (".row_num.", ".f.", ".g.", ".h.") variables already exist in
 #' loaded data.
@@ -37,6 +37,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 	
 	if (s_data_type == "normal") {
 		s_e_message <- character(0)
+		s_w_message <- character(0)
 		
 		# execute the step 1
 		
@@ -114,7 +115,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 				
 				if (isolate(o_parameter$plot_type) == "plot") {
 					if (isolate(o_parameter$dim_num) == "3d") {
-						v_cond <- c(ifelse(!is.na(isolate(o_parameter$id)), length(as.vector(unique(e_data$all[, isolate(o_parameter$id)]))) == dim(e_data$all)[1], T), eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", c(isolate(o_parameter$x), isolate(o_parameter$y), isolate(o_parameter$z)), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
+						v_cond <- c(ifelse(!is.na(isolate(o_parameter$id)), length(as.vector(unique(e_data$all[, isolate(o_parameter$id)]))) == dim(e_data$all)[1], T), eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", c(isolate(o_parameter$x), isolate(o_parameter$y), isolate(o_parameter$z)), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
 						v_name_1 <- c("ID", paste0("X", 1:length(isolate(o_parameter$x))), paste0("Y", 1:length(isolate(o_parameter$y))), paste0("Z", 1:length(isolate(o_parameter$z))), "Group")
 						names(v_cond) <- v_name_1
 						v_type <- c("unique", rep("quantitative", length(c(isolate(o_parameter$x), isolate(o_parameter$y), isolate(o_parameter$z)))), "qualitative")
@@ -122,7 +123,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 					}
 					else {
 						if (isolate(o_parameter$model) == "none") {
-							v_cond <- c(ifelse(!is.na(isolate(o_parameter$id)), length(as.vector(unique(e_data$all[, isolate(o_parameter$id)]))) == dim(e_data$all)[1], T), eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", c(isolate(o_parameter$x), isolate(o_parameter$y)), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
+							v_cond <- c(ifelse(!is.na(isolate(o_parameter$id)), length(as.vector(unique(e_data$all[, isolate(o_parameter$id)]))) == dim(e_data$all)[1], T), eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", c(isolate(o_parameter$x), isolate(o_parameter$y)), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
 							v_name_1 <- c("ID", paste0("X", 1:length(isolate(o_parameter$x))), paste0("Y", 1:length(isolate(o_parameter$y))), "Group")
 							names(v_cond) <- v_name_1
 							v_type <- c("unique", rep("quantitative", length(c(isolate(o_parameter$x), isolate(o_parameter$y)))), "qualitative")
@@ -150,27 +151,27 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 								v_name_2 <- c(isolate(o_parameter$x), isolate(o_parameter$y), isolate(o_parameter$group))
 							}
 							
-							v_cond <- c(v_cond, ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
+							v_cond <- c(v_cond, ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
 							names(v_cond) <- v_name_1
 						}
 					}
 				}
 				else if (isolate(o_parameter$plot_type) == "boxplot") {
-					v_cond <- c(ifelse(length(which(!is.na(isolate(o_parameter$concat1_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$x)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$x)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$x)])), T), eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", isolate(o_parameter$y), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
+					v_cond <- c(ifelse(length(which(!is.na(isolate(o_parameter$concat1_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$x)])), T), eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", isolate(o_parameter$y), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
 					v_name_1 <- c("X", paste0("Y", 1:length(isolate(o_parameter$y))), "Group") 
 					names(v_cond) <- v_name_1
 					v_type <- c("qualitative", rep("quantitative", length(isolate(o_parameter$y))), "qualitative")
 					v_name_2 <- c(isolate(o_parameter$x), isolate(o_parameter$y), isolate(o_parameter$group))
 				}
 				else if (isolate(o_parameter$plot_type) == "histplot") {
-					v_cond <- c(eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", isolate(o_parameter$x), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
+					v_cond <- c(eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", isolate(o_parameter$x), ")"), collapse = ", "), ")"))), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
 					v_name_1 <- c(paste0("X", 1:length(isolate(o_parameter$x))), "Group")
 					names(v_cond) <- v_name_1
 					v_type <- c(rep("quantitative", length(isolate(o_parameter$x))), "qualitative")
 					v_name_2 <- c(isolate(o_parameter$x), isolate(o_parameter$group))
 				}
 				else if (isolate(o_parameter$plot_type) == "barplot") {
-					v_cond <- c(ifelse(length(which(!is.na(isolate(o_parameter$concat1_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$x)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$x)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$x)])), T), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T)) 
+					v_cond <- c(ifelse(length(which(!is.na(isolate(o_parameter$concat1_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$x)])), T), ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T)) 
 					v_name_1 <- c("X", "Group")
 					names(v_cond) <- v_name_1
 					v_type <- c("qualitative", "qualitative")
@@ -183,7 +184,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 					else {
 						v_cond <- eval(parse(text = paste0("c(", paste(paste0("is.numeric(e_data$all$", isolate(o_parameter$y), ")"), collapse = ", "), ")")))
 						v_name_1 <- c(paste0("Y", 1:length(v_cond)), "Group")
-						v_cond <- c(v_cond, ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0) | is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
+						v_cond <- c(v_cond, ifelse(!is.na(isolate(o_parameter$group)) & length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T))
 						names(v_cond) <- v_name_1
 						v_name_2 <- c(isolate(o_parameter$y), isolate(o_parameter$group))
 					}
@@ -258,27 +259,46 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 									if (length(which(v_type == "unique")) > 0) {
 										v_e_message <- c(v_e_message, "The ID variable doesn't have unique values")
 									}
-										
+									
 									if (length(which(v_type == "quantitative")) > 0) {
 										v_e_message <- c(v_e_message, paste0("The following variable(s) must be quantitative: ", paste(paste0(v_name[which(v_type == "quantitative")]), collapse = ", "))) 
 									}
 									
 									if (length(which(v_type == "qualitative")) > 0) {
-										v_e_message <- c(v_e_message, paste0("The following variable(s) must be qualitative: ", paste(paste0(v_name[which(v_type == "qualitative")]), collapse = ", "))) 
+										if (o_parameter$plot_type == "plot" & "Group" %in% v_name[which(v_type == "qualitative")]) { # quantitative Group variable accepted for the plot type: plot (normal/ir data type)
+											# add a message to help users to transform the Group variable as a qualitative one (warning)
+											s_w_message <- "The Group variable is a quantitative variable.<br/>A quantitative variable can be transformed into a qualitative one by checking the concatenation box and re-selecting this variable from the input list"
+											v_type <- v_type[-which(v_name == "Group")]
+											v_name <- v_name[-which(v_name == "Group")]
+										}
+										
+										if (length(which(v_type == "qualitative")) > 0) {
+											v_e_message <- c(v_e_message, paste0("The following variable(s) must be qualitative: ", paste(paste0(v_name[which(v_type == "qualitative")]), collapse = ", ")))
+											v_warning <- c(ifelse("X" %in% v_name[which(v_type == "qualitative")] & o_parameter$plot_type %in% c("boxplot", "barplot"), T, F), ifelse("Group" %in% v_name[which(v_type == "qualitative")] & o_parameter$plot_type != "plot", T, F))
+											
+											if (length(which(v_warning)) > 0) { # add a message to help users to transform (X, Group) variables as a qualitative variable (error)
+												if (length(which(v_warning)) > 1) {
+													v_e_message <- c(v_e_message, paste0(paste(c("X", "Group"), collapse = " and "), " variables can be transformed into a qualitative variable by checking the concatenation box and re-selecting the variable from the input list"))
+												}
+												else {
+													v_e_message <- c(v_e_message, paste0("The ", c("X", "Group")[which(v_warning)], " variable can be transformed into a qualitative variable by checking the concatenation box and re-selecting the variable from the input list"))
+												}
+											}
+										}
 									}
 								}
 								else {
 									v_pos <- grep("ref", v_name)
 									
 									if (length(v_pos) > 0) {
-										v_e_message <- c(v_e_message, paste0("The following random effect(s) must be qualitative: ", paste(isolate(o_parameter$ref)[as.numeric(substr(v_name[v_pos], 4, nchar(v_name[v_pos])))], collapse = ", ")))
+										v_e_message <- c(v_e_message, paste0("The following random effect(s) must be qualitative: ", paste(isolate(o_parameter$ref)[as.numeric(substr(v_name[v_pos], 4, nchar(v_name[v_pos])))], collapse = ", "), ". Only character/integer variables are detected as a qualitative variable"))
 									}
 									
 									if (isolate(o_parameter$model) == "calib") {
 										v_pos <- grep("wres_group", v_name)
 										
 										if (length(v_pos) > 0) {
-											v_e_message <- c(v_e_message, paste0("The following group variable(s) of the residual variance function must be qualitative: ", paste(isolate(o_parameter$wres_group)[as.numeric(substr(v_name[v_pos], 11, nchar(v_name[v_pos])))], collapse = ", ")))
+											v_e_message <- c(v_e_message, paste0("The following group variable(s) of the residual variance function must be qualitative: ", paste(isolate(o_parameter$wres_group)[as.numeric(substr(v_name[v_pos], 11, nchar(v_name[v_pos])))], collapse = ", "), ". Only character/integer variables are detected as a qualitative variable"))
 										}
 									}
 									
@@ -296,13 +316,14 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 									
 									v_pos <- grep("Group", v_name)
 									
-									if (length(v_pos) > 0) {
-										v_e_message <- c(v_e_message, "The Group variable must be qualitative")
+									if (length(v_pos) > 0) { # quantitative Group variable accepted for the plot type: plot
+										# add a message to help users to transform the Group variable as a qualitative one (warning)
+										s_w_message <- "The Group variable is a quantitative variable.<br/>A quantitative variable can be transformed into a qualitative one by checking the concatenation box and re-selecting this variable from the input list"
 									}
 								}
 							}
 						}
-						else {
+						else { # corplot
 							if (length(v_var) > 0) {
 								if (v_var == "all") {
 									v_e_message <- c(v_e_message, "All Y variables and Group variable have no value")
@@ -317,15 +338,22 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 							
 							if (length(v_pos) > 0) {
 								if ("Group" %in% v_name) {
-									v_e_message <- c(paste0("The following Y variable(s) must be quantitative: ", paste(isolate(o_parameter$y)[v_pos[-length(v_pos)]], collapse = ", ")), "The Group variable must be qualitative")
+									if (length(v_pos) > 1) {
+										v_e_message <- c(v_e_message, paste0("The following Y variable(s) must be quantitative: ", paste(isolate(o_parameter$y)[v_pos[-length(v_pos)]], collapse = ", ")))
+									}
+									
+									v_e_message <- c(v_e_message, "The Group variable must be qualitative")
+									
+									# add a message to help users to transform the Group variable as a qualitative one (error)
+									v_e_message <- c(v_e_message, "The Group variable can be transformed into a qualitative variable by checking the concatenation box and re-selecting the variable from the input list")
 								}
 								else {
-									v_e_message <- paste0("The following Y variable(s) must be quantitative: ", paste(isolate(o_parameter$y)[v_pos], collapse = ", "))
+									v_e_message <- c(v_e_message, paste0("The following Y variable(s) must be quantitative: ", paste(isolate(o_parameter$y)[v_pos], collapse = ", ")))
 								}
 							}
 						}
 						
-						s_e_message <- paste(v_e_message, collapse = "<br/>")
+						if (length(v_e_message) > 0) {s_e_message <- paste0(paste(v_e_message, collapse = ".<br/>"), ifelse(length(v_e_message) > 1, ".", ""))}
 					} 
 					else { # exexcute the step 5
 						v_var_name <- c()
@@ -374,7 +402,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 			}
 		}
 		
-		return (s_e_message)
+		return (list(s_e_message, s_w_message))
 	}
 	else if (s_data_type == "temporal") {
 		s_e_message <- character(0)
@@ -484,14 +512,14 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 								else {
 									if (length(unique(v_date)) != length(v_date)) { # return 2 messages (error and warning)
 										s_e_message <- "X variable doesn't have unique values"
-										s_w_message <- "X variable is recognized as an integer variable. The variable could have been transformed as an integer variable when loading data. Therefore, the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
+										s_w_message <- "X variable is recognized as an integer variable. The variable could have been transformed into an integer variable when loading data. Therefore, the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
 									}
 								}
 							}
 							else {
 								if (length(unique(v_date)) != length(v_date)) { # return 2 messages (error and warning)
 									s_e_message <- "X variable doesn't have unique values"
-									s_w_message <- "X variable is recognized as an integer variable. The variable could have been transformed as an integer variable when loading data. Therefore, the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
+									s_w_message <- "X variable is recognized as an integer variable. The variable could have been transformed into an integer variable when loading data. Therefore, the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
 								}
 							}
 						}
@@ -523,7 +551,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 					
 					if (length(v_range) > 0) {
 						if (v_range[1] > 0 & v_range[2] < unclass(as.Date(Sys.time()) + 1)) {
-							s_w_message <- "The X variable could have been transformed as an integer variable when loading data. Please, check the conformity of dates on the graph. If dates are incorrect, then the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
+							s_w_message <- "The X variable could have been transformed into an integer variable when loading data. Please, check the conformity of dates on the graph. If dates are incorrect, then the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
 						}
 					}
 				} # end step 4
@@ -534,6 +562,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 	}
 	else { # ir
 		s_e_message <- character(0)
+		s_w_message <- character(0)
 		
 		# execute the step 1
 		
@@ -579,10 +608,11 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 						v_e_message <- c(v_e_message, "The Group variable has no value")
 					}
 					else {
-						b_cond <- ifelse(length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])) | (is.numeric(as.vector(e_data$all[, isolate(o_parameter$group)])) & length(grep("[.]", as.vector(e_data$all[, isolate(o_parameter$group)]))) == 0), T)
+						b_cond <- ifelse(length(which(!is.na(isolate(o_parameter$concat2_group)))) == 0, is.character(as.vector(e_data$all[, isolate(o_parameter$group)])), T)
 						
-						if (b_cond == F) { 
-							v_e_message <- c(v_e_message, "The Group variable must be qualitative")
+						if (b_cond == F) { # quantitative Group variable accepted
+							# add a message to help users to transform the Group variable as a qualitative one (warning)
+							s_w_message <- "The Group variable is a quantitative variable.<br/>A quantitative variable can be transformed into a qualitative one by checking the concatenation box and re-selecting this variable from the input list"
 						}
 					}
 				}
@@ -596,7 +626,7 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 				}
 				
 				if (length(v_e_message) > 0) {
-					s_e_message <- paste(v_e_message, collapse = "<br/>")
+					s_e_message <- paste0(paste(v_e_message, collapse = ".<br/>"), ifelse(length(v_e_message) > 1, ".", ""))
 				}
 				else { # execute the step 5
 					if (is.na(isolate(o_parameter$id))) {
@@ -608,6 +638,6 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 			}
 		}
 		
-		return (s_e_message)
+		return (list(s_e_message, s_w_message))
 	}
 }

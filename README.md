@@ -14,20 +14,21 @@ WIDEa is R-based software aiming to provide users with a range of  functionaliti
 ## Installation and usage
 A detailed description about how to install and use WIDEa is available from the pdf file named [WIDEa_manual](https://github.com/PhilippeSantenoise/WIDEa/blob/main/WIDEa_manual.pdf).
 
-Code lines used to install/load the WIDEa package and run the WIDEa (shiny) application with R:
+Copy/paste the code below into a R console to:
+1. Install the WIDEa package (using devtools package)  
 ```r
-# Installing WIDEa (devtools package required)
 if(!require(devtools)){install.packages("devtools")}
 devtools::install_github("PhilippeSantenoise/WIDEa")
-
-# Loading WIDEa and run the shiny application 
+```
+2. Load the WIDEa package (once installed) and run the shiny application
+```r
 require(WIDEa)
 f_widea()
 ```
 
 ## R version and packages
 A R version 3.5 or greater is required before installing WIDEa ([R link](https://cran.r-project.org/bin/)).<br />
-WIDEa used functions of several R packages: arrangements, car, colourpicker, data.table, DT, grDevices, htmltools, htmlwidgets, magrittr, plotly, scales, shiny, shinyBS, shinybusy, shinyFiles, shinyjs, shinythemes, stats.
+WIDEa used functions of several R packages: arrangements, car, colourpicker, data.table, DT, grDevices, htmltools, htmlwidgets, magrittr, plotly, RColorBrewer, scales, shiny, shinyBS, shinybusy, shinyFiles, shinyjs, shinythemes, stats.
 
 ## License
 Copyright (C) 2021 - INRAE - Philippe Santenoise<br />

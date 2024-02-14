@@ -36,7 +36,7 @@ variables when a calibration/validation model is selected;
 \cr(4) Check if the selected variables have no value (combination of all Y
 variables for the correlation matrix);
 \cr(5) Checking the date variable for the temporal data type (missing values,
-date format recognized, unique values, date variable transformed as an integer
+date format recognized, unique values, date variable transformed into an integer
 variable when loading data ?);
 \cr(6) Check if (".row_num.", ".f.", ".g.", ".h.") variables already exist in
 loaded data.

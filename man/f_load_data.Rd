@@ -5,7 +5,14 @@
 \alias{f_load_data}
 \title{Loading all data}
 \usage{
-f_load_data(s_id, s_data_type, s_path, b_flag = F, s_model = "none")
+f_load_data(
+  s_id,
+  s_data_type,
+  s_path,
+  o_data_opt,
+  b_flag = F,
+  s_model = "none"
+)
 }
 \arguments{
 \item{s_id}{is the action button input ID's used to load data (3 values:
@@ -14,6 +21,9 @@ f_load_data(s_id, s_data_type, s_path, b_flag = F, s_model = "none")
 \item{s_data_type}{is the data type (3 values: "normal", "temporal", "ir").}
 
 \item{s_path}{is the data path.}
+
+\item{o_data_opt}{is a reactive value includig data option: decimal separator,
+encoding.}
 
 \item{b_flag}{is a boolean value used to load flag data when the "load1_button"
 action button is clicked.}

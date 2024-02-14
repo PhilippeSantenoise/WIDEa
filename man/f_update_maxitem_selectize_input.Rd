@@ -25,7 +25,8 @@ f_update_option_selectize_input(
   s_data_type,
   s_plot_type,
   s_mode = "marker",
-  l_current_option
+  l_current_option,
+  b_group = F
 )
 
 f_update_inputs(
@@ -67,6 +68,9 @@ value.}
 \item{l_current_option}{is a list with information ("choices" and "selected") on
 "edit_option" selectize input. "choices"/"selected" return the vector of choices
 and the selected value of the selectize input respectively.}
+
+\item{b_group}{is a boolean value associated to the value of the Group radio
+button (left panel, variable selection).}
 
 \item{l_id_value}{is a list including UI's input IDs and values.}
 
