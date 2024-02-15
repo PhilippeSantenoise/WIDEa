@@ -25,6 +25,10 @@ devtools::install_github("PhilippeSantenoise/WIDEa")
 require(WIDEa)
 f_widea()
 ```
+3. Update the WIDEa package if a new version is available
+```r
+devtools::update_packages("WIDEa")
+```
 
 ## R version and packages
 A R version 3.5 or greater is required before installing WIDEa ([R link](https://cran.r-project.org/bin/)).<br />
