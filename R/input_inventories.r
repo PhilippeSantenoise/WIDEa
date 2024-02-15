@@ -143,7 +143,7 @@ f_create_input_value_list <- function(s_type = "selectize", df_all = NULL, v_con
 		
 		if (i_only_value == 0) {
 			l_id <- eval(parse(text = paste0("list(", paste(paste0("\"", c("vname", paste0("var_", c("id", "x", "y", "z", "group")), "ref", "wres_group"), "\" = 1"), collapse = ", "), ", \"date_format\" = 2, \"rel_symbol\" = 3, \"vvalue1\" = 4, \"edit_option\" = 5)")))
-			l_value <- eval(parse(text = paste0("list(v_var_name, c(\"%Y%m%d\", \"%Y%m%d%H%M\", \"%d%m%Y\", \"%d%m%Y%H%M\"), ", ifelse(s_sub_var_type == "qualit", "c(\"%in%\", \"!%in%\")", "c(\"=\", \"!=\", \"<\", \">\", \"<=\", \">=\")"), ", v_value, c(\"label\", \"color/opacity\", \"point type/size\"))")))
+			l_value <- eval(parse(text = paste0("list(v_var_name, c(\"%Y%m%d\", \"%Y%m%d%H%M\", \"%Y%m%d%H%M%S\", \"%d%m%Y\", \"%d%m%Y%H%M\", \"%d%m%Y%H%M%S\"), ", ifelse(s_sub_var_type == "qualit", "c(\"%in%\", \"!%in%\")", "c(\"=\", \"!=\", \"<\", \">\", \"<=\", \">=\")"), ", v_value, c(\"label\", \"color/opacity\", \"point type/size\"))")))
 			return(list(l_id, l_value))
 		}
 		else if (i_only_value == 1) {

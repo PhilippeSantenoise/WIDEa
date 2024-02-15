@@ -2634,8 +2634,7 @@ f_server <- function(input, output, session) {
 							
 							l_results <- f_check_variables("temporal", F, e_data, o_parameter)
 							s_e_message <- l_results[[1]]
-							s_w_message <- l_results[[2]]
-							v_date <- l_results[[3]]
+							v_date <- l_results[[2]]
 						}
 						else {
 							v_name <- names(v_cond)[v_pos]
@@ -2645,7 +2644,6 @@ f_server <- function(input, output, session) {
 					
 					if (length(s_e_message) > 0) { # error message returned by the checking process
 						showNotification(HTML(s_e_message), duration = 15, type = "error")
-						if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 					}
 					else { # no error
 						# # Graph default option assignment: (color, opacity, point type/size)
@@ -2678,10 +2676,9 @@ f_server <- function(input, output, session) {
 						
 						if (length(v_e_message) > 0) { # error with graphic options
 							showNotification(HTML(paste(v_e_message, collapse = "<br/>")), duration = 15, type = "error")
-							if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 						}
 						else { # no error
-							s_e_message <- character(0)
+							rm(list = "v_e_message")
 							
 							if (!is.na(isolate(o_parameter$g))) { # g function added
 								# Checking process: (check transformed variables: function filled in text field)
@@ -2692,11 +2689,8 @@ f_server <- function(input, output, session) {
 							
 							if (length(s_e_message) > 0) { # error with g function text field
 								showNotification(HTML(s_e_message), duration = 15, type = "error")
-								if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 							}
 							else { # no error
-								v_w_message <- c()
-								if (length(s_w_message) > 0) {v_w_message <- s_w_message}
 								df_all <- e_data$all[, c(isolate(o_parameter$x), isolate(o_parameter$y))]
 								
 								if (isolate(o_cond$display) == 0) {
@@ -2710,18 +2704,17 @@ f_server <- function(input, output, session) {
 								# -----------------
 								
 								l_results <- eval(parse(text = paste0("f_prepare_data(\"temporal\", 1, df_all, NULL, NULL, NULL, ", ifelse("flag" %in% ls(e_data), "e_data$flag", "NULL"), ", NULL, ", ifelse("data" %in% ls(e_previous_flag), "e_previous_flag$data", "NULL"), ", NULL, NULL, NULL, o_parameter)")))
+								s_e_message <- l_results[[9]]
 								
-								if (length(l_results[[9]]) > 0) { # error (all values with a qc = 2)
-									showNotification(HTML(l_results[[9]]), duration = 15, type = "error")
-									if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
+								if (length(s_e_message) > 0) { # error (all values with a qc = 2)
+									showNotification(HTML(s_e_message), duration = 15, type = "error")
 								}
 								else { # no error
 									df_all <- l_results[[1]]
 									e_previous_flag$data <- l_results[[2]]
 									eval(parse(text = paste(paste0("o_plot$", c("data_qc1", "data_qc2", "var_qc1", "var_qc2", "leg_name_qc"), " <- l_results[[", c(3, 4, 6:8), "]]"), collapse = "; ")))
 									eval(parse(text = paste(paste0("o_cond$", c("flag", "qc1", "qc2"), " <- l_results[[5]][", 1:3, "]"), collapse = "; ")))
-									v_w_message <- c(v_w_message, l_results[[10]])
-									s_e_message <- character(0)
+									s_w_message <- l_results[[10]]
 									
 									if (!is.na(isolate(o_parameter$g))) { # only if a g function is added
 										# Checking process: (check transformed variables: calculation)
@@ -2740,10 +2733,9 @@ f_server <- function(input, output, session) {
 									
 									if (length(s_e_message) > 0) { # error with g function calculation
 										showNotification(HTML(s_e_message), duration = 15, type = "error")
-										if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 									}
 									else { # no error
-										if (length(v_w_message) > 0) {showNotification(HTML(paste(v_w_message, collapse = "<br/>")), duration = 15, type = "warning")}
+										if (length(s_w_message) > 0) {showNotification(HTML(s_w_message), duration = 15, type = "warning")}
 										o_plot$data <- df_all
 										rm(list = c("l_results", "df_all"))
 										

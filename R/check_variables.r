@@ -16,8 +16,7 @@ NULL
 #' \cr(4) Check if the selected variables have no value (combination of all Y 
 #' variables for the correlation matrix);
 #' \cr(5) Checking the date variable for the temporal data type (missing values,
-#' date format recognized, unique values, date variable transformed into an integer
-#' variable when loading data ?);
+#' date format recognized, unique values);
 #' \cr(6) Check if (".row_num.", ".f.", ".g.", ".h.") variables already exist in
 #' loaded data.
 #' \cr\cr An error message is returned if a problem occured to one of these steps.
@@ -406,7 +405,6 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 	}
 	else if (s_data_type == "temporal") {
 		s_e_message <- character(0)
-		s_w_message <- character(0)
 		v_date <- c()
 		
 		# execute the step 1
@@ -487,78 +485,22 @@ f_check_variables <- function (s_data_type = "normal", b_check_plus = F, e_data,
 					s_e_message <- "X variable has missing values"
 				}
 				else {
-					df_all[, isolate(o_parameter$x)] <- as.vector(df_all[, isolate(o_parameter$x)])
-					v_range <- c()
-					
-					if (is.numeric(df_all[, isolate(o_parameter$x)]) & length(grep("[.]", df_all[, isolate(o_parameter$x)])) == 0) {
-						v_range <- range(df_all[, isolate(o_parameter$x)])
-					}
-					else {
-						df_all[, isolate(o_parameter$x)] <- gsub("/| |:|-|[.]|h", "", df_all[, isolate(o_parameter$x)])
-					}
-					
-					v_date <- as.character(format(strptime(df_all[, isolate(o_parameter$x)], format = isolate(o_parameter$date_format))))
+					v_date <- f_create_date_variable(df_all, isolate(o_parameter$x), isolate(o_parameter$date_format))
 					i_num <- length(which(is.na(v_date)))
 					
-					if (length(v_range) > 0) {
-						if (v_range[1] > 0 & v_range[2] < unclass(as.Date(Sys.time()) + 1)) {
-							if (i_num > 0) {
-								v_date <- as.character(as.Date(df_all[, isolate(o_parameter$x)], origin = "1970-01-01", tz = "GMT"))
-								i_num <- length(which(is.na(v_date)))
-								
-								if (i_num > 0) {
-									s_e_message <- "X variable is not recognized as a date variable. The problem can occur if the date format is incorrect.<br/>The date format must be the following:<br/>(1) four-digit year numbers and two-digits numbers for the other units of time ;<br/>(2) the authorized separator between units of time are \" \", \"/\", \"-\", \":\", \".\" and \"h\"."
-								}
-								else {
-									if (length(unique(v_date)) != length(v_date)) { # return 2 messages (error and warning)
-										s_e_message <- "X variable doesn't have unique values"
-										s_w_message <- "X variable is recognized as an integer variable. The variable could have been transformed into an integer variable when loading data. Therefore, the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
-									}
-								}
-							}
-							else {
-								if (length(unique(v_date)) != length(v_date)) { # return 2 messages (error and warning)
-									s_e_message <- "X variable doesn't have unique values"
-									s_w_message <- "X variable is recognized as an integer variable. The variable could have been transformed into an integer variable when loading data. Therefore, the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
-								}
-							}
-						}
-						else {
-							if (i_num > 0) {
-								s_e_message <- "X variable is not recognized as a date variable. The problem can occur if the date format is incorrect.<br/>The date format must be the following:<br/>(1) four-digit year numbers and two-digits numbers for the other units of time ;<br/>(2) the authorized separator between units of time are \" \", \"/\", \"-\", \":\", \".\" and \"h\"."
-							}
-							else {
-								if (length(unique(v_date)) != length(v_date)) {
-									s_e_message <- "X variable doesn't have unique values"
-								}
-							}
-						}
+					if (i_num > 0) {
+						s_e_message <- "X variable is not recognized as a date variable. The problem can occur if the date format is incorrect.<br/>The date format must be the following:<br/>(1) four-digit year numbers and two-digits numbers for the other units of time ;<br/>(2) the authorized separator between units of time are \" \", \"/\", \"-\", \":\", \".\" and \"h\", \"T\" and \"Z\"."
 					}
 					else {
-						if (i_num > 0) {
-							s_e_message <- "X variable is not recognized as a date variable. The problem can occur if the date format is incorrect.<br/>The date format must be the following:<br/>(1) four-digit year numbers and two-digits numbers for the other units of time ;<br/>(2) the authorized separator between units of time are \" \", \"/\", \"-\", \":\", \".\" and \"h\"."
-						}
-						else {
-							if (length(unique(v_date)) != length(v_date)) {
-								s_e_message <- "X variable doesn't have unique values"
-							}
+						if (length(unique(v_date)) != length(v_date)) {
+							s_e_message <- "X variable doesn't have unique values"
 						}
 					}
 				}
-				
-				if (length(s_e_message) == 0) { # No error message returned to the step 3
-					# execute the step 4
-					
-					if (length(v_range) > 0) {
-						if (v_range[1] > 0 & v_range[2] < unclass(as.Date(Sys.time()) + 1)) {
-							s_w_message <- "The X variable could have been transformed into an integer variable when loading data. Please, check the conformity of dates on the graph. If dates are incorrect, then the problem can be solved by modifying either the data format (txt, csv) or the separator between unit of times."
-						}
-					}
-				} # end step 4
 			}
 		}
 		
-		return (list(s_e_message, s_w_message, v_date))
+		return(list(s_e_message, v_date))
 	}
 	else { # ir
 		s_e_message <- character(0)
