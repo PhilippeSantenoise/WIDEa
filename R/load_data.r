@@ -29,6 +29,7 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 		df_flag <- data.frame()
 		v_code_range <- c()
 		b_special <- F
+		s_flag_name <- NA
 		
 		if (!is.data.frame(df_1)) {
 			s_e_message <- "Path/file doesn't exist"
@@ -43,7 +44,6 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 				}
 				else {
 					v_split_path <- unlist(strsplit(s_path, split = "[.]"))
-					s_flag_name <- NA
 					
 					if (s_data_type %in% c("normal", "ir")) {
 						s_flag_path_1 <- paste0(paste(v_split_path[1:(length(v_split_path) - 1)], collapse = "."), "_", ifelse(s_data_type == "normal", "norm", "ir"), "_flag.", v_split_path[length(v_split_path)])
