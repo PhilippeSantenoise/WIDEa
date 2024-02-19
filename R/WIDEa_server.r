@@ -68,8 +68,8 @@ f_server <- function(input, output, session) {
 	o_click_legend <- reactiveValues(item = NULL) # parameter corresponding to graph legend items (including name, statut)
 	o_zoom <- reactiveValues(coord = NULL) # zoom coordinates
 	
-	# parameters associated to data loading option (decimal separator, encoding)
-	o_data_opt <- reactiveValues(dec = rep(".", 3), encoding = rep("unknown", 3))
+	# parameters associated to data loading option (clean column names with janitor package, decimal separator, encoding)
+	o_data_opt <- reactiveValues(clean_varnames = F, dec = rep(".", 3), encoding = rep("unknown", 3))
 	
 	# parameters associated to sub-data creation
 	o_sdata_cond <- reactiveValues(var_name = c(), var_type = c(), var_rel = c(), value = list(), formula = NA, row_num = c())
@@ -1767,6 +1767,7 @@ f_server <- function(input, output, session) {
 	# Ok/Close buttons
 	
 	observeEvent(input$ok_dopt1_button, {
+		o_data_opt$clean_varnames <- input$clean_varnames
 		o_data_opt$dec[1] <- input$decimal_dopt1
 		o_data_opt$encoding[1] <- input$encoding_dopt1
 		removeModal()

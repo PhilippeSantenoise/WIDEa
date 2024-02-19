@@ -32,7 +32,7 @@ devtools::update_packages("WIDEa")
 
 ## R version and packages
 A R version 3.5 or greater is required before installing WIDEa ([R link](https://cran.r-project.org/bin/)).<br />
-WIDEa used functions of several R packages: arrangements, car, colourpicker, data.table, DT, grDevices, htmltools, htmlwidgets, magrittr, plotly, RColorBrewer, scales, shiny, shinyBS, shinybusy, shinyFiles, shinyjs, shinythemes, stats.
+WIDEa used functions of several R packages: arrangements, car, colourpicker, data.table, DT, grDevices, htmltools, htmlwidgets, janitor, magrittr, plotly, RColorBrewer, scales, shiny, shinyBS, shinybusy, shinyFiles, shinyjs, shinythemes, stats.
 
 ## License
 Copyright (C) 2021 - INRAE - Philippe Santenoise<br />

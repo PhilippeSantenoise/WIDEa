@@ -121,8 +121,9 @@ f_build_modal_dialog_expand <- function (s_title = NULL, s_size = "l", s_id, i_w
 f_build_modal_dialog_data_option <- function (i_window_num = 1) {
 	s_cmd <- paste0("showModal(modalDialog(title = \"Data option\", 
 		easyClose = F,
-		size = \"s\",
-		fluidRow(
+		size = \"s\",",
+		ifelse(i_window_num == 1, "fluidRow(div(style = \"margin-left: 1em;\", checkboxInput(\"clean_varnames\", \"Clean variable names\", o_data_opt$clean_varnames))),", ""),
+		"fluidRow(
 			div(style = \"display: inline-block; width: 47%; vertical-align: middle; margin-left: 1em;\", strong(\"Decimal separator:\")),
 			div(style = \"display: inline-block; width: 19%; vertical-align: middle; margin-top: 1.2em;\", selectizeInput(\"decimal_dopt", i_window_num, "\", NULL, choices = c(\".\", \",\"), selected = o_data_opt$dec[", i_window_num, "], width = \"80px\"))
 		),

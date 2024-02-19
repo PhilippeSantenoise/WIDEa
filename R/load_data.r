@@ -39,8 +39,14 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 				s_e_message <- "Data is empty"
 			}
 			else {
-				if (length(grep("[(]|[)]|[[]|[]]|-|:|[+]|/| ", names(df_1))) > 0) {
-					s_e_message <- "Variable name should not contains any white-spaces or special characters, such as: parenthesis, square bracket, colon, minus, plus, forward slash."
+				df_1_clean <- janitor::clean_names(df_1, "none")
+				v_clean_varnames <- names(df_1_clean)
+				v_pos <- which(!names(df_1) %in% v_clean_varnames)
+				if (o_data_opt$clean_varnames) {df_1 <- df_1_clean}
+				rm(list = "df_1_clean")
+				
+				if (!o_data_opt$clean_varnames & length(v_pos) > 0) {
+					s_e_message <- "Variable names should not contain any white-spaces or special characters (detected by janitor::clean_names).<br/>Variable names can be cleaned by:<br/>(1) Checking the corresponding box available from the \"pen\" button;<br/>(2) Reloading data."
 				}
 				else {
 					v_split_path <- unlist(strsplit(s_path, split = "[.]"))
@@ -84,6 +90,8 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 					
 					if (b_flag) {
 						if (b_cond) {
+							s_add_message <- "<br/>Variable names (loaded data) may have been cleaned during a previous session. Please, check the box (clean variable names) from the \"pen\" button and reload data."
+							
 							if (s_data_type == "normal") {
 								if (b_cond_1 & b_cond_2) {
 									s_e_message <- paste0("The flag file is not unique. Please keep one file (", v_split_path_1[length(v_split_path_1)], " or ", v_split_path_2[length(v_split_path_2)], ").")
@@ -101,7 +109,7 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 												b_special <- T
 											}
 											else {
-												s_e_message <- paste0("ID flag variable (", names(df_flag)[1], ") is missing in data")
+												s_e_message <- paste0("ID flag variable (", names(df_flag)[1], ") is missing in loaded data.", s_add_message)
 											}
 										}
 									}
@@ -114,7 +122,18 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 							}
 							else if (s_data_type == "temporal") {
 								df_flag <- data.table::fread(file = s_flag_path, data.table = F, encoding = o_data_opt$encoding[1])
-								if (dim(df_flag)[1] == 0) {s_e_message <- "Flag data is empty"}
+								
+								if (dim(df_flag)[1] == 0) {
+									s_e_message <- "Flag data is empty"
+								}
+								else {
+									v_flag_varnames <- as.vector(unique(df_flag$var_name))
+									v_pos <- which(!v_flag_varnames %in% names(df_1))
+									
+									if (length(v_pos) > 0) {
+										s_e_message <- paste0("Some variables (included in flag data: var_name) are missing in loaded data: ", paste(v_flag_varnames[v_pos], collapse = ", "), ".", s_add_message)
+									}
+								}
 							}
 							else {
 								if (b_cond_1 & b_cond_2) {
@@ -160,7 +179,7 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 											
 											if (length(which(!v_cond)) > 0) {
 												if (!is.na(s_e_message)) {
-													s_e_message <- paste0(s_e_message, "is missing in data<br/>", paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(!v_cond)], collapse = ", "))
+													s_e_message <- paste0(s_e_message, "is missing in loaded data.", s_add_message, "<br/>", paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(!v_cond)], collapse = ", "), ".")
 												}
 												else {
 													s_e_message <- paste("No numerical values for the following code variables: ", names(df_1)[v_pos_1][which(!v_cond)], collapse = ", ")
@@ -168,7 +187,7 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 											}
 											else {
 												if (!is.na(s_e_message)) {
-													s_e_message <- paste0(s_e_message, "is missing in data")
+													s_e_message <- paste0(s_e_message, "is missing in loaded data.", s_add_message)
 												}
 												else {
 													v_code_range <- paste0(substr(names(df_1)[v_pos_1[1]], 1, 1), range(as.numeric(substr(names(df_1)[v_pos_1], 2, nchar(names(df_1)[v_pos_1])))))
@@ -178,10 +197,10 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 										}
 										else {
 											if (!is.na(s_e_message)) {
-												s_e_message <- paste0(s_e_message, "and all code variables are missing in data")
+												s_e_message <- paste0(s_e_message, "and all code variables are missing in loaded data.", s_add_message)
 											}
 											else {
-												s_e_message <- "All code variables are missing in data"
+												s_e_message <- "All code variables are missing in loaded data"
 											}
 										}
 									}
@@ -238,7 +257,7 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 								}
 							}
 							else {
-								s_e_message <- "All code variables are missing in data"
+								s_e_message <- "All code variables are missing in loaded data"
 							}
 						}
 					}
