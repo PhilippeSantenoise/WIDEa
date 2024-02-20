@@ -46,7 +46,7 @@ f_load_data <- function(s_id, s_data_type, s_path, o_data_opt, b_flag = F, s_mod
 				rm(list = "df_1_clean")
 				
 				if (!o_data_opt$clean_varnames & length(v_pos) > 0) {
-					s_e_message <- "Variable names should not contain any white-spaces or special characters (detected by janitor::clean_names).<br/>Variable names can be cleaned by:<br/>(1) Checking the corresponding box available from the \"pen\" button;<br/>(2) Reloading data."
+					s_e_message <- "Variable names should not contain any white-spaces or special characters (except the underscore character: janitor::clean_names).<br/>Variable names can be cleaned by:<br/>(1) Checking the corresponding box available from the \"pen\" button;<br/>(2) Reloading data."
 				}
 				else {
 					v_split_path <- unlist(strsplit(s_path, split = "[.]"))
