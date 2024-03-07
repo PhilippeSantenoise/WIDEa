@@ -78,13 +78,13 @@ f_create_all_input_id_list <- function(s_by = "section") {
 		# data loading input
 		v_lp_s1_input_id <- c(paste0(c(paste0("load", 1:2), "browse2", "edit_dopt2"), "_button"), "data_path2")
 		# sub-data creation input
-		v_lp_s2_input_id <- c("subdata_option", "vname", "vtype", "rel_symbol", paste0("vvalue", 1:2), paste0(c("c_info_clear", "c_add", "expand1", "create"), "_button"), "c_formula")
+		v_lp_s2_input_id <- c("subdata_option", "vname", "vtype", "rel_symbol", paste0("vvalue", 1:2), paste0(c("c_info_clear", "c_add", "expand1", "expand_list2", "create"), "_button"), "c_formula")
 		# normal plot selection input
 		v_lp_s3_input_id <- c("plot_type", "dim_num", "model")
 		# model parameter loading input
 		v_lp_s4_input_id <- c("data_path3", paste0(c("browse3", "load3", "edit_dopt3"), "_button"))
 		# variable selection input
-		v_lp_s5_input_id <- c("id", "group", paste0("var_", c("id", "x", "y", "z", "group")), paste0(c(v_fun_name, "ref", "wres"), "_radio"), paste0(v_fun_name, "_text"), paste0("concat", 1:2), "date_format", "ref", "wres_cbox", "wres_group", "wres_vfun", "display_button")
+		v_lp_s5_input_id <- c("id", "group", paste0("var_", c("id", "x", "y", "z", "group")), paste0(c(v_fun_name, "ref", "wres"), "_radio"), paste0(v_fun_name, "_text"), paste0("concat", 1:2), "date_format", "ref", "wres_cbox", "wres_group", "wres_vfun", paste0(c(paste0("expand_list", 3:9), "display"), "_button"))
 		# top panel input (tab 1: Graphic)
 		v_tp_t1_input_id <- c("webgl", "mode", paste0(v_graphic_opt, "_radio"), v_graphic_opt, paste0(v_graphic_opt, "_button"), "y_scale", "fraction", "ymin", "ymax", "y_scale_button", "edit_option", "edit_option_button")
 		# top panel input (tab 2: Flag)
@@ -102,7 +102,7 @@ f_create_all_input_id_list <- function(s_by = "section") {
 		# text input
 		v_t3_input_id <- c(paste0("data_path", 2:3), "vvalue2", "c_formula", paste0(v_fun_name, "_text"), "wres_vfun", "bw", "ymin", "ymax", "comment")
 		# action button input
-		v_t4_input_id <- paste0(c("hs_bpanel", paste0("load", 1:3), paste0("browse", 2:3), paste0("edit_dopt", 2:3), "c_info_clear", "c_add", "expand1", "create", "display", v_graphic_opt, "y_scale", paste0("clear", 1:2), "save", "edit_option"), "_button")
+		v_t4_input_id <- paste0(c("hs_bpanel", paste0("load", 1:3), paste0("browse", 2:3), paste0("edit_dopt", 2:3), "c_info_clear", "c_add", "expand1", "create", paste0("expand_list", c(2, 5:7)), "display", v_graphic_opt, "y_scale", paste0("clear", 1:2), "save", "edit_option"), "_button")
 		# radio button input
 		v_t5_input_id <- c("vtype", "plot_type", "dim_num", "model", "id", paste0(c(v_fun_name, "ref", "wres", v_graphic_opt), "_radio"), "group", "webgl", "mode", "y_scale", "action", "draw", "qc")
 		# check box input
@@ -389,7 +389,7 @@ f_create_input_id_vector <- function(s_data = "normal", s_graph = "plot_2d", s_m
 								if (s_model == "valid") {v_out <- c(v_out, f_create_t3_input_id_vector(s_data, s_graph, s_model))}
 							}
 							else {
-								v_out <- c(paste0("var_", c("x", "y")), paste0(c("g", "ref"), "_radio"), "group", "display_button")
+								v_out <- c(paste0("var_", c("x", "y")), paste0("expand_list", 5:6, "_button"), paste0(c("g", "ref"), "_radio"), "group", "display_button")
 								if (s_model == "calib") {v_out <- c(v_out, "wres_radio")}
 							}
 							
@@ -398,10 +398,10 @@ f_create_input_id_vector <- function(s_data = "normal", s_graph = "plot_2d", s_m
 					}
 					else {
 						if (s_graph == "plot_2d") {
-							v_out <- c(paste0("var_", c("x", "y")), paste0(c("f", "g", "dec_num"), "_radio"), "group", "display_button", "webgl", "edit_option", "edit_option_button", f_create_t3_input_id_vector(s_data, s_graph, s_model))
+							v_out <- c(paste0("var_", c("x", "y")), paste0("expand_list", 5:6, "_button"), paste0(c("f", "g", "dec_num"), "_radio"), "group", "display_button", "webgl", "edit_option", "edit_option_button", f_create_t3_input_id_vector(s_data, s_graph, s_model))
 						}
 						else if (s_graph == "plot_3d") {
-							v_out <- c(paste0("var_", c("x", "y", "z")), paste0(c("f", "g", "h", "dec_num"), "_radio"), "group", "display_button", "edit_option", "edit_option_button", f_create_t3_input_id_vector(s_data, s_graph, s_model))
+							v_out <- c(paste0("var_", c("x", "y", "z")), paste0("expand_list", 5:7, "_button"), paste0(c("f", "g", "h", "dec_num"), "_radio"), "group", "display_button", "edit_option", "edit_option_button", f_create_t3_input_id_vector(s_data, s_graph, s_model))
 						}
 						else if (s_graph == "histplot") {
 							v_out <- c("var_x", paste0(c("f", "bw"), "_radio"), "group", "display_button", "edit_option", "edit_option_button", f_create_t3_input_id_vector(s_data, s_graph, s_model))
@@ -411,7 +411,7 @@ f_create_input_id_vector <- function(s_data = "normal", s_graph = "plot_2d", s_m
 						}
 						else {
 							if (s_graph == "boxplot") {
-								v_out <- c(paste0("var_", c("x", "y")), paste0(c("g", "dec_num"), "_radio"), "group", "display_button", "edit_option", "edit_option_button", f_create_t3_input_id_vector(s_data, s_graph, s_model))
+								v_out <- c(paste0("var_", c("x", "y")), paste0("expand_list", 5:6, "_button"), paste0(c("g", "dec_num"), "_radio"), "group", "display_button", "edit_option", "edit_option_button", f_create_t3_input_id_vector(s_data, s_graph, s_model))
 							}
 							else {
 								v_out <- c("var_x", "group", "display_button", "edit_option", "edit_option_button")
@@ -433,7 +433,7 @@ f_create_input_id_vector <- function(s_data = "normal", s_graph = "plot_2d", s_m
 				}
 				else {
 					if (s_data == "temporal") {
-						v_out <- c(paste0("var_", c("x", "y")), paste0(c("g", "dec_num"), "_radio"), "date_format", "display_button", "webgl", "mode", "y_scale", "edit_option", "edit_option_button")
+						v_out <- c(paste0("var_", c("x", "y")), paste0("expand_list", 5:6, "_button"), paste0(c("g", "dec_num"), "_radio"), "date_format", "display_button", "webgl", "mode", "y_scale", "edit_option", "edit_option_button")
 					}
 					else {
 						if (b_load2) {

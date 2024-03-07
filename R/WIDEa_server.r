@@ -1,5 +1,5 @@
 #' @importFrom shiny reactiveValues reactiveVal observeEvent isolate updateTextInput updateNumericInput updateSelectizeInput updateRadioButtons updateCheckboxInput updateCheckboxGroupInput actionButton textAreaInput radioButtons numericInput selectizeInput showNotification observe showModal modalDialog removeModal stopApp
-#' @importFrom shinyBS updateButton toggleModal
+#' @importFrom shinyBS updateButton toggleModal bsButton
 #' @importFrom shinyjs disable enable hide show js click disabled hidden 
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom htmltools tagList HTML validateCssUnit 
@@ -335,7 +335,7 @@ f_server <- function(input, output, session) {
 			
 			if (length(v_pos) > 0) {
 				v_id_new <- v_id_new[v_pos]
-				v_pos <- eval(parse(text = paste0("which(c(", paste(paste0("length(input$", v_id_new, ") != length(isolate(o_parameter[[as.vector(df_match_id[df_match_id$input == \"", v_id_new, "\", \"parameter\"])]])) | length(which(!input$", v_id_new, " %in% isolate(o_parameter[[as.vector(df_match_id[df_match_id$input == \"", v_id_new, "\", \"parameter\"])]]))) > 0"), collapse = ", "), "))")))
+				v_pos <- eval(parse(text = paste0("which(c(", paste(paste0("!identical(input$", v_id_new, ", o_parameter[[as.vector(df_match_id[df_match_id$input == \"", v_id_new, "\", \"parameter\"])]])"), collapse = ", "), "))")))
 				if (length(v_pos) > 0) {eval(parse(text = paste(paste0("l_id_value$", v_id_new[v_pos], " <- isolate(o_parameter[[as.vector(df_match_id[df_match_id$input == \"", v_id_new[v_pos], "\", \"parameter\"])]])"), collapse = "; ")))}
 			}
 			
@@ -528,6 +528,11 @@ f_server <- function(input, output, session) {
 		shinyjs::toggleState("expand3_button", input$g_radio == "yes")
 		shinyjs::toggleState("expand4_button", input$h_radio == "yes")
 		shinyjs::toggleState("expand5_button", input$wres_radio == "yes")
+		shinyjs::toggleState("expand_list1_button", input$subdata_option)
+		shinyjs::toggleState("expand_list3_button", input$id == "yes")
+		shinyjs::toggleState("expand_list4_button", input$ref_radio == "yes")
+		shinyjs::toggleState("expand_list8_button", input$wres_cbox)
+		shinyjs::toggleState("expand_list9_button", input$group == "yes")
 		shinyjs::toggleState("c_clear_button", length(input$condInfo_rows_selected) > 0)
 		shinyjs::toggleState("c_deselect_all_button", length(input$condInfo_rows_selected) > 0)
 		shinyjs::toggleState("c_select_all_button", length(input$condInfo_rows_selected) < length(isolate(input$condInfo_rows_all)))
@@ -856,7 +861,7 @@ f_server <- function(input, output, session) {
 					v_id_on <- c(v_id_on, "rel_symbol", "c_add_button")
 					
 					if (is.numeric(v_val) & length(grep("[.]", v_val)) == 0) {
-						v_id_on <- c(v_id_on, "vtype", "vvalue1")
+						v_id_on <- c(v_id_on, "vtype", "vvalue1", "expand_list2_button")
 					}
 					else {
 						if (is.numeric(v_val)) {
@@ -865,7 +870,7 @@ f_server <- function(input, output, session) {
 							v_id_on <- c(v_id_on, "vvalue2")
 						}
 						else {
-							v_id_on <- c(v_id_on, "vvalue1")
+							v_id_on <- c(v_id_on, "vvalue1", "expand_list2_button")
 						}
 					}
 				}
@@ -937,14 +942,14 @@ f_server <- function(input, output, session) {
 				if (length(v_val[!is.na(v_val)]) == 0) { # variable with no value
 					showNotification(paste0("\"", input$vname, "\" has no value. Please select an other variable."), duration = 15, type = "warning")
 					if (input$vtype == "quant") {o_cond$sdata[2] <- 1}
-					o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c("vtype", "rel_symbol", paste0("vvalue", 1:2), "c_add_button"), 0), o_input_status$val)
+					o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c("vtype", "rel_symbol", paste0("vvalue", 1:2), "expand_list2_button", "c_add_button"), 0), o_input_status$val)
 				}
 				else {
 					i_add_btn_status <- o_input_status$val[o_input_status$val$id == "c_add_button", "status"]
 					
 					if (is.numeric(v_val) & length(grep("[.]", v_val)) == 0) { # vname: integer (quantitative or qualitative variable)
 						if (i_add_btn_status == 0) { # previous variable with no value 
-							o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c("vtype", "rel_symbol", "vvalue1", "c_add_button"), 1), o_input_status$val)
+							o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c("vtype", "rel_symbol", "vvalue1", "expand_list2_button", "c_add_button"), 1), o_input_status$val)
 						}
 						else {
 							o_on_off$val <- f_update_input_status_list(f_create_input_status_list("vtype", 1), o_input_status$val)
@@ -970,7 +975,7 @@ f_server <- function(input, output, session) {
 							else {
 								o_special_input$val <- list("vtype" = "quant")
 								o_cond$sdata[2] <- 1
-								v_id <- c("vtype", paste0("vvalue", 1:2))
+								v_id <- c("vtype", paste0("vvalue", 1:2), "expand_list2_button")
 								
 								if (i_add_btn_status == 1) {
 									updateSelectizeInput(session, "rel_symbol", choices = c("=", "!=", "<", ">", "<=", ">="))
@@ -981,14 +986,14 @@ f_server <- function(input, output, session) {
 								}
 								
 								v_id <- as.vector(o_input_status$val[which(o_input_status$val$id %in% v_id), "id"])
-								o_on_off$val <- f_update_input_status_list(f_create_input_status_list(v_id, ifelse(v_id %in% c("vtype", "vvalue1"), 0, 1)), o_input_status$val)
+								o_on_off$val <- f_update_input_status_list(f_create_input_status_list(v_id, ifelse(v_id %in% c("vtype", "vvalue1", "expand_list2_button"), 0, 1)), o_input_status$val)
 							}
 						}
 						else { # vname: character (qualitative variable)
 							if (input$vtype == "quant") {
 								o_cond$sdata[2] <- 1
 								updateSelectizeInput(session, "rel_symbol", choices = c("%in%", "!%in%"))
-								v_id <- as.vector(o_input_status$val[which(o_input_status$val$id %in% c("vtype", paste0("vvalue", 1:2))), "id"])
+								v_id <- as.vector(o_input_status$val[which(o_input_status$val$id %in% c("vtype", paste0("vvalue", 1:2), "expand_list2_button")), "id"])
 								o_on_off$val <- f_update_input_status_list(f_create_input_status_list(v_id, ifelse(v_id %in% c("vtype", "vvalue2"), 0, 1)), o_input_status$val)
 							}
 							else {
@@ -997,7 +1002,7 @@ f_server <- function(input, output, session) {
 									o_on_off$val <- f_update_input_status_list(f_create_input_status_list("vtype", 0), o_input_status$val)
 								}
 								else { # previous variable with no value 
-									o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c("rel_symbol", "vvalue1", "c_add_button"), 1), o_input_status$val)
+									o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c("rel_symbol", "vvalue1", "expand_list2_button", "c_add_button"), 1), o_input_status$val)
 								}
 							}
 						}
@@ -1019,7 +1024,7 @@ f_server <- function(input, output, session) {
 				if (input$vtype == "quant") {
 					if (o_cond$sdata[2] == 0) {
 						updateSelectizeInput(session, "rel_symbol", choices = c("=", "!=", "<", ">", "<=", ">="))
-						o_on_off$val <- f_update_input_status_list(f_create_input_status_list(paste0("vvalue", 1:2), c(0, 1)), o_input_status$val)
+						o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c(paste0("vvalue", 1:2), "expand_list2_button"), c(0, 1, 0)), o_input_status$val)
 					}
 					else {
 						o_cond$sdata[2] <- 0
@@ -1030,7 +1035,7 @@ f_server <- function(input, output, session) {
 				else {
 					if (o_cond$sdata[2] == 0) {
 						updateSelectizeInput(session, "rel_symbol", choices = c("%in%", "!%in%"))
-						o_on_off$val <- f_update_input_status_list(f_create_input_status_list(paste0("vvalue", 1:2), c(1, 0)), o_input_status$val)
+						o_on_off$val <- f_update_input_status_list(f_create_input_status_list(c(paste0("vvalue", 1:2), "expand_list2_button"), c(1, 0, 1)), o_input_status$val)
 					}
 					else {
 						o_cond$sdata[2] <- 0
@@ -1679,18 +1684,22 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$del1_button, {
 		if ("all" %in% ls(e_data)) {
-			v_choices <- unique(as.vector(e_data$all[, input$vname]))
-			updateSelectizeInput(session, "vvalue1", choices = v_choices[order(v_choices)], selected = NULL)
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 2, input$vname)
+			updateSelectizeInput(session, "vvalue1", choices = v_choices, selected = NULL)
 		}
 	})
 	
 	observeEvent(input$del2_button, {
-		if ("all" %in% ls(e_data)) {updateSelectizeInput(session, "ref", choices = names(e_data$all), selected = NULL)}
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "ref", choices = v_choices, selected = NULL)
+		}
 	})
 	
 	observeEvent(input$del3_button, {
 		if ("all" %in% ls(e_data)) {
-			updateSelectizeInput(session, "var_x", choices = names(e_data$all), selected = NULL)
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_x", choices = v_choices, selected = NULL)
 			
 			if (!input$concat1 &  input$model == "none") {
 				o_on_off$val <- f_update_input_status_list(f_create_input_status_list("f_radio", 1), o_input_status$val)
@@ -1708,7 +1717,8 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$del4_button, {
 		if ("all" %in% ls(e_data)) {
-			updateSelectizeInput(session, "var_y", choices = names(e_data$all), selected = NULL)
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_y", choices = v_choices, selected = NULL)
 			
 			if (input$plot_type != "corplot") {
 				o_on_off$val <- f_update_input_status_list(f_create_input_status_list("g_radio", 1), o_input_status$val)
@@ -1726,7 +1736,8 @@ f_server <- function(input, output, session) {
 	
 	observeEvent(input$del5_button, {
 		if ("all" %in% ls(e_data)) {
-			updateSelectizeInput(session, "var_z", choices = names(e_data$all), selected = NULL)
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_z", choices = v_choices, selected = NULL)
 			o_on_off$val <- f_update_input_status_list(f_create_input_status_list("h_radio", 1), o_input_status$val)
 			if (input$h_radio == "yes") {updateRadioButtons(session, "h_radio", selected = "no")}
 			o_label_text$del$z <- ifelse("z" %in% o_label_text$label, ifelse(o_label_text$text[which(o_label_text$label == "z")] != "", 1, 0), 0) # reset z custom label
@@ -1734,11 +1745,17 @@ f_server <- function(input, output, session) {
 	})
 	
 	observeEvent(input$del6_button, {
-		if ("all" %in% ls(e_data)) {updateSelectizeInput(session, "wres_group", choices = names(e_data$all), selected = NULL)}
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "wres_group", choices = v_choices, selected = NULL)
+		}
 	})
 	
 	observeEvent(input$del7_button, {
-		if ("all" %in% ls(e_data)) {updateSelectizeInput(session, "var_group", choices = names(e_data$all), selected = NULL)}
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_group", choices = v_choices, selected = NULL)
+		}
 		
 		if (input$plot_type != "corplot" & o_click_button$display == 0) {
 			if (input$plot_type %in% c("plot", "histplot")) {
@@ -1843,6 +1860,140 @@ f_server <- function(input, output, session) {
 		}
 	})
 	
+	observeEvent(input$expand_list1_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			
+			showModal(shiny::modalDialog(title = "Variable name:", easyClose = F, size = "l",
+				selectizeInput("vname_modal", NULL, choices = v_choices, selected = input$vname, width = "100%", options = list(maxOptions = 9999, maxItems = 1)),
+				footer = tagList(actionButton("ok_button_explist1", "Ok"), actionButton("close_button_explist1", "Close"))
+			))
+		}
+	})
+	
+	observeEvent(input$expand_list2_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 2, input$vname)
+			
+			showModal(shiny::modalDialog(title = "Value:", easyClose = F, size = "l",
+				selectizeInput("vvalue1_modal", NULL, choices = v_choices, selected = input$vvalue1, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = 9999)),
+				footer = tagList(bsButton("del_button_explist2", NULL, style = "danger", size = "small", icon = icon("trash-alt")), actionButton("ok_button_explist2", "Ok"), actionButton("close_button_explist2", "Close"))
+			))
+		}
+	})
+	
+	observeEvent(input$expand_list3_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			
+			if (o_input_status$val[o_input_status$val$id == "var_id", "special"] == 1) {
+				showModal(shiny::modalDialog(title = "ID:", easyClose = F, size = "l",
+					selectizeInput("var_id_modal", NULL, choices = v_choices, selected = input$var_id, width = "100%", options = list(maxOptions = 9999, maxItems = 1)),
+					footer = tagList(disabled(actionButton("ok_button_explist3", "Ok")), actionButton("close_button_explist3", "Close"))
+				))
+			}
+			else {
+				showModal(shiny::modalDialog(title = "ID:", easyClose = F, size = "l",
+					selectizeInput("var_id_modal", NULL, choices = v_choices, selected = input$var_id, width = "100%", options = list(maxOptions = 9999, maxItems = 1)),
+					footer = tagList(actionButton("ok_button_explist3", "Ok"), actionButton("close_button_explist3", "Close"))
+				))
+			}
+		}
+	})
+	
+	observeEvent(input$expand_list4_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			
+			showModal(shiny::modalDialog(title = "Random:", easyClose = F, size = "l",
+				selectizeInput("ref_modal", NULL, choices = v_choices, selected = input$ref, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = 9999)),
+				footer = tagList(bsButton("del_button_explist4", NULL, style = "danger", size = "small", icon = icon("trash-alt")), actionButton("ok_button_explist4", "Ok"), actionButton("close_button_explist4", "Close"))
+			))
+		}
+	})
+	
+	observeEvent(input$expand_list5_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			i_max_item <- ifelse(input$data_type == "temporal" | (input$plot_type %in%  c("boxplot", "barplot") & !input$concat1), 1, 9999)
+			
+			if (i_max_item > 1) {
+				showModal(shiny::modalDialog(title = "X:", easyClose = F, size = "l",
+					selectizeInput("var_x_modal", NULL, choices = v_choices, selected = input$var_x, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = i_max_item)),
+					footer = tagList(bsButton("del_button_explist5", NULL, style = "danger", size = "small", icon = icon("trash-alt")), actionButton("ok_button_explist5", "Ok"), actionButton("close_button_explist5", "Close"))
+				))
+			}
+			else {
+				showModal(shiny::modalDialog(title = "X:", easyClose = F, size = "l",
+					selectizeInput("var_x_modal", NULL, choices = v_choices, selected = input$var_x, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = i_max_item)),
+					footer = tagList(actionButton("ok_button_explist5", "Ok"), actionButton("close_button_explist5", "Close"))
+				))
+			}
+		}
+	})
+	
+	observeEvent(input$expand_list6_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			i_max_item <- ifelse(input$model != "none", 1, 9999)
+			
+			if (i_max_item > 1) {
+				showModal(shiny::modalDialog(title = "Y:", easyClose = F, size = "l",
+					selectizeInput("var_y_modal", NULL, choices = v_choices, selected = input$var_y, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = i_max_item)),
+					footer = tagList(bsButton("del_button_explist6", NULL, style = "danger", size = "small", icon = icon("trash-alt")), actionButton("ok_button_explist6", "Ok"), actionButton("close_button_explist6", "Close"))
+				))
+			}
+			else {
+				showModal(shiny::modalDialog(title = "Y:", easyClose = F, size = "l",
+					selectizeInput("var_y_modal", NULL, choices = v_choices, selected = input$var_y, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = i_max_item)),
+					footer = tagList(actionButton("ok_button_explist6", "Ok"), actionButton("close_button_explist6", "Close"))
+				))
+			}
+		}
+	})
+	
+	observeEvent(input$expand_list7_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			
+			showModal(shiny::modalDialog(title = "Z:", easyClose = F, size = "l",
+				selectizeInput("var_z_modal", NULL, choices = v_choices, selected = input$var_z, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = 9999)),
+				footer = tagList(bsButton("del_button_explist7", NULL, style = "danger", size = "small", icon = icon("trash-alt")), actionButton("ok_button_explist7", "Ok"), actionButton("close_button_explist7", "Close"))
+			))
+		}
+	})
+	
+	observeEvent(input$expand_list8_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			
+			showModal(shiny::modalDialog(title = "Weighted residual groups:", easyClose = F, size = "l",
+				selectizeInput("wres_group_modal", NULL, choices = v_choices, selected = input$wres_group, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = 9999)),
+				footer = tagList(bsButton("del_button_explist8", NULL, style = "danger", size = "small", icon = icon("trash-alt")), actionButton("ok_button_explist8", "Ok"), actionButton("close_button_explist8", "Close"))
+			))
+		}
+	})
+	
+	observeEvent(input$expand_list9_button, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			i_max_item <- ifelse(!input$concat2, 1, 9999)
+			
+			if (i_max_item > 1) {
+				showModal(shiny::modalDialog(title = "Group:", easyClose = F, size = "l",
+					selectizeInput("var_group_modal", NULL, choices = v_choices, selected = input$var_group, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = i_max_item)),
+					footer = tagList(bsButton("del_button_explist9", NULL, style = "danger", size = "small", icon = icon("trash-alt")), actionButton("ok_button_explist9", "Ok"), actionButton("close_button_explist9", "Close"))
+				))
+			}
+			else {
+				showModal(shiny::modalDialog(title = "Group:", easyClose = F, size = "l",
+					selectizeInput("var_group_modal", NULL, choices = v_choices, selected = input$var_group, multiple = T, width = "100%", options = list(maxOptions = 9999, maxItems = i_max_item)),
+					footer = tagList(actionButton("ok_button_explist9", "Ok"), actionButton("close_button_explist9", "Close"))
+				))
+			}
+		}
+	})
+	
 	# Ok/Close buttons
 	
 	observeEvent(input$ok_button_exp1, {
@@ -1920,6 +2071,165 @@ f_server <- function(input, output, session) {
 			removeModal()
 			if (!is.null(o_expand$info_var_data)) {o_expand$info_var_data <- NULL}
 			if (!is.null(o_expand$code_var_data)) {o_expand$code_var_data <- NULL}
+		}
+	})
+	
+	observeEvent(input$ok_button_explist1, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "vname", choices = v_choices, selected = input$vname_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist1, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist2, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 2, input$vname)
+			updateSelectizeInput(session, "vvalue1", choices = v_choices, selected = input$vvalue1_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist2, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist3, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_id", choices = v_choices, selected = input$var_id_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist3, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist4, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "ref", choices = v_choices, selected = input$ref_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist4, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist5, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_x", choices = v_choices, selected = input$var_x_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist5, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist6, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_y", choices = v_choices, selected = input$var_y_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist6, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist7, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_z", choices = v_choices, selected = input$var_z_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist7, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist8, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "wres_group", choices = v_choices, selected = input$wres_group_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist8, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	observeEvent(input$ok_button_explist9, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_group", choices = v_choices, selected = input$var_group_modal)
+			removeModal()
+		}
+	})
+	
+	observeEvent(input$close_button_explist9, {
+		if ("all" %in% ls(e_data)) {removeModal()}
+	})
+	
+	# Del buttons
+	
+	observeEvent(input$del_button_explist2, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 2, input$vname)
+			updateSelectizeInput(session, "vvalue1_modal", choices = v_choices, selected = NULL)
+		}
+	})
+	
+	observeEvent(input$del_button_explist4, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "ref_modal", choices = v_choices, selected = NULL)
+		}
+	})
+	
+	observeEvent(input$del_button_explist5, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_x_modal", choices = v_choices, selected = NULL)
+		}
+	})
+	
+	observeEvent(input$del_button_explist6, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_y_modal", choices = v_choices, selected = NULL)
+		}
+	})
+	
+	observeEvent(input$del_button_explist7, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_z_modal", choices = v_choices, selected = NULL)
+		}
+	})
+	
+	observeEvent(input$del_button_explist8, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "wres_group_modal", choices = v_choices, selected = NULL)
+		}
+	})
+	
+	observeEvent(input$del_button_explist9, {
+		if ("all" %in% ls(e_data)) {
+			v_choices <- f_create_input_value_list("selectize", e_data$all, c(o_cond$concat1, o_cond$concat2), o_click_button$create, 1)
+			updateSelectizeInput(session, "var_group_modal", choices = v_choices, selected = NULL)
 		}
 	})
 	
