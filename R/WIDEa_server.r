@@ -2666,7 +2666,11 @@ f_server <- function(input, output, session) {
 								}
 							}
 							else { # corplot
-								if (isolate(o_cond$display) == 0) {o_zoom$coord <- NULL} # executed with the display button
+								if (isolate(o_cond$display) == 0) { # executed with the display button
+									o_zoom$coord <- NULL
+									l_axis_layout <- NULL
+								}
+								
 								o_plot$data <- df_all
 							}
 							
@@ -3896,18 +3900,21 @@ f_server <- function(input, output, session) {
 				
 				if (o_click_button$display == 1) { # graph displayed
 					if (input$plot_type %in% c("boxplot", "barplot")) { # normal data type: boxplot, barplot
-						v_var_name <- eval(parse(text = ifelse(!is.na(o_parameter$concat1_group), "o_parameter$concat1_group", "o_parameter$x")))
-						if (!is.na(o_parameter$concat1_group)) {v_concat[1] <- T} 
+						i_cond <- length(which(!is.na(o_parameter$concat1_group)))
+						v_var_name <- eval(parse(text = ifelse(i_cond > 0, "o_parameter$concat1_group", "o_parameter$x")))
+						if (i_cond > 0) {v_concat[1] <- T} 
 						
 						if (input$edit_option == "sorting" & !is.na(o_parameter$group)) {
 							b_sorting2 <- T
-							v_var_name2 <- eval(parse(text = ifelse(!is.na(o_parameter$concat2_group), "o_parameter$concat2_group", "o_parameter$group")))
-							if (!is.na(o_parameter$concat2_group)) {v_concat[2] <- T} 
+							i_cond <- length(which(!is.na(o_parameter$concat2_group)))
+							v_var_name2 <- eval(parse(text = ifelse(i_cond > 0, "o_parameter$concat2_group", "o_parameter$group")))
+							if (i_cond > 0) {v_concat[2] <- T} 
 						}
 					}
 					else { # all data types: plot, histplot (only normal data type)
-						v_var_name <- eval(parse(text = ifelse(input$data_type == "temporal", "o_parameter$y", ifelse(is.na(o_parameter$group), "NA", ifelse(!is.na(o_parameter$concat2_group), "o_parameter$concat2_group", "o_parameter$group")))))
-						if (!is.na(o_parameter$concat2_group)) {v_concat[2] <- T} 
+						i_cond <- length(which(!is.na(o_parameter$concat2_group)))
+						v_var_name <- eval(parse(text = ifelse(input$data_type == "temporal", "o_parameter$y", ifelse(is.na(o_parameter$group), "NA", ifelse(i_cond > 0, "o_parameter$concat2_group", "o_parameter$group")))))
+						if (i_cond > 0) {v_concat[2] <- T} 
 					}
 				}
 				else { # graph not displayed
